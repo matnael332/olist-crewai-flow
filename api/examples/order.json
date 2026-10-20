@@ -1,0 +1,30 @@
+{
+  "records": [
+    {
+      "n_items": 1,
+      "total_price": 129.9,
+      "total_freight": 21.5,
+      "total_weight_g": 1200.0,
+      "customer_state": "BA",
+      "seller_state": "SP",
+      "primary_category": "furniture_decor",
+      "payment_type": "boleto",
+      "max_installments": 1,
+      "purchase_ts": "2018-06-12 14:00:00",
+      "estimated_delivery_date": "2018-07-05"
+    },
+    {
+      "n_items": 1,
+      "total_price": 129.9,
+      "total_freight": 21.5,
+      "total_weight_g": 1200.0,
+      "customer_state": "SP",
+      "seller_state": "SP",
+      "primary_category": "furniture_decor",
+      "payment_type": "boleto",
+      "max_installments": 1,
+      "purchase_ts": "2018-06-12 14:00:00",
+      "estimated_delivery_date": "2018-07-05"
+    }
+  ]
+}

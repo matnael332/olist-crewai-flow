@@ -16,7 +16,9 @@ risky orders early protects customer satisfaction.
 | What will happen (Crew 2) | Logistic regression selected over gradient boosting and a baseline; test **ROC-AUC 0.733**, PR-AUC 0.102 (baseline 0.038); the riskiest 10% of orders are late **12.1%** of the time, **3.2x** the 3.8% test late rate |
 | Dashboard | Streamlit app in `app/` (`uv run streamlit run app/streamlit_app.py`); cloud deployment steps in [docs/deploy.md](docs/deploy.md) |
 | Documentation | [architecture](docs/architecture.md), [decision records](docs/decisions.md), [interactive Flow diagram](docs/flow_plot/olist_flow.html) |
-| Presentation and video | added in M7 |
+| Presentation and video | [slides (PDF)](docs/presentation.pdf), [PowerPoint](docs/presentation.pptx) (12 slides, rebuilt from `artifacts/` by `scripts/build_presentation.py`), [video script](docs/video_script.md) |
+
+![Dashboard overview: run status, KPIs, the Flow and the three gates](docs/images/dashboard_overview.png)
 
 ## Architecture
 
@@ -82,7 +84,7 @@ is passed to the scientist agents, and the contract hash is recorded in `feature
 git clone https://github.com/matnael332/olist-crewai-flow && cd olist-crewai-flow
 uv sync                                                     # Python 3.13 + locked dependencies
 uv run python -m olist_core.validate artifacts              # the 3 gates on the committed artifacts
-uv run pytest                                               # 74 tests, no LLM calls (~2 min)
+uv run pytest                                               # 94 tests, no LLM calls (~2 min)
 uv run python -m olist_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote
 uv run python -m olist_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote \
     --inject-fault missing_feature                          # graceful failure: exit 1, nothing promoted
@@ -98,7 +100,11 @@ cp .env.example .env                        # set GEMINI_API_KEY (Google AI Stud
 uv run kickoff                              # LLM mode: both crews on Gemini, ~3 minutes, ~12 calls
 uv run python -m olist_flow.run --no-llm    # deterministic mode, ~2 minutes
 uv run python -m api.serve                  # prediction API on http://127.0.0.1:8000
+curl -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" \
+    -d @api/examples/order.json             # two orders; invalid_order.json shows a 422
 ```
+
+On Windows PowerShell use `curl.exe` and quote the file argument: `-d "@api/examples/order.json"`.
 
 | Flag | Meaning |
 |---|---|
@@ -150,7 +156,9 @@ artifacts/        the last promoted run (committed): the 8 spec files + reports,
 app/              Streamlit dashboard (reads artifacts/ only)
 api/              Flask prediction API (validates requests against the dataset contract)
 data/             raw/ manifest and schema (CSVs are downloaded), lookups/, NOTICE.md
-tests/            74 tests + the olist_mini fixture (real subset with injected defects)
+tests/            94 tests + the olist_mini fixture (real subset with injected defects)
+docs/             architecture, decision records, deployment guide, slides, video script
+scripts/          data download, repo hygiene check, slide deck build and PDF export
 ```
 
 ## Data license
