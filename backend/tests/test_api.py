@@ -1,5 +1,6 @@
 """Flask prediction API: validation, degraded mode and training/serving parity."""
 
+import io
 from pathlib import Path
 
 import pandas as pd
@@ -116,3 +117,110 @@ def test_degraded_mode_without_artifacts(tmp_path):
     client = create_app(tmp_path, FIXTURE_LOOKUPS).test_client()
     assert client.get("/health").get_json()["status"] == "degraded"
     assert client.post("/predict", json={"records": [GOOD]}).status_code == 503
+
+
+# Product endpoints: risk levels, batch scoring, daily replay ---------------------------------
+
+
+def _csv(rows: list[dict]) -> str:
+    return pd.DataFrame(rows).to_csv(index=False)
+
+
+def test_health_reports_the_risk_levels(client):
+    levels = client.get("/health").get_json()["risk_levels"]
+    assert 0 < levels["elevated_from"] <= levels["high_from"] < 1
+
+
+def test_predict_echoes_order_id_with_level_and_action(client, api_record):
+    body = client.post("/predict", json={"records": [{**api_record, "order_id": "o-1"}]}).get_json()
+    prediction = body["predictions"][0]
+    assert prediction["order_id"] == "o-1"
+    assert prediction["risk_level"] in {"high", "elevated", "normal"}
+    assert prediction["recommended_action"]
+    assert body["model"]["top10_cutoff"] > body["model"]["threshold"]
+
+
+def test_batch_endpoint_scores_csv_with_partial_success(client, api_record):
+    data = _csv(
+        [{**api_record, "order_id": "a"}, {**api_record, "order_id": "b", "seller_state": "XX"}]
+    )
+    response = client.post("/predict/batch", data=data, content_type="text/csv")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["summary"]["scored"] == 1 and body["summary"]["rejected"] == 1
+    assert body["errors"] == [
+        {"row": 2, "field": "seller_state", "message": "'XX' is not an allowed value"}
+    ]
+    assert body["predictions"][0]["order_id"] == "a"
+
+
+def test_batch_endpoint_accepts_a_multipart_file_and_returns_csv(client, api_record):
+    data = _csv([{**api_record, "order_id": "a"}])
+    response = client.post(
+        "/predict/batch?format=csv",
+        data={"file": (io.BytesIO(data.encode()), "orders.csv")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 200 and response.mimetype == "text/csv"
+    assert response.get_data(as_text=True).startswith(
+        "row,order_id,customer_state,late_probability"
+    )
+
+
+@pytest.mark.parametrize(
+    ("data", "status", "code"),
+    [
+        ("", 400, "no_file"),
+        ("n_items,total_price\n1,2\n", 400, "missing_columns"),
+    ],
+)
+def test_batch_endpoint_file_errors(client, data, status, code):
+    response = client.post("/predict/batch", data=data, content_type="text/csv")
+    assert response.status_code == status and response.get_json()["error"] == code
+
+
+def test_batch_endpoint_with_no_valid_rows_is_422(client, api_record):
+    data = _csv([{**api_record, "customer_state": "XX"}])
+    response = client.post("/predict/batch", data=data, content_type="text/csv")
+    assert response.status_code == 422 and response.get_json()["error"] == "no_valid_rows"
+
+
+def test_batch_endpoint_rejects_bodies_over_2_mb(client):
+    response = client.post(
+        "/predict/batch", data=b"x" * (2 * 1024 * 1024 + 1), content_type="text/csv"
+    )
+    assert response.status_code == 413 and response.get_json()["error"] == "too_large"
+
+
+def test_risk_list_replays_a_day_with_outcomes(client, busiest_test_day):
+    url = f"/risk-list?date={busiest_test_day}&min_level=normal&include_outcome=true"
+    body = client.get(url).get_json()
+    assert body["date"] == str(busiest_test_day)
+    assert len(body["predictions"]) == body["summary"]["scored"] > 0
+    assert all(isinstance(p["actual_late"], bool) for p in body["predictions"])
+    assert body["backtest"]["all"]["orders"] == body["summary"]["rows"]
+    default = client.get(f"/risk-list?date={busiest_test_day}").get_json()
+    assert {p["risk_level"] for p in default["predictions"]} <= {"high", "elevated"}
+    assert "backtest" not in default
+
+
+@pytest.mark.parametrize(
+    ("query", "status", "code"),
+    [
+        ("date=2018-04-01", 404, "out_of_window"),
+        ("date=not-a-date", 400, "invalid_date"),
+        ("date=2018-07-16&min_level=urgent", 400, "invalid_level"),
+    ],
+)
+def test_risk_list_errors(client, query, status, code):
+    response = client.get(f"/risk-list?{query}")
+    assert response.status_code == status and response.get_json()["error"] == code
+
+
+def test_product_endpoints_degrade_without_a_model(tmp_path):
+    degraded = create_app(tmp_path, FIXTURE_LOOKUPS).test_client()
+    assert (
+        degraded.post("/predict/batch", data="a,b\n1,2\n", content_type="text/csv").status_code
+        == 503
+    )
+    assert degraded.get("/risk-list?date=2018-07-16").status_code == 503
