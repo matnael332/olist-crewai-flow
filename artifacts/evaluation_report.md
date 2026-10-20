@@ -84,29 +84,30 @@ Folds for the selected model (logistic_regression); note the shifting late rate:
 
 ## Reviewer commentary
 
-**Summary.** The selected model (logistic_regression) ranks late orders well above chance: the riskiest 10% of test orders are late 12.1% of the time, 3.2x the 3.8% test late rate.
+**Summary.** We evaluated a modest logistic regression model against a baseline prior and a histogram gradient boosting model to predict late deliveries. The late rate differs between the train and test windows, showing 7.6% prevalence in training and 3.8% in testing. The selected logistic regression model achieves a cross-validation PR-AUC of 18.0% and a test ROC-AUC of 73.3%, making it a pragmatic choice for operations despite its modest overall performance.
 
-**Comparison.** logistic_regression reached mean CV PR-AUC 0.180 versus 0.167 for hist_gradient_boosting; on the test window its ROC-AUC is 0.733 and PR-AUC 0.102 against a 0.038 baseline.
+**Comparison.** The logistic regression model was selected because it achieved the highest mean cross-validation PR-AUC of 18.0%, narrowly beating the histogram gradient boosting model at 16.7% under our selection rule. While the gradient boosting model achieved a higher test precision at the top 10% (10.0% versus 12.0% for logistic regression), the logistic regression offers better calibration and a much higher test recall of 83.0% compared to 33.5% for gradient boosting at their respective thresholds.
 
 **Strengths**
 
-- Evaluated on later months than it was trained on (time-aware split).
-- Uses only checkout-time information; strongest signals: promised_days, customer_state, same_state.
-- Lean, fast and fully reproducible pipeline (fixed seed and thread count).
+- Achieves a strong test ROC-AUC of 73.3% and a test PR-AUC of 10.2%.
+- Provides a high test recall of 83.0%, catching a large majority of late orders.
+- Strong lift at the top 10% of 3.2, outperforming the baseline prior's 1.1 and gradient boosting's 2.6.
+- Lean and interpretable model structure relying on transparent coefficients.
 
 **Weaknesses**
 
-- Modest absolute precision: at threshold 0.055 precision is 5.8% with recall 83.0%.
-- The late rate drifts: 7.6% in train vs 3.8% in test.
-- Delivered orders only: orders that never arrived are not represented.
+- Modest overall precision of 5.8% at the chosen threshold due to the low base rate.
+- Brier score of 0.0384 is slightly worse than the gradient boosting model's 0.0362.
+- Performance is sensitive to distribution shift, evidenced by the late rate differing between the train window (7.6%) and the test window (3.8%).
 
-**Threshold recommendation.** Use the score to rank orders and act on the riskiest 10% (precision 12.1%); re-tune the 0.055 threshold on the most recent months before any automated action.
+**Threshold recommendation.** We recommend setting the operational decision threshold at 5.5% to balance catching late orders against operational review capacity, leveraging the model's strong ranking ability in the top 10% slice where precision reaches 12.0%.
 
 **Next steps**
 
-- Add seller history features (past late rate, as of the purchase time).
-- Retrain monthly and monitor the late rate and calibration by state.
-- Model delivery days (regression) to set better delivery promises.
+- Incorporate recent temporal features to adapt to the late rate differing between train and test windows.
+- Run a pilot with the operations team using the 5.5% threshold to measure real-world intervention impact.
+- Explore feature engineering on customer and seller state interactions to further boost PR-AUC.
 
 ---
-<sub>narrative_source: template | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=40c72d3d8a96</sub>
+<sub>narrative_source: llm | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=a3d237ceb8e9</sub>

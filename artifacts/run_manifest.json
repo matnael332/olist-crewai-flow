@@ -2,12 +2,12 @@
   "artifacts": {
     "clean_data.csv": "614e4351e1478c1afe6248755537e74cfd294d771a52dcc1c6ee2e1434a1057b",
     "cleaning_report.json": "4cebaa7c7148bd76e0019de4dad05061ad5abc11be7ed8fd3e62e74ba3520dfe",
-    "cleaning_report.md": "87b94cff29e5455c63b6fca3e57ee265a125d89f93f25af4dff9ee3b3848b37d",
-    "dataset_contract.json": "05f94f8cfd5c74843278ec9ec2c557bd357c2b63c7574a0d7e830b473b9b08e5",
-    "eda_report.html": "e5a4c198ec6ac2f633a3785bed6096b308adc9ef7740499436c7747ca13fdd6b",
+    "cleaning_report.md": "8ce7cb2034679e108a7448d53691177bc8a409d0ba2d3f5d1985d87917fcd1ad",
+    "dataset_contract.json": "8fe2e5d99bbc4d0b4023f97786c8864f9ff3d7f55c6473e634ee57ecae7da0fe",
+    "eda_report.html": "da4a63e89a60272c5248c7c362feee8fabd01922361fbf049ea4d1c0bf38fffb",
     "eda_summary.json": "ab5021a4aeb1b0666043f8c695943f526ddcc0160463b3a88ceff54003a95e23",
-    "evaluation_report.md": "d08ca7ca6888154723d5a508053c9cf2a36109ab4812776fcf7dd2d7bd1a19d9",
-    "feature_spec.json": "fcead8588ec6ac95002b5108a04f539861ed56c6f1c75c33686a8a332cc2b915",
+    "evaluation_report.md": "2900f148744ef2c3bc53be22d9c055636cb11f2a1217ef73fa221243d1424c10",
+    "feature_spec.json": "44dfcff4eaaf5c1f61edfd48d938b1b191454794a64b75cf4c462117798e8e39",
     "features.csv": "0030562e0073974dc353d5f57e9bfe6f4e87c5aad1c0eb6a89e8009864622f25",
     "figures/calibration_selected.png": "ade5f05b71eee4802a61aa471bfd3ebd27f62720511197a1a4006eaa3f8f602e",
     "figures/delivery_days_hist.png": "7b933864f86210e1de4f61ec2be8d816f881b629938b53b535fad841ef08066a",
@@ -20,16 +20,16 @@
     "figures/promised_vs_actual_by_month.png": "75ec8f016c84e8d675e79c6141832c85600b9084288886c049f66172a57a638e",
     "figures/review_score_vs_late.png": "087a3c8ca7c7f0cfbd6e2d33da63fcdf1cdbbaa57d0f43cec7e7c0a660c547e6",
     "figures/roc_curves.png": "e74b417c172fde1fd29b2d8d08bb388bdb64580b8a0d78ec133e59ff61858ec5",
-    "insights.md": "867c40dc2d4f7e10728eb910db00193efdf8cdbb8fb5e2da083a389653fb72e4",
+    "insights.md": "e92c34a1f0aacfb80f49d25e9621b9485a96b175eccc69619e51edbadfed3a17",
     "metrics.json": "bb25900b6ecc7143cb7525910de7d6249eeca752b36cec561a4ba6c05938b327",
     "model.joblib": "4c32dc86a7e5d86dc60a98aa7c4c2f57bc338c24d04322d9b0039d9b127d99c4",
-    "model_card.md": "790fc360fc3f6a63f8d99be90686beb9e5d0647080994a248f88acc339f91042",
-    "model_meta.json": "40c72d3d8a963aef51f7370e2bcb6a3887eed016707b486c988bfb22e67201b4",
+    "model_card.md": "3cefaedb24e4751e8a0656fba9077e61a328f2fb10ce8e1edf31ab8d752e22e9",
+    "model_meta.json": "a3d237ceb8e9aca75718baff46a27ec2307a8e84a7bf37046910940b379121e1",
     "predictions_test.csv": "32f680888f60b0e0de9aaa21394db892a3dc4bb11ac2b78af18ec9ff7ec27fd0",
     "provenance.json": "fb8751d54f8364ad1ee3b877da35a21d2ef4d74fdf8d7d85ea3361eb9fec9bcc",
     "raw_profile.json": "3b6f14fe2af9e146bc335ee7aec7ce9f826518c003eb01dff0faa9eaa71740ee",
-    "run_status.json": "522eb8c0482ac22d471a4513f26d6c5bb5a49ddc05ca261222c80f1a79af890f",
-    "validation_report.json": "f3d192f925af4b45d0c2b99bae3c16a906a5c8b1b9be970b1c73216066df3317"
+    "run_status.json": "68a13065ff2307abcbe1f381dca0d5d472f629630d24f22b942e956afd0c0aea",
+    "validation_report.json": "25be46bbe30a3e5bdc5bf4627610c58dcbc24f7e3208de3e38eddd8050b5c415"
   },
   "environment": {
     "OMP_NUM_THREADS": "2",
@@ -55,11 +55,11 @@
     "python_prefix": "C:/Users/Matanel/Desktop/final_project/.venv"
   },
   "errors": [],
-  "finished_at": "2026-10-20T14:03:28Z",
+  "finished_at": "2026-10-20T14:24:20Z",
   "git": {
-    "branch": "feat/m3-flow",
+    "branch": "feat/m4-crews",
     "dirty": true,
-    "sha": "02eb021be4f03a264602f3dd54392c30e3c2d0a4"
+    "sha": "ffc18e642b9a5b94ccbc06863a5b2cefdd9b86be"
   },
   "inputs": {
     "olist_customers_dataset.csv": "c26c17f59f3027a6a0dbeb8f1fa373c38f3323ecc84f225a8f4820e5bb288df8",
@@ -72,20 +72,32 @@
     "olist_sellers_dataset.csv": "31eb9bd50d684526a78f2389413ce61841e97692de7b828fe7d956b534586312",
     "product_category_name_translation.csv": "a81f0d1f27b27e7293f761bc79e3ce8f348ee39c4b3ed3e49bde38f478586278"
   },
-  "narrative_sources": {},
+  "narrative_sources": {
+    "cleaning_report.md": "llm",
+    "dataset_contract.json": "template+llm",
+    "evaluation_report.md": "llm",
+    "feature_spec.json": "llm",
+    "insights.md": "llm",
+    "model_card.md": "template+llm"
+  },
   "run": {
     "from_run": "",
     "inject_fault": "",
-    "llm_model": "",
-    "mode": "deterministic",
-    "run_id": "20261020-140156-32a113",
+    "llm_model": "gemini-3.5-flash-lite",
+    "mode": "llm",
+    "run_id": "final-llm-1",
     "seed": 42,
     "stage": "promote_and_finish",
     "start_at": "",
     "status": "success"
   },
-  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/20261020-140156-32a113",
-  "started_at": "2026-10-20T14:02:12Z",
-  "token_usage": {},
+  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/final-llm-1",
+  "started_at": "2026-10-20T14:21:07Z",
+  "token_usage": {
+    "completion_tokens": 3895,
+    "prompt_tokens": 15890,
+    "successful_requests": 12,
+    "total_tokens": 19785
+  },
   "warnings": []
 }

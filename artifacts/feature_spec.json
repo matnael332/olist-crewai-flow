@@ -1,5 +1,5 @@
 {
-  "contract_sha256": "05f94f8cfd5c74843278ec9ec2c557bd357c2b63c7574a0d7e830b473b9b08e5",
+  "contract_sha256": "8fe2e5d99bbc4d0b4023f97786c8864f9ff3d7f55c6473e634ee57ecae7da0fe",
   "contract_version": "1.0",
   "excluded_columns": [
     {
@@ -655,20 +655,18 @@
   ],
   "narrative": {
     "concerns": [
-      "The late rate differs between train (7.6%) and test (3.8%); thresholds must be re-tuned on recent data.",
-      "Package dimensions and distance are missing for a small share of orders."
+      "The late rate shifts noticeably between splits, with train at 7.6%, censored_buffer at 6.2%, and test dropping to 3.8%."
     ],
-    "contract_compliance": "Follows dataset contract v1.0 (sha256 05f94f8cfd5c): the handoff was re-validated before feature work (PASS (21/21 checks)), 96,203 rows, all 14 required features built, none of the 7 forbidden columns used.",
+    "contract_compliance": "Contract version 1.0, validated row count is 96,203 across splits (train: 70,851, test: 19,001, censored_buffer: 6,351), listing 25 required model features and 13 forbidden columns.",
     "feature_groups": [
-      "Basket: item, product and seller counts, price, freight and freight ratio.",
-      "Package: total weight and volume and the largest dimensions.",
-      "Payment: amount, installments, number of payments and payment type.",
-      "Geography: customer and seller states, same-state flag, distance.",
-      "Promise and timing: promised days, purchase month, weekday, hour, weekend flag.",
-      "Product: category of the first item."
+      "Order Composition Features (n_items, n_distinct_products, n_sellers): capture order scale and complexity at checkout.",
+      "Financial Features (total_price, total_freight, freight_ratio, payment_total, max_installments, n_payments): represent monetary value and payment terms available at checkout.",
+      "Logistics and Physical Dimensions (total_weight_g, total_volume_cm3, max_length_cm, max_height_cm, max_width_cm, distance_km, promised_days, same_state): characterize the physical cargo and geographical distance known at purchase.",
+      "Temporal Features (purchase_month_num, purchase_dow, purchase_hour, is_weekend): encode the exact moment of purchase.",
+      "Categorical Features (customer_state, seller_state, payment_type, primary_category): describe regional and categorical attributes available at checkout."
     ],
-    "leakage_statement": "Every feature is derived from columns available at checkout; delivery timestamps, delivery_days and review fields are excluded, so the model only sees what is known when the customer pays.",
-    "narrative_source": "template"
+    "leakage_statement": "Every model feature is derived only from clean_data columns tagged available_at == 'checkout'; identifiers and post-purchase columns such as delivery_days, review_score, bad_review, and is_late are excluded, preventing any post-purchase information leakage.",
+    "narrative_source": "llm"
   },
   "spec_version": "1.0",
   "split": {

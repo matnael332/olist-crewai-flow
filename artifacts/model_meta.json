@@ -9,11 +9,11 @@
     "late_rate": 0.06188,
     "rows": 6351
   },
-  "contract_sha256": "05f94f8cfd5c74843278ec9ec2c557bd357c2b63c7574a0d7e830b473b9b08e5",
+  "contract_sha256": "8fe2e5d99bbc4d0b4023f97786c8864f9ff3d7f55c6473e634ee57ecae7da0fe",
   "contract_version": "1.0",
   "description": "LogisticRegression on scaled numerics + one-hot categories (threshold tuned for the imbalance)",
   "estimator": "LogisticRegression",
-  "feature_spec_sha256": "fcead8588ec6ac95002b5108a04f539861ed56c6f1c75c33686a8a332cc2b915",
+  "feature_spec_sha256": "44dfcff4eaaf5c1f61edfd48d938b1b191454794a64b75cf4c462117798e8e39",
   "model_features": [
     "n_items",
     "n_distinct_products",

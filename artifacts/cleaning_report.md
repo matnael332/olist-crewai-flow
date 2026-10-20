@@ -1,6 +1,6 @@
 # Cleaning report
 
-The nine raw Olist tables (99,441 orders) were reduced to 96,203 delivered orders, one row per order, purchased between 2017-01-01 and 2018-08-31. Items, payments and reviews were aggregated per order before joining so revenue is never double-counted.
+This data cleaning process standardized the orders dataset by filtering out non-delivered statuses, missing delivery dates, and purchases outside the specified window, reducing total rows from 99,441 to 96,203. It also handled timestamp anomalies, product category and dimension gaps, invalid payments, multiple or missing reviews, and unknown geographic distances. Finally, derived metrics such as late deliveries were calculated to finalize a clean analytical table with 38 columns.
 
 ## Rules applied (computed)
 
@@ -19,23 +19,29 @@ The nine raw Olist tables (99,441 orders) were reduced to 96,203 delivered order
 
 ## Issues found
 
-- 2,963 orders were not delivered (approved 2, canceled 625, created 5, invoiced 314, processing 301, shipped 1,107, unavailable 609).
-- 8 orders were marked delivered but had no delivery date.
-- 267 delivered orders fell outside the 2017-01..2018-08 window.
-- 165 carrier hand-overs were dated before purchase and 19 after delivery.
-- 1,357 orders have a product without a category; untranslated categories: pc_gamer, portateis_cozinha_e_preparadores_de_alimentos.
-- 4 payment rows were typed 'not_defined' or had a non-positive value.
-- 523 orders had more than one review.
-- 481 orders have a zip prefix without coordinates.
+- 2,963 rows removed by status, consisting of 2 approved, 625 canceled, 5 created, 314 invoiced, 301 processing, 1,107 shipped, and 609 unavailable orders
+- 8 rows removed due to missing delivery dates
+- 267 rows removed falling outside the purchase window of 2017-01-01 to 2018-08-31
+- Timestamp anomalies including 19 carrier dates after delivery and 165 carrier dates before purchase
+- 1,357 orders with unknown category and 16 orders with unknown dimensions
+- 2 untranslated categories kept: pc_gamer and portateis_cozinha_e_preparadores_de_alimentos
+- 4 invalid payment rows dropped
+- Review anomalies including 523 orders with multiple reviews and 643 orders without review
+- 481 instances of unknown geographic distance
+- 6,531 late orders representing a late rate of 6.8%
 
 ## Decisions
 
-- Kept only delivered orders: lateness is undefined for orders that never arrived.
-- Nulled out-of-sequence carrier timestamps instead of dropping orders; these post-purchase fields are never used as features.
-- Took category and seller from the first order item; a missing category becomes 'unknown' and untranslated categories keep their Portuguese name.
-- Used the type of the largest payment as the order's payment type and summed payments.
-- Kept the latest review per order; review text is never loaded.
-- Approximated customer-seller distance from median zip-prefix coordinates.
+- R1_keep_delivered applied to retain only successfully delivered orders, removing 2,963 rows
+- R2_require_delivery_date applied to ensure completeness by removing 8 rows lacking delivery dates
+- R3_purchase_window applied to restrict data between 2017-01-01 and 2018-08-31, removing 267 rows
+- R4_timestamp_sequences applied to null out 19 carrier dates occurring after delivery and 165 carrier dates occurring before purchase without dropping rows
+- R5_items applied to flag 1,357 orders with unknown category and 16 with unknown dimensions while keeping untranslated categories pc_gamer and portateis_cozinha_e_preparadores_de_alimentos
+- R6_payments applied to drop 4 invalid payment rows
+- R7_reviews applied to account for 523 orders with multiple reviews and 643 orders without review
+- R8_geography applied to mark 481 geographic distances as unknown
+- R9_derive applied to calculate 6,531 late orders resulting in a late rate of 6.8%
+- R10_finalize applied to produce the final dataset containing 38 columns
 
 ## Payment reconciliation (computed)
 
@@ -54,9 +60,16 @@ The nine raw Olist tables (99,441 orders) were reduced to 96,203 delivered order
 
 ## Caveats
 
-- The population is delivered orders only, so delivery failures are not represented.
-- payment_total differs from price + freight for 433 orders (vouchers and installment interest).
-- Distances use zip-prefix centroids, an approximation of the real addresses.
+- 2,963 orders were excluded due to not being delivered
+- 8 orders were removed due to missing delivery dates
+- 267 orders were excluded for falling outside the 2017-01-01 to 2018-08-31 purchase window
+- 19 carrier timestamps after delivery and 165 carrier timestamps before purchase were nulled out
+- 1,357 orders contain unknown categories and 16 orders have unknown dimensions
+- Two categories remain untranslated: pc_gamer and portateis_cozinha_e_preparadores_de_alimentos
+- 4 invalid payment rows were dropped
+- 523 orders contain multiple reviews and 643 orders have no review
+- 481 geographic distances are unknown
+- 6,531 orders are classified as late, resulting in a late rate of 6.8%
 
 ---
-<sub>narrative_source: template | grounding: cleaning_report.json sha256=4cebaa7c7148</sub>
+<sub>narrative_source: llm | grounding: cleaning_report.json sha256=4cebaa7c7148</sub>

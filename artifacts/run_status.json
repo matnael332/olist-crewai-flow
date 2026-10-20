@@ -1,12 +1,19 @@
 {
   "errors": [],
-  "finished_at": "2026-10-20T14:03:28Z",
+  "finished_at": "2026-10-20T14:24:20Z",
   "inject_fault": "",
-  "mode": "deterministic",
-  "narrative_sources": {},
-  "run_id": "20261020-140156-32a113",
+  "mode": "llm",
+  "narrative_sources": {
+    "cleaning_report.md": "llm",
+    "dataset_contract.json": "template+llm",
+    "evaluation_report.md": "llm",
+    "feature_spec.json": "llm",
+    "insights.md": "llm",
+    "model_card.md": "template+llm"
+  },
+  "run_id": "final-llm-1",
   "stage": "promote_and_finish",
-  "stage_started_at": "2026-10-20T14:02:53Z",
+  "stage_started_at": "2026-10-20T14:23:28Z",
   "stages_done": [
     "check_inputs",
     "run_analyst_stage",
@@ -17,7 +24,7 @@
     "gate_artifacts",
     "promote_and_finish"
   ],
-  "started_at": "2026-10-20T14:02:12Z",
+  "started_at": "2026-10-20T14:21:07Z",
   "status": "success",
   "warnings": []
 }
