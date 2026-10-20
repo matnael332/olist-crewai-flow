@@ -136,8 +136,21 @@ class OlistFlow(Flow[PipelineState]):
         if self.state.mode != "llm":
             return
         try:
-            sources = runner.narrate(phase, self._art(), self.state.model_dump())
-            self.state.narrative_sources = {**self.state.narrative_sources, **sources}
+            result = runner.narrate(phase, self._art(), self.state.model_dump())
+            self.state.narrative_sources = {**self.state.narrative_sources, **result["sources"]}
+            for warning in result.get("warnings", []):
+                self.state.warnings.append(warning)
+                log.warning("NARRATIVE %s", warning)
+            usage = dict(self.state.token_usage)
+            for key, value in (result.get("token_usage") or {}).items():
+                usage[key] = usage.get(key, 0) + int(value)
+            self.state.token_usage = usage
+            log.info(
+                "CREW phase=%s narratives=%s tokens=%s",
+                phase,
+                result["sources"],
+                (result.get("token_usage") or {}).get("total_tokens"),
+            )
         except Exception as exc:
             if is_quota_error(exc):
                 raise
