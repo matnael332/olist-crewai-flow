@@ -7,6 +7,7 @@ call a deployed API instead).
 
 | Section | Page | What it answers |
 |---|---|---|
+| Operate | Ops copilot | chat with the system the agents built: runs, gates, model, data; score a CSV, a replayed day or one order (passcode, 25 messages per session) |
 | Business | Overview | the question, four headline numbers, how the Flow works, what the data says |
 | Business | Insights | what happened: interactive charts with one-line takeaways (Data Analyst crew) |
 | Business | Risk scoring | score an order at checkout, with presets and what-if scenarios |
@@ -19,7 +20,7 @@ call a deployed API instead).
 | `streamlit_app.py` | entrypoint: page config, logo, sectioned navigation (Community Cloud main file) |
 | `views/` | one module per page |
 | `components/` | the UI kit: `layout` (headers, chart cards), `cards` (KPIs, badges), `charts` (Altair, one palette), `pipeline` (the stepper), `format` (numbers) |
-| `services/` | `artifacts` (cached, mtime-keyed loaders and derived data), `scoring` (presets, risk levels, what-if) |
+| `services/` | `artifacts` (cached, mtime-keyed loaders and derived data), `scoring` (presets, risk levels, what-if), `copilot` (chat session, passcode, message cap, rendering) |
 | `assets/` | logo and icon |
 | `_bootstrap.py` | puts `backend/` on `sys.path` so the scoring code can be imported |
 | `tests/` | AppTest pages, scoring service and chart-spec tests, against the committed artifacts |

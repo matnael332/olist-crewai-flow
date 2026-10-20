@@ -110,3 +110,22 @@ and artifact sha256).
 | `model.joblib`, `model_meta.json`, `metrics.json`, `predictions_test.csv` | modeling stage | gate_artifacts, API, dashboard |
 | `evaluation_report.md`, `model_card.md` | modeling stage + Crew 2 phase 2 | dashboard |
 | `validation_report.json`, `run_status.json`, `run_manifest.json`, `logs/` | Flow | dashboard, CI |
+
+## Product layer: Ops copilot, dashboard, API
+
+The engine above publishes `artifacts/`; three channels read them, all through one risk policy
+(`backend/olist_api/risk.py`, ADR-14):
+
+| Channel | For | Where |
+|---|---|---|
+| **Ops copilot** | the team that operates the agents: questions about runs, gates, the model and the data; scoring a CSV, a replayed day or one order | `frontend/views/copilot.py` + `backend/olist_copilot` |
+| Dashboard | business and data-science readers | the other pages of `frontend/` |
+| API | other systems | `backend/olist_api` (`docs/api.md`) |
+
+A copilot turn: the page checks the passcode and the message cap, then either answers a quick reply
+from templates (no LLM) or sends the question to Gemini with eleven read-only tools (at most five
+calls per turn). Tools read `artifacts/` and `runs/`, or score through the same validation and
+model as the API. The answer comes back with a Sources line built from the tool calls, a flag for
+any percentage the tools did not return, and, for scoring, a table and two CSV downloads (the
+ranked list, and the action list with customer-message drafts).
+

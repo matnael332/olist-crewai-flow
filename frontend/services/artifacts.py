@@ -17,12 +17,13 @@ import pandas as pd
 import streamlit as st
 
 import _bootstrap
+from olist_copilot.workspace import gate_summary, stage_durations  # noqa: F401  (shared)
+from olist_copilot.workspace import insights_headline as _headline
 
 ROOT = _bootstrap.ROOT
 ARTIFACTS = Path(os.getenv("ARTIFACTS_DIR", ROOT / "artifacts"))
 RUNS = ROOT / "runs"
 
-STAGE_END = re.compile(r"STAGE (\w+) END status=(\w+) elapsed=([\d.]+)s")
 LOG_LINE = re.compile(r"^\d\d:\d\d:\d\d\s+(DEBUG|INFO|WARNING|ERROR|CRITICAL)\b")
 
 
@@ -129,29 +130,9 @@ def artifacts_valid() -> tuple[bool, str]:
     return True, run_status.get("run_id", "")
 
 
-def gate_summary(report: dict | None) -> dict[str, dict]:
-    """Gate name -> {'passed', 'n_passed', 'n_total', 'checks'}."""
-    if not report:
-        return {}
-    out = {}
-    for gate, result in report.get("gates", {}).items():
-        checks = result.get("checks", [])
-        out[gate] = {
-            "passed": bool(result.get("passed")),
-            "n_passed": sum(1 for c in checks if c.get("passed")),
-            "n_total": len(checks),
-            "checks": checks,
-        }
-    return out
-
-
 def insights_headline() -> str | None:
     """The 'Headline' paragraph of insights.md (written by the Data Analyst crew)."""
-    text = load_text("insights.md")
-    if not text or "## Headline" not in text:
-        return None
-    body = text.split("## Headline", 1)[1].split("\n## ", 1)[0].strip()
-    return body or None
+    return _headline(load_text("insights.md"))
 
 
 def review_shares() -> pd.DataFrame | None:
@@ -244,16 +225,6 @@ def list_runs() -> list[dict]:
 
 def run_log(folder: Path) -> str | None:
     return load_text("logs/pipeline.log", folder) or load_text("pipeline.log", folder)
-
-
-def stage_durations(log: str | None) -> list[dict]:
-    """[{'stage', 'status', 'seconds'}] from the 'STAGE <name> END status= elapsed=' log lines."""
-    if not log:
-        return []
-    return [
-        {"stage": m.group(1), "status": m.group(2), "seconds": float(m.group(3))}
-        for m in STAGE_END.finditer(log)
-    ]
 
 
 def log_level(line: str) -> str | None:

@@ -37,6 +37,7 @@ frontend = [
     "scikit-learn==1.7.2",
     "joblib>=1.5,<2",
     "requests>=2.32",
+    "google-genai==1.65.0",
 ]
 
 [project.scripts]

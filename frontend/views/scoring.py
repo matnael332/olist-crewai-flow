@@ -124,6 +124,13 @@ with result_column:
             width="stretch",
         )
         getattr(st, level.kind)(f"**{level.label}.** {level.message}")
+        if prediction.get("risk_level") == "high" or level.label == "High risk":
+            st.caption("Customer message draft (template, ready to send)")
+            st.code(
+                model.policy.customer_message("high", None, customer_state),
+                language=None,
+                wrap_lines=True,
+            )
 
     st.markdown("**What would change the risk?**")
     st.caption("The same order re-scored with one change at a time.")

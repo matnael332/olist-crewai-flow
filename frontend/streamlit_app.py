@@ -27,6 +27,9 @@ st.logo(
 )
 
 pages = {
+    "Operate": [
+        st.Page("views/copilot.py", title="Ops copilot", icon=":material/forum:"),
+    ],
     "Business": [
         st.Page(
             "views/overview.py", title="Overview", icon=":material/space_dashboard:", default=True

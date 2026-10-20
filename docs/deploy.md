@@ -14,8 +14,21 @@ instead of the root `uv.lock`. The theme comes from `.streamlit/config.toml` at 
 3. Repository `matnael332/olist-crewai-flow`, branch `main`, main file path
    `frontend/streamlit_app.py`, custom subdomain `olist-late-delivery-1`.
 4. Advanced settings: Python version **3.13** (the default may differ; 3.14 is not supported by the
-   pinned pyarrow). No secrets are needed. Optional: `API_URL` to score through a deployed API.
-5. Deploy and open every page. The app sleeps after 12 hours without visits; open it before a demo.
+   pinned pyarrow). Optional: `API_URL` to score through a deployed API.
+5. Secrets (app menu, Settings, Secrets) for the **Ops copilot**. Root-level secrets reach the app
+   as environment variables:
+
+   ```toml
+   GEMINI_API_KEY = "your Google AI Studio key"
+   COPILOT_PASSCODE = "a passcode you share with the people allowed to chat"
+   # optional
+   COPILOT_MAX_MESSAGES = "25"
+   COPILOT_MODEL = "gemini-3.5-flash-lite"
+   ```
+
+   Without `GEMINI_API_KEY` the copilot runs in offline mode (quick replies only); without
+   `COPILOT_PASSCODE` the chat is open to every visitor, so always set it on a public app.
+6. Deploy and open every page. The app sleeps after 12 hours without visits; open it before a demo.
 
 **Moving the entrypoint.** Community Cloud cannot change the main file path of a deployed app. Delete
 the app first (app menu, Settings, Delete), then push the change, then redeploy with the new path.

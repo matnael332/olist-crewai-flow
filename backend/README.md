@@ -8,7 +8,8 @@ repository's `artifacts/` folder.
 |---|---|
 | `olist_core/` | pure library, no CrewAI: download, cleaning (R1-R10), two-layer EDA, dataset contract, the three validation gates, checkout-time features, model training and comparison, reports, promotion, manifest, `paths.repo_root()` |
 | `olist_flow/` | the CrewAI layer: `flow.py` (Flow with routers, gates and graceful failure), `crews/` (Data Analyst crew, 6 agents; Data Scientist crew, 5 agents; YAML config), `tools/`, `events.py` (LLM call ledger), `run.py` (CLI) |
-| `olist_api/` | Flask app factory (`/health`, `POST /predict`) that validates requests against the dataset contract and scores with the committed model; `examples/` holds request bodies |
+| `olist_api/` | Flask app (`/health`, `POST /predict`, `POST /predict/batch`, `GET /risk-list`; contract in `docs/api.md`): validation against the dataset contract, the risk policy, batch scoring and the daily replay; `examples/` holds request bodies |
+| `olist_copilot/` | the Ops copilot's brain: read-only tools over the artifacts, the Gemini loop (`agent.py`), the grounding check and instant answers without an LLM (`quick.py`) |
 | `tests/` | unit, gate, Flow, crew (fake LLM), API and reproducibility tests, plus the `olist_mini` fixture |
 
 Run everything from the repository root:

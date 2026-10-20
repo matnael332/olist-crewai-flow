@@ -401,10 +401,11 @@ def build() -> None:
 
     # 4. Architecture ---------------------------------------------------------------------------
     s = deck.slide(
-        "Two AI crews, one Flow, three quality gates",
+        "Two AI crews, three quality gates, one product",
         "Architecture",
         "Run-then-narrate: tested Python computes every artifact, agents inspect and explain; the "
-        "Flow decides pass or fail. A failed gate stops the run and nothing is promoted.",
+        "Flow decides pass or fail. A failed gate stops the run and nothing is promoted. On top, "
+        "three channels read the published artifacts through one risk policy.",
     )
     y = 2.3
     deck.box(s, "9 raw tables\npinned + hashed", 0.5, y, 1.6, 1.1, WHITE)
@@ -460,19 +461,27 @@ def build() -> None:
         size=12,
     )
     deck.arrow(s, 5.45, y + 1.05, 5.0, 4.05, color=RED, dashed=True)
+    channels = [
+        ("Ops copilot\nchat for the agent operator", 4.95, SKY),
+        ("Dashboard\nbusiness + data science", 7.45, LIGHT),
+        ("API\n/predict, /predict/batch, /risk-list", 9.95, LIGHT),
+    ]
+    for label, x, fill in channels:
+        deck.box(s, label, x, 5.45, 2.35, 0.85, fill, size=12)
+        deck.arrow(s, 8.75, 4.85, x + 1.17, 5.45, color=BLUE)
     deck.text(
         s,
         [
-            "Crew 1: data engineer, documentation writer, analytics lead, insights writer, data "
-            "steward, contract author.",
-            "Crew 2: feature engineer, feature reviewer, ML engineer, model reviewer, model card "
-            "author. The contract version and hash travel with the handoff.",
+            "Crew 1 (6 agents): data engineer, documentation writer, analytics lead, insights "
+            "writer, data steward, contract author.",
+            "Crew 2 (5 agents): feature engineer and reviewer, ML engineer, model reviewer, model "
+            "card author.",
         ],
         0.6,
-        5.3,
-        12.2,
-        1.4,
-        size=15,
+        5.35,
+        4.2,
+        1.5,
+        size=12,
         color=GREY,
     )
 
@@ -794,44 +803,44 @@ def build() -> None:
 
     # 12. Deployment and next steps ------------------------------------------------------------------
     s = deck.slide(
-        "From notebook to product, and what comes next",
-        "Deployment and next steps",
-        f"Run {status['run_id']} produced the committed artifacts ({status['mode']} mode).",
+        "From engine to product, and what comes next",
+        "The product and next steps",
+        f"Run {status['run_id']} produced the committed artifacts ({status['mode']} mode). Demo: "
+        "replay 2018-07-16 in the copilot, download the action list, then ask a free question.",
     )
     deck.bullets(
         s,
         [
-            "Dashboard:|Streamlit app over the committed artifacts: overview, insights, risk scoring, "
-            "model, data contract, pipeline runs",
-            "API:|Flask /predict validates each order against the contract and returns the late "
-            "probability and a top-10% risk flag",
+            "Ops copilot:|a chat for the team that operates the agents: runs, gates, model and "
+            "data; scores a CSV, a replayed day or one order. Read-only, every number sourced",
+            "Dashboard and API:|the same artifacts and one risk policy for people and systems",
             "Run it:|uv run kickoff (Gemini) or the --no-llm deterministic mode",
         ],
         0.6,
         1.6,
         5.9,
-        2.9,
-        size=15,
+        3.0,
+        size=14,
     )
     deck.bullets(
         s,
         [
-            "Next:|seller history features (past late rate, as of purchase time)",
-            "Next:|delivery-days regression to set better promises",
-            "Next:|monthly retraining with drift and calibration monitoring by state",
+            "Next:|a Telegram bot and an 8:00 digest on the same copilot core",
+            "Next:|send the customer messages and track handled orders",
+            "Next:|seller-history features and a delivery-days regression",
         ],
         0.6,
-        3.6,
+        3.75,
         5.9,
-        2.2,
-        size=15,
+        2.0,
+        size=14,
     )
-    shot = deck.picture(s, "dashboard_overview.png", 6.85, 1.6, width=6.1, folder=IMAGES)
+    shot = deck.picture(s, "ops_copilot.png", 6.85, 1.6, width=6.1, folder=IMAGES)
     shot.line.color.rgb = RGBColor(0xCB, 0xD5, 0xE1)
     shot.line.width = Pt(1)
     deck.text(
         s,
-        [f"Live: {APP_URL}", f"Overview page, run {status['run_id']}"],
+        [f"Live: {APP_URL}", "Ops copilot replaying 2018-07-16, with what really happened"],
         6.85,
         5.5,
         6.1,
