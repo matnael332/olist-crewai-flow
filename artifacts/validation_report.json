@@ -34,7 +34,7 @@
           "passed": true
         },
         {
-          "detail": "feature spec, model meta and model card follow contract 05f94f8cfd5c",
+          "detail": "feature spec, model meta and model card follow contract 8fe2e5d99bbc",
           "name": "contract_hash_consistent",
           "passed": true
         },
@@ -230,7 +230,7 @@
           "passed": true
         },
         {
-          "detail": "feature spec follows contract sha256 05f94f8cfd5c",
+          "detail": "feature spec follows contract sha256 8fe2e5d99bbc",
           "name": "contract_hash",
           "passed": true
         }

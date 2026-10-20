@@ -19,59 +19,52 @@ Two layers: **all orders** (every status, business volume) and **delivered order
 
 ## Headline
 
-Orders grew from 800 in January 2017 to 7,544 in 2017-11; among delivered orders 6.8% arrived late, and late orders got 1-2 star reviews 62% of the time versus 9% when on time.
+Olist achieved a total business volume of 99,441 orders generating 13,179,777.95 BRL in delivered GMV, though logistics bottlenecks caused late deliveries in certain regions and months.
 
 ## Key findings
 
-### 1. Fast growth with a Black Friday spike
+### 1. Business Volume and Growth
 
-- **Evidence:** All orders: 800 in 2017-01, peak month 2017-11 with 7,544, about 6,749 per month in 2018; busiest day 2017-11-24 with 1,176 orders vs 499 on the next busiest day.
-- **What it means:** Capacity and carrier contracts must scale ahead of November.
+- **Evidence:** Total all_orders volume reached 99,441 across the dataset, starting at 800 orders in 2017-01 and averaging 6,748.9 monthly orders between 2018-01 and 2018-08.
+- **What it means:** The platform experienced substantial early-stage growth before stabilizing into a steady high-volume monthly cadence through 2018.
 
-### 2. Late deliveries destroy satisfaction
+### 2. Peak Seasonality
 
-- **Evidence:** 1-2 star reviews: 62.4% of late orders vs 9.2% of on-time orders; mean score 2.27 vs 4.29.
-- **What it means:** Preventing or announcing a delay protects ratings and retention.
+- **Evidence:** The peak month for business volume was 2017-11 with 7,544 orders, and the busiest single day was 2017-11-24 with 1,176 orders, followed by 2017-11-25 with 499 orders.
+- **What it means:** Black Friday heavily concentrates demand, causing massive transaction spikes that test logistics and fulfillment capacity.
 
-### 3. Promises are generous, yet lateness persists
+### 3. Overall Delivery Performance and Lateness
 
-- **Evidence:** Median promised 24 days vs median actual 10 days; still 6.8% late (6,531 orders).
-- **What it means:** Lateness is concentrated in specific orders, so it is predictable.
+- **Evidence:** Among delivered orders (96,203 total), the overall late rate was 6.8%, representing 6,531 late orders out of 96,203, with a median delivery time of 10.0 days and median promised days of 24.0.
+- **What it means:** While median delivery times are well within generous customer promises, operational hiccups still create noticeable pockets of delayed shipments.
 
-### 4. Lateness depends on geography
+### 4. Geographic Disparities in Lateness
 
-- **Evidence:** Highest late rates: AL 21.5%, MA 17.5%, PI 13.9%; lowest: MG 4.6%, SP 4.5%, PR 4.1% (states with at least 0.4% of delivered orders).
-- **What it means:** Regional logistics, not only sellers, drive delays.
+- **Evidence:** Highest late rate states among delivered orders included AL at 21.5% (396 orders, median 22.0 days), MA at 17.5% (713 orders, median 19.0 days), PI at 13.9% (475 orders, median 16.0 days), CE at 13.8% (1,273 orders, median 18.0 days), and BA at 12.2% (3,253 orders, median 17.0 days). Lowest late rate states included MG at 4.6% (11,319 orders, median 10.0 days), SP at 4.5% (40,399 orders, median 7.0 days), and PR at 4.1% (4,903 orders, median 10.0 days).
+- **What it means:** Fulfillment efficiency is highly geographically skewed, struggling significantly with remote northern and northeastern states compared to the southeast.
 
-### 5. Lateness is not stable over time
+### 5. Customer Satisfaction Impact
 
-- **Evidence:** Monthly late rate ranged from 1.2% (2018-06) to 19.0% (2018-03).
-- **What it means:** Thresholds and models need recent data and periodic re-tuning.
-
-### 6. Revenue is concentrated in a few categories
-
-- **Evidence:** Top category health_beauty generated BRL 1.23M of BRL 13.18M delivered GMV; AOV BRL 137.00.
-- **What it means:** Delivery improvements in top categories protect most revenue.
+- **Evidence:** Among delivered orders, the bad review rate was 12.8%, which spiked to 62.4% for late orders compared to just 9.3% for on-time orders, with mean scores of 2.3 for late deliveries versus 4.3 for on-time deliveries.
+- **What it means:** Delivery delays severely damage customer sentiment, heavily driving down review scores and increasing customer dissatisfaction.
 
 ## Recommendations
 
-- Score every order for late-delivery risk at checkout and proactively notify or reprioritize high-risk orders.
-- Prioritize logistics improvements for the states with the highest late rates.
-- Plan carrier capacity ahead of the November peak.
-- Track the monthly late rate among delivered orders as an operational KPI.
+- Investigate and renegotiate carrier performance in high-lateness states like AL, MA, PI, CE, and BA to reduce delivery times.
+- Improve inventory and warehouse staffing ahead of November to safely handle Black Friday spikes without service degradation.
+- Refine delivery estimations for regions prone to transit delays to set realistic customer expectations.
+- Implement proactive customer communication protocols when shipments show early signs of falling behind schedule to mitigate bad reviews.
 
 ## Data caveats
 
-- Late rates are measured among delivered orders only; 3.0% of all orders never reached 'delivered' status.
-- The data snapshot ends 2018-10-17; the last purchase months are incomplete.
-- 99.3% of delivered orders have a review.
+- Non-delivered orders account for a 3.0% share of all orders and are excluded from delivery and review metrics.
+- Review coverage sits at 99.3%, meaning a very small fraction of delivered orders lack review scores.
+- Data splits vary in late rates, with train at 7.6%, test at 3.8%, and censored_buffer at 6.2%.
 
 ## Implications for modeling
 
-- The target is imbalanced (6.8% positive): prefer PR-AUC and precision at the top of the ranking over accuracy.
-- The late rate drifts over time, so evaluate on a later time window, never a random split.
-- Only checkout-time information may be used: delivery dates and reviews are leakage.
-- Customer state, promised days and freight are promising predictors.
+- Models predicting delivery lateness must account for severe class imbalance and geographic feature importance, as state-level variance is extreme.
+- Review score prediction models should heavily weight delivery status and actual delivery days as core predictive features given their strong correlation with bad reviews.
 
 ## Figures
 
@@ -84,4 +77,4 @@ Orders grew from 800 in January 2017 to 7,544 in 2017-11; among delivered orders
 - `figures/promised_vs_actual_by_month.png`
 
 ---
-<sub>narrative_source: template | grounding: eda_summary.json sha256=ab5021a4aeb1</sub>
+<sub>narrative_source: llm | grounding: eda_summary.json sha256=ab5021a4aeb1</sub>

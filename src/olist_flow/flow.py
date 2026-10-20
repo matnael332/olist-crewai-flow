@@ -343,12 +343,13 @@ class OlistFlow(Flow[PipelineState]):
         self.state.stages_done.append("promote_and_finish")
         self._sync_status()
         write_json_lf(art / STATUS_FILE, read_json(run_dir / STATUS_FILE), ndigits=None)
+        # CrewAI writes its transcripts in text mode (CRLF on Windows): store LF copies.
+        for transcript in sorted((run_dir / "crew_logs").glob("*.json")):
+            text = transcript.read_text(encoding="utf-8", errors="replace")
+            write_text_lf(art / "logs" / transcript.name, text.replace("\r\n", "\n"))
         write_manifest(art / "run_manifest.json", self._manifest())
         if self.state.promote:
             extra = {"logs/pipeline.log": run_dir / "pipeline.log"}
-            extra.update(
-                {f"logs/{p.name}": p for p in sorted((run_dir / "crew_logs").glob("*.json"))}
-            )
             for handler in log.parent.handlers if log.parent else []:
                 handler.flush()
             log.info("PROMOTE START %s -> %s", art.as_posix(), self.state.artifacts_dir)

@@ -1,59 +1,130 @@
-17:02:12 INFO    RUN 20261020-140156-32a113 START mode=deterministic fault=none seed=42 start_at=analyst
-17:02:12 INFO    STAGE check_inputs START
-17:02:13 INFO    INPUT all raw files match data/raw/manifest.json
-17:02:13 INFO    INPUT raw tables, schema and lookup verified
-17:02:13 INFO    STAGE check_inputs END status=ok elapsed=0.3s
-17:02:13 INFO    STAGE run_analyst_stage START
-17:02:36 INFO    STAGE run_analyst_stage END status=ok elapsed=23.2s
-17:02:40 INFO    GATE gate_contract contract_readable PASS dataset_contract.json parsed
-17:02:40 INFO    GATE gate_contract data_readable PASS clean_data.csv loaded (96,203 rows)
-17:02:40 INFO    GATE gate_contract columns_match PASS all contract columns present, no extras
-17:02:40 INFO    GATE gate_contract dtypes PASS every column parses as its declared dtype
-17:02:40 INFO    GATE gate_contract non_nullable PASS no nulls in non-nullable columns
-17:02:40 INFO    GATE gate_contract bounds PASS all values within declared bounds
-17:02:40 INFO    GATE gate_contract allowed_values PASS all categorical values allowed
-17:02:40 INFO    GATE gate_contract patterns PASS all patterns match
-17:02:40 INFO    GATE gate_contract row_count PASS 96,203 rows (contract 96,203)
-17:02:40 INFO    GATE gate_contract date_range PASS purchase_ts within 2017-01-05 11:56:06..2018-08-29 15:00:37
-17:02:40 INFO    GATE gate_contract constraint_C01 PASS C01 one row per order: ok
-17:02:40 INFO    GATE gate_contract constraint_C02 PASS C02 item counts are consistent: ok
-17:02:40 INFO    GATE gate_contract constraint_C03 PASS C03 amounts are non-negative: ok
-17:02:40 INFO    GATE gate_contract constraint_C04 PASS C04 every order has a valid payment: ok
-17:02:40 INFO    GATE gate_contract constraint_C05 PASS C05 day counts are non-negative: ok
-17:02:40 INFO    GATE gate_contract constraint_C06 PASS C06 target definition: ok
-17:02:40 INFO    GATE gate_contract constraint_C07 PASS C07 same_state is consistent: ok
-17:02:40 INFO    GATE gate_contract constraint_C08 PASS C08 delivery happens after purchase: ok
-17:02:40 INFO    GATE gate_contract constraint_C09 PASS C09 review score range: ok
-17:02:40 INFO    GATE gate_contract constraint_C10 PASS C10 bad_review consistency: ok
-17:02:40 INFO    GATE gate_contract constraint_C11 PASS C11 purchase window: ok
-17:02:40 INFO    GATE gate_contract RESULT PASS (21/21 checks)
-17:02:40 INFO    HANDOFF analyst->scientist contract_version=1.0 contract_sha256=05f94f8cfd5c rows=96203 required=14 forbidden=7
-17:02:40 INFO    STAGE run_feature_phase START
-17:02:52 INFO    STAGE run_feature_phase END status=ok elapsed=12.1s
-17:02:53 INFO    GATE gate_required_features inputs_readable PASS dataset_contract.json and feature_spec.json parsed
-17:02:53 INFO    GATE gate_required_features features_readable PASS features.csv loaded (96,203 rows)
-17:02:53 INFO    GATE gate_required_features required_features_present PASS all 14 required features present
-17:02:53 INFO    GATE gate_required_features required_features_declared PASS required features declared in feature_spec.model_features
-17:02:53 INFO    GATE gate_required_features model_features_present PASS every declared model feature has a column
-17:02:53 INFO    GATE gate_required_features no_forbidden_model_features PASS none of the 7 forbidden columns is a model feature
-17:02:53 INFO    GATE gate_required_features no_forbidden_columns PASS features.csv carries no post-purchase columns
-17:02:53 INFO    GATE gate_required_features derived_from_checkout_only PASS every feature derives from checkout-time columns
-17:02:53 INFO    GATE gate_required_features target_binary PASS is_late is binary 0/1
-17:02:53 INFO    GATE gate_required_features split_matches_policy PASS split column matches the contract split policy
-17:02:53 INFO    GATE gate_required_features non_nullable_features PASS no nulls in non-nullable features
-17:02:53 INFO    GATE gate_required_features row_count PASS 96,203 rows match the contract
-17:02:53 INFO    GATE gate_required_features contract_hash PASS feature spec follows contract sha256 05f94f8cfd5c
-17:02:53 INFO    GATE gate_required_features RESULT PASS (13/13 checks)
-17:02:53 INFO    STAGE run_modeling_phase START
-17:03:28 INFO    STAGE run_modeling_phase END status=ok elapsed=34.4s
-17:03:28 INFO    GATE gate_artifacts spec_files_present PASS all 8 spec-required files present
-17:03:28 INFO    GATE gate_artifacts supporting_files_present PASS supporting files present
-17:03:28 INFO    GATE gate_artifacts figures_present PASS 11 figures (need 11: 7 EDA + 4 model)
-17:03:28 INFO    GATE gate_artifacts model_loads_and_predicts PASS model.joblib loads and scores 5 rows
-17:03:28 INFO    GATE gate_artifacts models_compared PASS 2 model variations compared against the baseline
-17:03:28 INFO    GATE gate_artifacts model_card_sections PASS model card has purpose, training data, metrics, limitations, ethics
-17:03:28 INFO    GATE gate_artifacts contract_hash_consistent PASS feature spec, model meta and model card follow contract 05f94f8cfd5c
-17:03:28 INFO    GATE gate_artifacts eda_report_figures PASS eda_report.html embeds 7 figures
-17:03:28 INFO    GATE gate_artifacts text_hygiene PASS text artifacts are clean
-17:03:28 INFO    GATE gate_artifacts RESULT PASS (9/9 checks)
-17:03:29 INFO    PROMOTE START C:/Users/Matanel/Desktop/final_project/runs/20261020-140156-32a113/artifacts -> C:/Users/Matanel/Desktop/final_project/artifacts
+17:21:07 INFO    RUN final-llm-1 START mode=llm fault=none seed=42 start_at=analyst
+17:21:07 INFO    STAGE check_inputs START
+17:21:07 INFO    INPUT all raw files match data/raw/manifest.json
+17:21:07 INFO    INPUT raw tables, schema and lookup verified
+17:21:07 INFO    STAGE check_inputs END status=ok elapsed=0.2s
+17:21:07 INFO    STAGE run_analyst_stage START
+17:21:35 INFO    CREW data_analyst agents=['Senior Data Engineer', 'Data Documentation Writer', 'Retail Analytics Lead', 'Business Insights Writer', 'Data Governance Steward', 'Data Contract Author'] model=gemini-3.5-flash-lite
+17:21:35 INFO    CREW DataAnalystCrew START
+17:21:35 INFO    LLM call #1 START model=gemini-3.5-flash-lite
+17:21:36 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:21:36 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=256
+17:21:36 INFO    TOOL ingest_and_clean START agent=Senior Data Engineer
+17:21:36 INFO    TOOL ingest_and_clean DONE
+17:21:36 INFO    TASK ingest_clean_task DONE agent=Senior Data Engineer
+17:21:36 INFO    LLM call #2 START model=gemini-3.5-flash-lite
+17:21:39 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:21:39 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=2482
+17:21:39 INFO    TASK cleaning_narrative_task DONE agent=Data Documentation Writer
+17:21:39 INFO    LLM call #3 START model=gemini-3.5-flash-lite
+17:21:40 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:21:40 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=201
+17:21:40 INFO    TOOL run_eda DONE
+17:21:40 INFO    TOOL run_eda START agent=Retail Analytics Lead
+17:21:40 INFO    TASK eda_task DONE agent=Retail Analytics Lead
+17:21:40 INFO    LLM call #4 START model=gemini-3.5-flash-lite
+17:21:44 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:21:44 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=4006
+17:21:44 INFO    TASK insights_task DONE agent=Business Insights Writer
+17:21:44 INFO    LLM call #5 START model=gemini-3.5-flash-lite
+17:21:45 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:21:45 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=201
+17:21:45 INFO    TOOL draft_contract_schema START agent=Data Governance Steward
+17:21:45 INFO    TOOL draft_contract_schema DONE
+17:21:45 INFO    TASK contract_task DONE agent=Data Governance Steward
+17:22:45 INFO    LLM call #6 START model=gemini-3.5-flash-lite
+17:22:48 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:22:48 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=3900
+17:22:48 INFO    TASK contract_narrative_task DONE agent=Data Contract Author
+17:22:48 INFO    CREW DataAnalystCrew END tokens=11046
+17:22:52 INFO    CREW phase=analyst narratives={'cleaning_report.md': 'llm', 'insights.md': 'llm', 'dataset_contract.json': 'template+llm'} tokens=11046
+17:22:52 INFO    STAGE run_analyst_stage END status=ok elapsed=104.2s
+17:22:57 INFO    GATE gate_contract contract_readable PASS dataset_contract.json parsed
+17:22:57 INFO    GATE gate_contract data_readable PASS clean_data.csv loaded (96,203 rows)
+17:22:57 INFO    GATE gate_contract columns_match PASS all contract columns present, no extras
+17:22:57 INFO    GATE gate_contract dtypes PASS every column parses as its declared dtype
+17:22:57 INFO    GATE gate_contract non_nullable PASS no nulls in non-nullable columns
+17:22:57 INFO    GATE gate_contract bounds PASS all values within declared bounds
+17:22:57 INFO    GATE gate_contract allowed_values PASS all categorical values allowed
+17:22:57 INFO    GATE gate_contract patterns PASS all patterns match
+17:22:57 INFO    GATE gate_contract row_count PASS 96,203 rows (contract 96,203)
+17:22:57 INFO    GATE gate_contract date_range PASS purchase_ts within 2017-01-05 11:56:06..2018-08-29 15:00:37
+17:22:57 INFO    GATE gate_contract constraint_C01 PASS C01 one row per order: ok
+17:22:57 INFO    GATE gate_contract constraint_C02 PASS C02 item counts are consistent: ok
+17:22:57 INFO    GATE gate_contract constraint_C03 PASS C03 amounts are non-negative: ok
+17:22:57 INFO    GATE gate_contract constraint_C04 PASS C04 every order has a valid payment: ok
+17:22:57 INFO    GATE gate_contract constraint_C05 PASS C05 day counts are non-negative: ok
+17:22:57 INFO    GATE gate_contract constraint_C06 PASS C06 target definition: ok
+17:22:57 INFO    GATE gate_contract constraint_C07 PASS C07 same_state is consistent: ok
+17:22:57 INFO    GATE gate_contract constraint_C08 PASS C08 delivery happens after purchase: ok
+17:22:57 INFO    GATE gate_contract constraint_C09 PASS C09 review score range: ok
+17:22:57 INFO    GATE gate_contract constraint_C10 PASS C10 bad_review consistency: ok
+17:22:57 INFO    GATE gate_contract constraint_C11 PASS C11 purchase window: ok
+17:22:57 INFO    GATE gate_contract RESULT PASS (21/21 checks)
+17:22:57 INFO    HANDOFF analyst->scientist contract_version=1.0 contract_sha256=8fe2e5d99bbc rows=96203 required=14 forbidden=7
+17:22:57 INFO    STAGE run_feature_phase START
+17:23:12 INFO    CREW data_scientist phase=1/2 agents=['ML Feature Engineer', 'Feature Reviewer']
+17:23:12 INFO    CREW DataScientistCrew START
+17:23:12 INFO    LLM call #7 START model=gemini-3.5-flash-lite
+17:23:13 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:23:13 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=534
+17:23:13 INFO    TOOL validate_inputs START agent=ML Feature Engineer
+17:23:20 INFO    TOOL validate_inputs DONE
+17:23:20 INFO    LLM call #8 START model=gemini-3.5-flash-lite
+17:23:21 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:23:21 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=723
+17:23:21 INFO    TOOL build_features START agent=ML Feature Engineer
+17:23:21 INFO    TOOL build_features DONE
+17:23:21 INFO    TASK feature_task DONE agent=ML Feature Engineer
+17:23:21 INFO    LLM call #9 START model=gemini-3.5-flash-lite
+17:23:23 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:23:23 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=1826
+17:23:24 INFO    TASK feature_narrative_task DONE agent=Feature Reviewer
+17:23:24 INFO    CREW DataScientistCrew END tokens=3083
+17:23:24 INFO    CREW phase=features narratives={'feature_spec.json': 'llm'} tokens=3083
+17:23:24 INFO    STAGE run_feature_phase END status=ok elapsed=26.7s
+17:23:28 INFO    GATE gate_required_features inputs_readable PASS dataset_contract.json and feature_spec.json parsed
+17:23:28 INFO    GATE gate_required_features features_readable PASS features.csv loaded (96,203 rows)
+17:23:28 INFO    GATE gate_required_features required_features_present PASS all 14 required features present
+17:23:28 INFO    GATE gate_required_features required_features_declared PASS required features declared in feature_spec.model_features
+17:23:28 INFO    GATE gate_required_features model_features_present PASS every declared model feature has a column
+17:23:28 INFO    GATE gate_required_features no_forbidden_model_features PASS none of the 7 forbidden columns is a model feature
+17:23:28 INFO    GATE gate_required_features no_forbidden_columns PASS features.csv carries no post-purchase columns
+17:23:28 INFO    GATE gate_required_features derived_from_checkout_only PASS every feature derives from checkout-time columns
+17:23:28 INFO    GATE gate_required_features target_binary PASS is_late is binary 0/1
+17:23:28 INFO    GATE gate_required_features split_matches_policy PASS split column matches the contract split policy
+17:23:28 INFO    GATE gate_required_features non_nullable_features PASS no nulls in non-nullable features
+17:23:28 INFO    GATE gate_required_features row_count PASS 96,203 rows match the contract
+17:23:28 INFO    GATE gate_required_features contract_hash PASS feature spec follows contract sha256 8fe2e5d99bbc
+17:23:28 INFO    GATE gate_required_features RESULT PASS (13/13 checks)
+17:23:28 INFO    STAGE run_modeling_phase START
+17:24:13 INFO    CREW data_scientist phase=2/2 agents=['ML Engineer', 'Model Reviewer', 'Model Card Author']
+17:24:13 INFO    CREW DataScientistCrew START
+17:24:13 INFO    LLM call #10 START model=gemini-3.5-flash-lite
+17:24:14 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:24:14 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=200
+17:24:14 INFO    TOOL train_models START agent=ML Engineer
+17:24:14 INFO    TOOL train_models DONE
+17:24:14 INFO    TASK training_task DONE agent=ML Engineer
+17:24:14 INFO    LLM call #11 START model=gemini-3.5-flash-lite
+17:24:17 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:24:17 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=2449
+17:24:17 INFO    TASK evaluation_task DONE agent=Model Reviewer
+17:24:17 INFO    LLM call #12 START model=gemini-3.5-flash-lite
+17:24:19 INFO    HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent "HTTP/1.1 200 OK"
+17:24:19 INFO    LLM call DONE model=gemini-3.5-flash-lite tokens=3007
+17:24:19 INFO    TASK model_card_task DONE agent=Model Card Author
+17:24:19 INFO    CREW DataScientistCrew END tokens=5656
+17:24:19 INFO    CREW phase=modeling narratives={'evaluation_report.md': 'llm', 'model_card.md': 'template+llm'} tokens=5656
+17:24:19 INFO    STAGE run_modeling_phase END status=ok elapsed=51.6s
+17:24:20 INFO    GATE gate_artifacts spec_files_present PASS all 8 spec-required files present
+17:24:20 INFO    GATE gate_artifacts supporting_files_present PASS supporting files present
+17:24:20 INFO    GATE gate_artifacts figures_present PASS 11 figures (need 11: 7 EDA + 4 model)
+17:24:20 INFO    GATE gate_artifacts model_loads_and_predicts PASS model.joblib loads and scores 5 rows
+17:24:20 INFO    GATE gate_artifacts models_compared PASS 2 model variations compared against the baseline
+17:24:20 INFO    GATE gate_artifacts model_card_sections PASS model card has purpose, training data, metrics, limitations, ethics
+17:24:20 INFO    GATE gate_artifacts contract_hash_consistent PASS feature spec, model meta and model card follow contract 8fe2e5d99bbc
+17:24:20 INFO    GATE gate_artifacts eda_report_figures PASS eda_report.html embeds 7 figures
+17:24:20 INFO    GATE gate_artifacts text_hygiene PASS text artifacts are clean
+17:24:20 INFO    GATE gate_artifacts RESULT PASS (9/9 checks)
+17:24:20 INFO    PROMOTE START C:/Users/Matanel/Desktop/final_project/runs/final-llm-1/artifacts -> C:/Users/Matanel/Desktop/final_project/artifacts
