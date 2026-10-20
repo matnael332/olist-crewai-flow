@@ -801,8 +801,8 @@ def build() -> None:
     deck.bullets(
         s,
         [
-            "Dashboard:|Streamlit app over the committed artifacts: overview, data and contract, EDA, "
-            "model, predict, runs and logs",
+            "Dashboard:|Streamlit app over the committed artifacts: overview, insights, risk scoring, "
+            "model, data contract, pipeline runs",
             "API:|Flask /predict validates each order against the contract and returns the late "
             "probability and a top-10% risk flag",
             "Run it:|uv run kickoff (Gemini) or the --no-llm deterministic mode",

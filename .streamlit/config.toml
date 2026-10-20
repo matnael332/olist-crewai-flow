@@ -1,8 +1,29 @@
+# Dashboard theme (read from the repository root locally and on Streamlit Community Cloud).
 [theme]
 base = "light"
-primaryColor = "#2563eb"
-secondaryBackgroundColor = "#f1f5f9"
-textColor = "#0f172a"
+primaryColor = "#2563EB"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#0F172A"
+linkColor = "#2563EB"
+borderColor = "#E2E8F0"
+showWidgetBorder = true
+baseRadius = "0.6rem"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFontSizes = ["2.1rem", "1.45rem", "1.15rem"]
+headingFontWeights = [700, 650, 600]
+chartCategoricalColors = ["#2563EB", "#DC2626", "#16A34A", "#F59E0B", "#64748B", "#7C3AED"]
+
+[theme.sidebar]
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#E2E8F0"
+primaryColor = "#60A5FA"
+borderColor = "#1E293B"
+
+[client]
+# Viewers never see the Deploy button or the developer menu.
+toolbarMode = "viewer"
 
 [server]
 headless = true

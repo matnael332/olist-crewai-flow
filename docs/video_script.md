@@ -74,9 +74,10 @@ total, and every artifact is written to the run folder."
 
 ### 5. The dashboard (2:15-3:05)
 
-**Show:** the live app at https://olist-late-delivery-1.streamlit.app. Overview (KPIs and the gate
-table), Data and contract (scroll the contract columns), EDA and insights (the late rate by
-state), Model (metrics table, then the precision-recall chart).
+**Show:** the live app at https://olist-late-delivery-1.streamlit.app. Overview (the KPI cards and
+the four pipeline steps with their gate badges), Data contract (required vs forbidden features),
+Insights (hover the late-rate-by-state chart), Model (the comparison, then the precision-recall
+curves).
 
 **Say:** "The dashboard reads only the committed artifacts. The overview shows the run status and
 all three gates. Here is the dataset contract the scientists had to follow. The analysis shows
@@ -86,9 +87,10 @@ ten percent of orders are late 12.1 percent of the time, about three times the b
 
 ### 6. Scoring an order (3:05-3:30)
 
-**Show:** the Predict page with its default order (a Bahia customer, a Sao Paulo seller,
-furniture), then the same order with customer state SP. Then two API calls in a terminal (use
-`curl` instead of `curl.exe` outside Windows):
+**Show:** the Risk scoring page. The "Long distance: SP to BA" preset scores 16.4% with an
+"Elevated risk" message; point at the what-if cards below it. Then click the "Same state: SP to SP"
+preset (3.8%, "Normal risk"). Then two API calls in a terminal (use `curl` instead of `curl.exe`
+outside Windows):
 
 ```powershell
 curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/olist_api/examples/order.json"
@@ -100,9 +102,9 @@ with `'XX' is not an allowed value`.
 
 **Say:** "The same order is about four times as risky when it ships across the country: 16 percent
 for a customer in Bahia against 4 percent within Sao Paulo, so the page flags it as elevated risk.
-The Flask API uses the same feature
-code as training, and it validates every request against the dataset contract, so an unknown state
-is rejected with a clear error."
+The what-if cards show what would help: a seller in the same state cuts the risk to 4 percent. The
+Flask API uses the same feature code as training, and it validates every request against the
+dataset contract, so an unknown state is rejected with a clear error."
 
 ### 7. Graceful failure (3:30-4:05)
 
