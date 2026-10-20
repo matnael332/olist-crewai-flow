@@ -63,3 +63,44 @@ def pipeline_copy(tmp_path, pipeline_out) -> Path:
     target = tmp_path / "artifacts"
     shutil.copytree(pipeline_out, target)
     return target
+
+
+@pytest.fixture(scope="session")
+def bundle(pipeline_out, fixture_lookups_dir):
+    """The fixture model loaded the way the API loads it."""
+    from olist_api.model import ModelBundle
+
+    loaded = ModelBundle(pipeline_out, fixture_lookups_dir)
+    assert loaded.ok, loaded.error
+    return loaded
+
+
+@pytest.fixture(scope="session")
+def api_record(pipeline_out) -> dict:
+    """A valid /predict record for the fixture model (its category comes from the fixture)."""
+    from olist_core.columns import read_clean_data
+
+    clean = read_clean_data(pipeline_out / "clean_data.csv")
+    return {
+        "n_items": 1,
+        "total_price": 129.9,
+        "total_freight": 21.5,
+        "customer_state": "BA",
+        "seller_state": "SP",
+        "primary_category": clean["primary_category"].iloc[0],
+        "payment_type": "boleto",
+        "max_installments": 1,
+        "purchase_ts": "2018-06-12 14:03:00",
+        "estimated_delivery_date": "2018-07-05",
+    }
+
+
+@pytest.fixture(scope="session")
+def busiest_test_day(pipeline_out):
+    """The test-window purchase date with the most fixture orders (a realistic replay day)."""
+    from olist_core.columns import read_clean_data
+
+    clean = read_clean_data(pipeline_out / "clean_data.csv")
+    days = clean["purchase_ts"].dt.date
+    in_window = days[(clean["purchase_ts"] >= "2018-05-01") & (clean["purchase_ts"] < "2018-08-01")]
+    return in_window.value_counts().sort_index().idxmax()

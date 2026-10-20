@@ -41,7 +41,10 @@ NUMERIC_OPTIONAL = (
     "promised_days",
 )
 STRING_OPTIONAL = ("estimated_delivery_date", "customer_zip_prefix", "seller_zip_prefix")
-ALLOWED_FIELDS = set(REQUIRED) | set(NUMERIC_OPTIONAL) | set(STRING_OPTIONAL)
+# Carried through to the response but never a model feature.
+PASSTHROUGH = ("order_id",)
+MAX_ORDER_ID = 64
+ALLOWED_FIELDS = set(REQUIRED) | set(NUMERIC_OPTIONAL) | set(STRING_OPTIONAL) | set(PASSTHROUGH)
 NUMERIC_FIELDS = {"n_items", "total_price", "total_freight", "max_installments", *NUMERIC_OPTIONAL}
 DATETIME_FORMATS = ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d")
 
@@ -92,6 +95,17 @@ class RecordValidator:
                 result.rows.append(row)
         return result
 
+    def validate_partial(self, records: list) -> tuple[list[tuple[int, dict]], list, list]:
+        """Validate each record on its own (batch scoring): valid (index, row) pairs, errors,
+        warnings. Unlike validate(), one bad record does not reject the others."""
+        result = ValidationResult()
+        valid = []
+        for index, record in enumerate(records):
+            row = self._validate_one(index, record, result)
+            if row is not None:
+                valid.append((index, row))
+        return valid, result.errors, result.warnings
+
     def _error(self, result, index, field_name, message) -> None:
         result.errors.append({"index": index, "field": field_name, "message": message})
 
@@ -102,6 +116,15 @@ class RecordValidator:
         before = len(result.errors)
         for name in sorted(set(record) - ALLOWED_FIELDS):
             self._error(result, index, name, "unknown field")
+        order_id = record.get("order_id")
+        if order_id is not None and (
+            isinstance(order_id, bool)
+            or not isinstance(order_id, str | int)
+            or not 0 < len(str(order_id)) <= MAX_ORDER_ID
+        ):
+            self._error(
+                result, index, "order_id", f"must be a string of 1..{MAX_ORDER_ID} characters"
+            )
         for name in REQUIRED:
             if record.get(name) is None:
                 self._error(result, index, name, "required")
