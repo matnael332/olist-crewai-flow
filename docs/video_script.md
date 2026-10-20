@@ -12,7 +12,7 @@ sped up in editing, so nothing on screen waits for an LLM call. Slide numbers re
 3. Use `--no-promote` for every run you record, so the committed `artifacts/` stay unchanged.
 4. Open the live dashboard at https://olist-late-delivery-1.streamlit.app a few minutes before
    the dashboard take (a sleeping app takes a minute to wake) and click through every page once.
-   Start the API (`uv run python -m api.serve`) for segment 6.
+   Start the API (`uv run olist-api`) for segment 6.
 5. Never show `.env`, environment variables or the Google AI Studio page. The logs redact keys,
    but the screen does not.
 6. Terminal: dark theme, font size 18 or larger, window maximised. Turn off notifications.
@@ -43,7 +43,7 @@ stops and nothing is published."
 ### 3. The repository (0:55-1:25)
 
 **Show:** the GitHub repository page, then the README spec compliance map, then the closed pull
-requests list with green checks, then `src/olist_flow/crews/data_analyst/config/agents.yaml`.
+requests list with green checks, then `backend/olist_flow/crews/data_analyst/config/agents.yaml`.
 
 **Say:** "Everything lives in one GitHub repository. Each milestone was one pull request, and CI runs
 the tests, validates the committed artifacts and checks reproducibility on every pull request. The
@@ -91,8 +91,8 @@ furniture), then the same order with customer state SP. Then two API calls in a 
 `curl` instead of `curl.exe` outside Windows):
 
 ```powershell
-curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@api/examples/order.json"
-curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@api/examples/invalid_order.json"
+curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/olist_api/examples/order.json"
+curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/olist_api/examples/invalid_order.json"
 ```
 
 The first call returns late probabilities of about 0.164 and 0.038. The second returns HTTP 422
@@ -109,7 +109,7 @@ is rejected with a clear error."
 **Show:** the pre-recorded take of
 
 ```bash
-uv run python -m olist_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote --inject-fault missing_feature
+uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote --inject-fault missing_feature
 git status --short artifacts/
 ```
 
@@ -126,7 +126,7 @@ artifacts are untouched."
 **Show:** the pre-recorded take of
 
 ```bash
-uv run python -m olist_flow.run verify-repro --data-dir tests/fixtures/olist_mini
+uv run python -m olist_flow.run verify-repro --data-dir backend/tests/fixtures/olist_mini
 ```
 
 ending on the table and `ALL DETERMINISTIC ARTIFACTS IDENTICAL`.

@@ -14,7 +14,7 @@ risky orders early protects customer satisfaction.
 |---|---|
 | What happened (Crew 1) | 99,441 orders; 96,203 delivered orders analysed; **6.8% delivered late**; median delivery 10 days vs 24 promised; Black Friday 2017-11-24 had 1,176 orders (next busiest day: 499) |
 | What will happen (Crew 2) | Logistic regression selected over gradient boosting and a baseline; test **ROC-AUC 0.733**, PR-AUC 0.102 (baseline 0.038); the riskiest 10% of orders are late **12.1%** of the time, **3.2x** the 3.8% test late rate |
-| Dashboard | **Live: [olist-late-delivery-1.streamlit.app](https://olist-late-delivery-1.streamlit.app)** (Streamlit Community Cloud). Locally: `uv run streamlit run app/streamlit_app.py`; deployment steps in [docs/deploy.md](docs/deploy.md) |
+| Dashboard | **Live: [olist-late-delivery-1.streamlit.app](https://olist-late-delivery-1.streamlit.app)** (Streamlit Community Cloud). Locally: `uv run streamlit run frontend/streamlit_app.py`; deployment steps in [docs/deploy.md](docs/deploy.md) |
 | Documentation | [architecture](docs/architecture.md), [decision records](docs/decisions.md), [interactive Flow diagram](docs/flow_plot/olist_flow.html) |
 | Presentation and video | [slides (PDF)](docs/presentation.pdf), [PowerPoint](docs/presentation.pptx) (12 slides, rebuilt from `artifacts/` by `scripts/build_presentation.py`), [video script](docs/video_script.md) |
 
@@ -43,8 +43,8 @@ in deterministic mode (`--no-llm`) template narratives make every artifact spec-
 
 | Crew | Agents | Produces |
 |---|---|---|
-| **Data Analyst crew** (`src/olist_flow/crews/data_analyst`) | Senior Data Engineer, Data Documentation Writer, Retail Analytics Lead, Business Insights Writer, Data Governance Steward, Data Contract Author | `clean_data.csv`, `eda_report.html`, `insights.md`, `dataset_contract.json` |
-| **Data Scientist crew** (`src/olist_flow/crews/data_scientist`) | ML Feature Engineer, Feature Reviewer, ML Engineer, Model Reviewer, Model Card Author | `features.csv`, `model.joblib`, `evaluation_report.md`, `model_card.md` |
+| **Data Analyst crew** (`backend/olist_flow/crews/data_analyst`) | Senior Data Engineer, Data Documentation Writer, Retail Analytics Lead, Business Insights Writer, Data Governance Steward, Data Contract Author | `clean_data.csv`, `eda_report.html`, `insights.md`, `dataset_contract.json` |
+| **Data Scientist crew** (`backend/olist_flow/crews/data_scientist`) | ML Feature Engineer, Feature Reviewer, ML Engineer, Model Reviewer, Model Card Author | `features.csv`, `model.joblib`, `evaluation_report.md`, `model_card.md` |
 
 The Data Scientist crew is one CrewAI class run in two phases, so the Flow's
 "required features exist before modeling" gate sits between feature engineering and training. The
@@ -56,27 +56,27 @@ is passed to the scientist agents, and the contract hash is recorded in `feature
 
 | Requirement (course spec) | Where |
 |---|---|
-| Crew 1 with >= 3 agents | 6 agents, `src/olist_flow/crews/data_analyst/config/agents.yaml`; test `tests/test_crews.py` |
+| Crew 1 with >= 3 agents | 6 agents, `backend/olist_flow/crews/data_analyst/config/agents.yaml`; test `backend/tests/test_crews.py` |
 | Ingest and validate a public dataset | `scripts/download_data.py` (pinned commit, sha256 manifest, raw schema check), `check_inputs` step |
-| Clean, preprocess, document | rules R1-R10 in `src/olist_core/cleaning/rules.py`; `artifacts/cleaning_report.md` |
+| Clean, preprocess, document | rules R1-R10 in `backend/olist_core/cleaning/rules.py`; `artifacts/cleaning_report.md` |
 | Descriptive analytics, EDA, visual insights, business summaries | `artifacts/eda_report.html` (7 figures, two layers), `artifacts/insights.md` |
 | Dataset contract (schema, allowed values, assumptions, constraints) | `artifacts/dataset_contract.json` |
-| Crew 2 with >= 3 agents | 5 agents, `src/olist_flow/crews/data_scientist/config/agents.yaml` |
+| Crew 2 with >= 3 agents | 5 agents, `backend/olist_flow/crews/data_scientist/config/agents.yaml` |
 | Read and validate cleaned data + contract | `validate_inputs` tool (first step of `feature_task`); recorded in `feature_spec.json["input_validation"]` |
-| Feature engineering | 25 checkout-time features, `src/olist_core/features/`; `artifacts/features.csv` |
-| Train >= 1 model, compare >= 2 variations | baseline + logistic regression + gradient boosting, `src/olist_core/modeling/`; `artifacts/metrics.json` |
+| Feature engineering | 25 checkout-time features, `backend/olist_core/features/`; `artifacts/features.csv` |
+| Train >= 1 model, compare >= 2 variations | baseline + logistic regression + gradient boosting, `backend/olist_core/modeling/`; `artifacts/metrics.json` |
 | Model card: purpose, training data, metrics, limitations, ethics | `artifacts/model_card.md` (sections checked by `gate_artifacts`) |
 | Outputs `features.csv`, `model.pkl/.joblib`, `evaluation_report.md`, `model_card.md` | `artifacts/` |
-| Flow automates the handoff | `src/olist_flow/flow.py`; log line `HANDOFF analyst->scientist ...` |
-| Validation: contract matches the cleaned dataset | `gate_contract`, `src/olist_core/validators/contract_gate.py` |
-| Validation: required features exist before modeling | `gate_required_features`, `src/olist_core/validators/features_gate.py` |
+| Flow automates the handoff | `backend/olist_flow/flow.py`; log line `HANDOFF analyst->scientist ...` |
+| Validation: contract matches the cleaned dataset | `gate_contract`, `backend/olist_core/validators/contract_gate.py` |
+| Validation: required features exist before modeling | `gate_required_features`, `backend/olist_core/validators/features_gate.py` |
 | Deterministic steps | seeds, pinned threads, stable sorts, LF writers; CI job `verify-repro` |
 | Clear logging | `artifacts/logs/pipeline.log` (STAGE / GATE / HANDOFF / CREW / TOOL / LLM lines), crew transcripts, `run_manifest.json` |
 | Artifacts saved inside the repo | `artifacts/` (promoted by directory swap); CI job `verify-artifacts` |
-| Fail gracefully | `fail_gracefully` step, 7 injectable faults, `tests/test_flow.py` |
+| Fail gracefully | `fail_gracefully` step, 7 injectable faults, `backend/tests/test_flow.py` |
 | Git + GitHub with PRs | one PR per milestone, protected `main`, required CI check |
-| Streamlit and Flask | `app/` (dashboard), `api/` (prediction API) |
-| Pandas, scikit-learn, matplotlib/seaborn | `src/olist_core` |
+| Streamlit and Flask | `frontend/` (dashboard), `backend/olist_api/` (prediction API) |
+| Pandas, scikit-learn, matplotlib/seaborn | `backend/olist_core` |
 
 ## Verify in 10 minutes
 
@@ -84,12 +84,12 @@ is passed to the scientist agents, and the contract hash is recorded in `feature
 git clone https://github.com/matnael332/olist-crewai-flow && cd olist-crewai-flow
 uv sync                                                     # Python 3.13 + locked dependencies
 uv run python -m olist_core.validate artifacts              # the 3 gates on the committed artifacts
-uv run pytest                                               # 94 tests, no LLM calls (~2 min)
-uv run python -m olist_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote
-uv run python -m olist_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote \
+uv run pytest                                               # 96 tests, no LLM calls (~3 min)
+uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote
+uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote \
     --inject-fault missing_feature                          # graceful failure: exit 1, nothing promoted
-uv run python -m olist_flow.run verify-repro --data-dir tests/fixtures/olist_mini
-uv run streamlit run app/streamlit_app.py                   # dashboard
+uv run python -m olist_flow.run verify-repro --data-dir backend/tests/fixtures/olist_mini
+uv run streamlit run frontend/streamlit_app.py              # dashboard
 ```
 
 ## Run the full pipeline
@@ -99,17 +99,17 @@ uv run python scripts/download_data.py      # 9 CSVs (~126 MB) from Olist's GitH
 cp .env.example .env                        # set GEMINI_API_KEY (Google AI Studio)
 uv run kickoff                              # LLM mode: both crews on Gemini, ~3 minutes, ~12 calls
 uv run python -m olist_flow.run --no-llm    # deterministic mode, ~2 minutes
-uv run python -m api.serve                  # prediction API on http://127.0.0.1:8000
+uv run olist-api                            # prediction API on http://127.0.0.1:8000
 curl -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" \
-    -d @api/examples/order.json             # two orders; invalid_order.json shows a 422
+    -d @backend/olist_api/examples/order.json   # two orders; invalid_order.json returns 422
 ```
 
-On Windows PowerShell use `curl.exe` and quote the file argument: `-d "@api/examples/order.json"`.
+On Windows PowerShell use `curl.exe` and quote the file argument: `-d "@backend/olist_api/examples/order.json"`.
 
 | Flag | Meaning |
 |---|---|
 | `--no-llm` / `--mode` | deterministic or LLM mode (default: LLM when `GEMINI_API_KEY` is set) |
-| `--data-dir` | folder with `raw/` and `lookups/` (default `data`; fixture `tests/fixtures/olist_mini`) |
+| `--data-dir` | folder with `raw/` and `lookups/` (default `data`; fixture `backend/tests/fixtures/olist_mini`) |
 | `--inject-fault NAME` | `bad_input_hash`, `crew_error`, `drop_column`, `contract_mismatch`, `missing_feature`, `leaky_feature`, `missing_artifact` |
 | `--no-promote` | keep the run in `runs/<id>/` only |
 | `--from-run ID --start-at features\|modeling` | resume from a previous run's artifacts |
@@ -148,17 +148,27 @@ deterministic run: all data artifacts identical, only the narrative text differs
 
 ## Repository layout
 
+The repository is a monorepo with one uv project at the root. The backend produces the artifacts;
+the frontend only reads them. `artifacts/` is the contract between the two.
+
 ```
-src/olist_core/   pure library (no CrewAI): download, cleaning, EDA, contract, validators,
-                  features, modeling, reporting, promotion, manifest
-src/olist_flow/   CrewAI layer: flow.py, crews/ (YAML + classes), tools/, events.py, run.py (CLI)
-artifacts/        the last promoted run (committed): the 8 spec files + reports, figures, logs
-app/              Streamlit dashboard (reads artifacts/ only)
-api/              Flask prediction API (validates requests against the dataset contract)
-data/             raw/ manifest and schema (CSVs are downloaded), lookups/, NOTICE.md
-tests/            94 tests + the olist_mini fixture (real subset with injected defects)
-docs/             architecture, decision records, deployment guide, slides, video script
-scripts/          data download, repo hygiene check, slide deck build and PDF export
+backend/                 Python backend (pipeline + prediction service)
+  olist_core/            pure data + ML library (no CrewAI): download, cleaning, EDA, contract,
+                         validators, features, modeling, reporting, promotion, manifest, paths
+  olist_flow/            CrewAI layer: flow.py, crews/ (YAML + classes), tools/, events.py, run.py (CLI)
+  olist_api/             Flask prediction API (validates requests against the dataset contract)
+    examples/            order.json (200) and invalid_order.json (422) request bodies
+  tests/                 backend tests + the olist_mini fixture (real subset with injected defects)
+frontend/                Streamlit dashboard (reads artifacts/ only; Community Cloud entrypoint)
+  streamlit_app.py       entrypoint and navigation
+  views/                 one module per page
+  services/              cached artifact loading
+  tests/                 AppTest suite against the committed artifacts
+  requirements.txt       slim deploy dependencies (no CrewAI), exported from uv.lock
+artifacts/               the last promoted run (committed): the 8 spec files + reports, figures, logs
+data/                    raw/ manifest and schema (CSVs are downloaded), lookups/, NOTICE.md
+docs/                    architecture, decision records, deployment guide, slides, video script
+scripts/                 data download, repo hygiene check, slide deck build and PDF export
 ```
 
 ## Data license

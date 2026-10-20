@@ -8,7 +8,7 @@ This project uses the **Brazilian E-Commerce Public Dataset by Olist**.
 - The same data is listed on Kaggle as `olistbr/brazilian-ecommerce` under **CC BY-NC-SA 4.0**
   (attribution, non-commercial, share-alike). This project is non-commercial coursework and
   attributes Olist; derived data in this repository (`artifacts/`, `data/lookups/`,
-  `tests/fixtures/olist_mini/`) is shared under the same terms.
+  `backend/tests/fixtures/olist_mini/`) is shared under the same terms.
 - Raw files are not committed; `scripts/download_data.py` re-downloads and verifies them.
 
 The GitHub repository is distributed under the following license, reproduced as required:

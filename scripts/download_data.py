@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "backend"))
 
 from olist_core.cleaning.geo import build_centroid_lookup  # noqa: E402
 from olist_core.download import ManifestMismatch, download_raw  # noqa: E402

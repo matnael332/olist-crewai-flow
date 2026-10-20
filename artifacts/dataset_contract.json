@@ -6,17 +6,9 @@
       "All amounts are in Brazilian reais (BRL).",
       "The estimated delivery date was shown to the customer at checkout.",
       "The population is delivered orders purchased 2017-01-01..2018-08-31.",
-      "One row per order",
-      "Item counts are consistent",
-      "Amounts are non-negative",
-      "Every order has a valid payment",
-      "Day counts are non-negative",
-      "Target definition",
-      "Same_state is consistent",
-      "Delivery happens after purchase",
-      "Review score range",
-      "Bad_review consistency",
-      "Purchase window"
+      "Delivered orders only from 2017-01-01 to 2018-08-31 are included in the dataset.",
+      "Promised days and estimated delivery dates are determined at checkout and are known prior to fulfillment.",
+      "Rates are fixed as given in the specification and must never be recomputed."
     ],
     "narrative_source": "template+llm"
   },
@@ -26,8 +18,10 @@
       "Category and seller come from the first order item.",
       "The payment type is the type of the largest payment.",
       "Only the latest review per order counts.",
-      "August 2018 purchases are excluded from metrics: the snapshot ends 2018-10-17, so very late August orders may still have been undelivered (right-censoring)",
-      "Measured among delivered orders only"
+      "GMV is the sum of item prices in BRL, excluding freight.",
+      "AOV is calculated as GMV divided by the number of orders.",
+      "Payment total represents the final charged amount and may differ from price plus freight due to vouchers and interest.",
+      "Is late is defined as delivery days greater than promised days, both counted in calendar days from the purchase date."
     ],
     "narrative_source": "template+llm"
   },
@@ -55,7 +49,11 @@
       },
       {
         "name": "promised_days",
-        "note": "Promised_days is known at checkout as it is displayed to the customer when placing the order, whereas delivery_days only exists after delivery and would cause target leakage."
+        "note": "Promised days is allowed as a feature because it is known at checkout, whereas delivery_days is forbidden as it only exists after delivery and would cause target leakage."
+      },
+      {
+        "name": "delivery_days",
+        "note": "Delivery days is forbidden as a feature because it is only known after delivery and would cause target leakage."
       }
     ],
     "narrative_source": "template+llm"
@@ -766,7 +764,8 @@
       "Right-censoring: the snapshot ends 2018-10-17; August 2018 is a censored buffer excluded from evaluation.",
       "The late rate is non-stationary (1.2% in 2018-06 vs 19.0% in 2018-03).",
       "Single marketplace, 2017-2018 data: patterns may not transfer to today.",
-      "Non-delivered orders, delivered orders without a delivery date, orders without items or a valid payment, orders delivered before purchase are excluded from the population."
+      "August 2018 purchases are excluded from metrics because the snapshot ends 2018-10-17, meaning very late August orders may still have been undelivered due to right-censoring.",
+      "Distance was unknown for 481 rows."
     ],
     "narrative_source": "template+llm"
   },

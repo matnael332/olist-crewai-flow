@@ -41,7 +41,7 @@ open (e.g. the dashboard). Staging the new set and swapping folders with retries
 guarantees `artifacts/` is never a mix of two runs.
 
 **ADR-9. Deployment.** Streamlit Community Cloud hosts a read-only dashboard over the committed
-artifacts (Python 3.13, a crewai-free `app/requirements.txt`). Running CrewAI there is unrealistic
+artifacts (Python 3.13, a crewai-free `frontend/requirements.txt`). Running CrewAI there is unrealistic
 (memory, build time, API key exposure); the Flow runs locally and its artifacts are committed.
 
 **ADR-10. Deferred.** Delivery-days regression, seller-history features, and a Railway deployment of
@@ -53,3 +53,13 @@ budget. Tool outputs now format every rate-like field as a percentage string bef
 see it, the prompts forbid new numbers, thresholds and costs, and the model card prompt asks only
 for model-specific points; `merge_items` drops additions shorter than five words. After the change
 every percentage in the committed narratives matches a computed value.
+
+**ADR-12. Monorepo with `backend/` and `frontend/`.** The backend (`olist_core`, `olist_flow`,
+`olist_api`) produces the artifacts; the frontend (Streamlit) only reads them, so `artifacts/` is the
+contract between the two. One uv project at the root keeps every command `uv run ...` from the root,
+and `frontend/requirements.txt` (exported from the `frontend` dependency group) keeps CrewAI out of
+the cloud deployment. The dashboard scores orders in-process by importing `olist_api.model`, the
+same code the Flask API serves, so there is no second service to host; setting `API_URL` switches it
+to HTTP. Modules locate the repository with `olist_core.paths.repo_root()` instead of counting
+parent folders, so files can move without breaking paths. The `api` package was renamed
+`olist_api` to avoid a generic top-level import name.
