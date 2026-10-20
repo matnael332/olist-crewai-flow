@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "finished_at": "2026-10-20T14:24:20Z",
+  "finished_at": "2026-10-20T15:14:56Z",
   "inject_fault": "",
   "mode": "llm",
   "narrative_sources": {
@@ -11,9 +11,9 @@
     "insights.md": "llm",
     "model_card.md": "template+llm"
   },
-  "run_id": "final-llm-1",
+  "run_id": "final-llm-5",
   "stage": "promote_and_finish",
-  "stage_started_at": "2026-10-20T14:23:28Z",
+  "stage_started_at": "2026-10-20T15:14:21Z",
   "stages_done": [
     "check_inputs",
     "run_analyst_stage",
@@ -24,7 +24,7 @@
     "gate_artifacts",
     "promote_and_finish"
   ],
-  "started_at": "2026-10-20T14:21:07Z",
+  "started_at": "2026-10-20T15:12:19Z",
   "status": "success",
   "warnings": []
 }

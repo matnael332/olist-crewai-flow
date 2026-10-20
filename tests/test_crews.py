@@ -72,9 +72,9 @@ FAKES = {
         intended_users="ops",
         out_of_scope=["x"],
         training_data_summary="LLM data",
-        limitations=["LLM limitation"],
-        ethical_considerations=["LLM ethics"],
-        monitoring_recommendations=["LLM monitoring"],
+        limitations=["LLM limitation about the calibration of this model."],
+        ethical_considerations=["LLM ethics point about the errors of this model."],
+        monitoring_recommendations=["LLM monitoring of the threshold of this model."],
     ),
 }
 
@@ -159,6 +159,38 @@ def test_tools_are_read_through_and_never_raise(context):
     (context / "metrics.json").unlink()
     broken = json.loads(train_models.run())
     assert broken["ok"] is False and "metrics.json" in broken["error"]
+
+
+def test_tool_outputs_give_narrators_formatted_percentages():
+    from olist_flow.tools.analyst_tools import as_percentages
+
+    out = as_percentages(
+        {
+            "late_rate": 0.068,
+            "bad_review_rate_on_time": 0.092474,
+            "late_rate_by_state": [{"state": "AL", "late_rate": 0.214646, "orders": 396}],
+            "payments": {"type_share": {"boleto": 0.198954}, "median_installments": 2.0},
+            "test": {"roc_auc": 0.7326, "precision_at_top10pct": 0.1213, "lift": 3.17},
+            "threshold": 0.055,
+        }
+    )
+    assert out["late_rate"] == "6.8%" and out["bad_review_rate_on_time"] == "9.2%"
+    assert out["late_rate_by_state"] == [{"state": "AL", "late_rate": "21.5%", "orders": 396}]
+    assert out["payments"] == {"type_share": {"boleto": "19.9%"}, "median_installments": 2.0}
+    assert out["test"] == {"roc_auc": 0.7326, "precision_at_top10pct": "12.1%", "lift": 3.17}
+    assert out["threshold"] == 0.055
+
+
+def test_merge_items_keeps_statements_and_drops_labels_and_repeats():
+    from olist_core.reporting.markdown_ds import merge_items
+
+    base = ["Regional bias: customers in the North wait longer."]
+    extra = [
+        "Seller fairness",
+        "regional bias: customers in the north wait longer.",
+        "Recall at the 0.055 threshold is 83.0%, so most late orders are flagged.",
+    ]
+    assert merge_items(base, extra) == [*base, extra[2]]
 
 
 def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypatch):

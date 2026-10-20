@@ -19,16 +19,38 @@ def _pm(mean, std) -> str:
     return "n/a" if mean is None else f"{mean:.3f} ± {std:.3f}"
 
 
+MIN_EXTRA_WORDS = 5
+
+
 def merge_items(base: list[str], extra: list[str] | None) -> list[str]:
+    """Template items first, then LLM additions that are full statements and not repeats.
+
+    Additions under five words are dropped: they are topic labels, not statements (a model once
+    echoed its prompt's topic list back as list items).
+    """
     seen = {x.strip().lower() for x in base}
-    return base + [x for x in (extra or []) if x.strip() and x.strip().lower() not in seen]
+    out = list(base)
+    for item in extra or []:
+        text = item.strip()
+        if len(text.split()) >= MIN_EXTRA_WORDS and text.lower() not in seen:
+            out.append(text)
+            seen.add(text.lower())
+    return out
+
+
+SPLIT_ORDER = ("train", "test", "censored_buffer")
 
 
 def split_table(meta: dict) -> str:
-    rows = [
-        [name, f"{s['dates'][0]} .. {s['dates'][1]}", num(s["rows"]), pct(s["prevalence"])]
-        for name, s in meta["split"].items()
-    ]
+    # Chronological order; the JSON keys are sorted alphabetically.
+    names = [n for n in SPLIT_ORDER if n in meta["split"]]
+    names += [n for n in meta["split"] if n not in names]
+    rows = []
+    for name in names:
+        s = meta["split"][name]
+        rows.append(
+            [name, f"{s['dates'][0]} .. {s['dates'][1]}", num(s["rows"]), pct(s["prevalence"])]
+        )
     return md_table(["split", "purchase dates", "orders", "late rate"], rows)
 
 

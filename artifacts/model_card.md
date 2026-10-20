@@ -6,20 +6,20 @@
 - **Selected by:** highest mean CV PR-AUC (4 decimals) among non-baseline models; the lean logistic regression wins when within 2% of the best.
 - **Decision threshold:** 0.055 (tuned on out-of-fold F1).
 - **Reproducibility:** seed 42, 2 threads, scikit-learn 1.7.2, Python 3.13.13.
-- **Contract:** dataset_contract v1.0, sha256 `8fe2e5d99bbc4d0b4023f97786c8864f9ff3d7f55c6473e634ee57ecae7da0fe`.
+- **Contract:** dataset_contract v1.0, sha256 `e881be9f2bb0c17297a799ab0852c7015c99309fb3822ce9fa414b80c06591c7`.
 
 ## Model purpose
 
-The purpose of this model is to predict late deliveries for e-commerce orders, enabling proactive operational interventions and improving customer satisfaction.
+The purpose of this model is to predict late deliveries for logistics operations using a LogisticRegression classifier trained on scaled numeric features and one-hot encoded categories, with a decision threshold tuned specifically to handle class imbalance.
 
-- **Intended users:** Operations teams, logistics planners, and customer service management within the e-commerce platform.
+- **Intended users:** Intended users include operations teams, logistics planners, and supply chain managers who need to identify potential late orders in advance.
 - **Out of scope:**
   - Denying service, changing prices or penalizing customers or sellers.
   - Orders outside Brazil or from other marketplaces without revalidation.
   - Predicting the exact delivery date (this is a yes/no lateness risk).
-  - Determining individual employee or driver performance metrics.
-  - Automated punitive actions against third-party sellers without human review.
-  - Financial credit scoring or fraud detection.
+  - This model must never be used for automated punitive actions against sellers or third-party couriers without human review.
+  - The model is out of scope for financial credit scoring or pricing decisions.
+  - It should not be used as a standalone customer communication tool regarding delivery delays.
 
 ## Training data summary
 
@@ -29,11 +29,11 @@ The purpose of this model is to predict late deliveries for e-commerce orders, e
 | test rows | 19,001 (2018-05-01 .. 2018-07-31) |
 | late rate train / test | 7.6% / 3.8% |
 | features | 25 checkout-time features |
-| dataset contract | v1.0 sha256 8fe2e5d99bbc |
+| dataset contract | v1.0 sha256 e881be9f2bb0 |
 | raw data | Olist GitHub commit d9e49802f3e9 |
 | privacy | pseudonymous ids; no names, cities or review text |
 
-The training set contains 70,851 rows spanning from 2017-01-01 to 2018-04-30 with a late rate prevalence of 7.6%. A test set of 19,001 rows spans from 2018-05-01 to 2018-07-31 with a late rate prevalence of 3.8%. Additionally, a censored buffer dataset contains 6,351 rows from 2018-08-01 to 2018-08-31 with a late rate prevalence of 6.2%.
+The training dataset contains 70851 rows spanning from 2017-01-01 to 2018-04-30 with a late prevalence of 7.6%. The evaluation framework uses a TimeSeriesSplit with 3 splits on the train window, comparing against a test set of 19001 rows spanning from 2018-05-01 to 2018-07-31 with a test prevalence of 3.8%, plus a censored buffer set of 6351 rows from 2018-08-01 to 2018-08-31 with a prevalence of 6.2%.
 
 ## Metrics
 
@@ -53,9 +53,9 @@ The training set contains 70,851 rows spanning from 2017-01-01 to 2018-04-30 wit
 - The late rate is non-stationary; the decision threshold must be re-tuned on recent data.
 - Data from 2017-2018 on one marketplace; patterns may have changed.
 - Associations, not causes: the model does not explain why an order is late.
-- Modest overall precision of 5.8% at the chosen threshold due to the low base rate.
-- Brier score of 0.0384 is slightly worse than alternative models.
-- Performance is sensitive to distribution shift between training and testing windows.
+- The model exhibits a modest precision of 5.8% on the test set, leading to a high volume of false alarms.
+- The low F1 score of 0.1085 reflects the severe class imbalance challenge present in the data.
+- The Brier score of 0.0384 indicates that probability calibration can be further improved for operational reliability.
 
 ## Ethical considerations
 
@@ -64,19 +64,17 @@ The training set contains 70,851 rows spanning from 2017-01-01 to 2018-04-30 wit
 - Privacy: identifiers are pseudonymous, but zip prefix plus timestamps are quasi-identifiers; only aggregates are shown in dashboards.
 - License: the Olist data is shared for non-commercial use (CC BY-NC-SA 4.0 listing); this model is coursework, not a production system.
 - Portuguese review text is never used, avoiding sensitive free-text content.
-- Regional bias between Brazilian states may affect prediction accuracy for less-represented geographic areas.
-- Seller fairness must be maintained to ensure smaller merchants are not unfairly penalized by routing or fulfillment predictions.
-- Privacy of zip prefixes and timestamps must be strictly preserved to prevent re-identification of buyers or sellers.
-- Data usage must comply with non-commercial data license restrictions.
+- Geographic features such as customer_state and seller_state heavily influence predictions, requiring ongoing audits to ensure regional fairness and prevent systemic bias against specific locations.
+- Reliance on delivery distance and state attributes may indirectly impact vulnerable regions with underfunded infrastructure, risking disparate service quality.
 
 ## Monitoring
 
 - Track the monthly late rate, PR-AUC and calibration, overall and by state.
 - Re-tune the threshold and retrain when the late rate shifts.
 - Alert when input distributions (promised days, freight, states) drift.
-- Track daily and weekly prediction distributions to catch data drift resulting from temporal changes in late rates.
-- Monitor precision and recall metrics continuously on rolling test windows.
-- Audit predictions across different Brazilian states regularly to detect and mitigate regional bias.
+- Monitor model performance drift continuously, given the distribution shift between the train prevalence of 7.6% and the test prevalence of 3.8%.
+- Explore post-processing probability calibration techniques to improve the Brier score over time.
+- Track top predictive features such as promised_days and customer_state to ensure feature stability and catch upstream data quality issues.
 
 ## How to use
 
@@ -87,4 +85,4 @@ Run the API (`uv run python -m api.serve`) and POST checkout records:
 ```
 
 ---
-<sub>narrative_source: template+llm | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=a3d237ceb8e9</sub>
+<sub>narrative_source: template+llm | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=24dcf092d98c</sub>

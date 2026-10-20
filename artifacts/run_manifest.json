@@ -2,12 +2,12 @@
   "artifacts": {
     "clean_data.csv": "614e4351e1478c1afe6248755537e74cfd294d771a52dcc1c6ee2e1434a1057b",
     "cleaning_report.json": "4cebaa7c7148bd76e0019de4dad05061ad5abc11be7ed8fd3e62e74ba3520dfe",
-    "cleaning_report.md": "8ce7cb2034679e108a7448d53691177bc8a409d0ba2d3f5d1985d87917fcd1ad",
-    "dataset_contract.json": "8fe2e5d99bbc4d0b4023f97786c8864f9ff3d7f55c6473e634ee57ecae7da0fe",
-    "eda_report.html": "da4a63e89a60272c5248c7c362feee8fabd01922361fbf049ea4d1c0bf38fffb",
+    "cleaning_report.md": "e7e24b3fc0aa0e69ca8761e3c6d9ee4f6c33c688fdfc0f15a6ac5d57349fb299",
+    "dataset_contract.json": "e881be9f2bb0c17297a799ab0852c7015c99309fb3822ce9fa414b80c06591c7",
+    "eda_report.html": "b79121e216dd07e88309c39bf6948b5018cc502770196e03000a3a97215d552a",
     "eda_summary.json": "ab5021a4aeb1b0666043f8c695943f526ddcc0160463b3a88ceff54003a95e23",
-    "evaluation_report.md": "2900f148744ef2c3bc53be22d9c055636cb11f2a1217ef73fa221243d1424c10",
-    "feature_spec.json": "44dfcff4eaaf5c1f61edfd48d938b1b191454794a64b75cf4c462117798e8e39",
+    "evaluation_report.md": "7203140d33c2bf0c80518bb0d7d4138cd3f0351bd5c6f82c95abab23138c0f58",
+    "feature_spec.json": "a750926c78144e18f76bef97562b448a125fc282e80adf0f0189fdb691c6861b",
     "features.csv": "0030562e0073974dc353d5f57e9bfe6f4e87c5aad1c0eb6a89e8009864622f25",
     "figures/calibration_selected.png": "ade5f05b71eee4802a61aa471bfd3ebd27f62720511197a1a4006eaa3f8f602e",
     "figures/delivery_days_hist.png": "7b933864f86210e1de4f61ec2be8d816f881b629938b53b535fad841ef08066a",
@@ -16,20 +16,22 @@
     "figures/late_rate_by_month.png": "aed1e5f7a8e5b685919598209cfd79eab6b20bc3d6fdd7208b7f20bb1beda055",
     "figures/late_rate_by_state.png": "d9bbcab6313e575d9d9db466b40ff8ba0b9339488bbc65a85b9a89e9b5651d30",
     "figures/monthly_orders_all_vs_delivered.png": "4125bef77870bc20646d6ec38ba58198e00e79094bdea57af217f8c206bf731c",
-    "figures/pr_curves.png": "b4e27b2fa73b7a1c1670adfc9e31b64d433cb12fad6172ef3bf78c39add67c5d",
+    "figures/pr_curves.png": "3845017be443f34f6dea2129f29fad7e20e86f3c9289a5e5fa3fa9a885ec0941",
     "figures/promised_vs_actual_by_month.png": "75ec8f016c84e8d675e79c6141832c85600b9084288886c049f66172a57a638e",
     "figures/review_score_vs_late.png": "087a3c8ca7c7f0cfbd6e2d33da63fcdf1cdbbaa57d0f43cec7e7c0a660c547e6",
     "figures/roc_curves.png": "e74b417c172fde1fd29b2d8d08bb388bdb64580b8a0d78ec133e59ff61858ec5",
-    "insights.md": "e92c34a1f0aacfb80f49d25e9621b9485a96b175eccc69619e51edbadfed3a17",
+    "insights.md": "f22c08653a28433f3e33592bb56ed66ad95cd7043988123a83d8ec28a0eac4c9",
+    "logs/data_analyst_crew.json": "2f6d05a4c422b3335f8e5b2b867c1cd27afc21432e7cf1bd300089eb8a1a6030",
+    "logs/data_scientist_crew.json": "f53c4ad6b1784aec544c95756a82308e88c775bc2e9dfb59036f548b027bf7be",
     "metrics.json": "bb25900b6ecc7143cb7525910de7d6249eeca752b36cec561a4ba6c05938b327",
     "model.joblib": "4c32dc86a7e5d86dc60a98aa7c4c2f57bc338c24d04322d9b0039d9b127d99c4",
-    "model_card.md": "3cefaedb24e4751e8a0656fba9077e61a328f2fb10ce8e1edf31ab8d752e22e9",
-    "model_meta.json": "a3d237ceb8e9aca75718baff46a27ec2307a8e84a7bf37046910940b379121e1",
+    "model_card.md": "d3565e16d096e0b40104ac2a115043cfe8c9012924ca5bc11857b40e025067e3",
+    "model_meta.json": "24dcf092d98c3ddb8c4d149ecd1aee4d75ba63f833c2d50678e50af264e20f8e",
     "predictions_test.csv": "32f680888f60b0e0de9aaa21394db892a3dc4bb11ac2b78af18ec9ff7ec27fd0",
     "provenance.json": "fb8751d54f8364ad1ee3b877da35a21d2ef4d74fdf8d7d85ea3361eb9fec9bcc",
     "raw_profile.json": "3b6f14fe2af9e146bc335ee7aec7ce9f826518c003eb01dff0faa9eaa71740ee",
-    "run_status.json": "68a13065ff2307abcbe1f381dca0d5d472f629630d24f22b942e956afd0c0aea",
-    "validation_report.json": "25be46bbe30a3e5bdc5bf4627610c58dcbc24f7e3208de3e38eddd8050b5c415"
+    "run_status.json": "a437c6110b36ca82f036ff9fcf37eb9956f473c122e120f96593a1750e406425",
+    "validation_report.json": "5b5e85bd2e2ed679d7710b695c4165dc5d0001515d6d6890bd2d50f9c235df0f"
   },
   "environment": {
     "OMP_NUM_THREADS": "2",
@@ -55,11 +57,11 @@
     "python_prefix": "C:/Users/Matanel/Desktop/final_project/.venv"
   },
   "errors": [],
-  "finished_at": "2026-10-20T14:24:20Z",
+  "finished_at": "2026-10-20T15:14:56Z",
   "git": {
-    "branch": "feat/m4-crews",
+    "branch": "fix/pr-curve-baseline",
     "dirty": true,
-    "sha": "ffc18e642b9a5b94ccbc06863a5b2cefdd9b86be"
+    "sha": "c8039769ce16bb3715c0fd60a838ee53d10710b6"
   },
   "inputs": {
     "olist_customers_dataset.csv": "c26c17f59f3027a6a0dbeb8f1fa373c38f3323ecc84f225a8f4820e5bb288df8",
@@ -85,19 +87,19 @@
     "inject_fault": "",
     "llm_model": "gemini-3.5-flash-lite",
     "mode": "llm",
-    "run_id": "final-llm-1",
+    "run_id": "final-llm-5",
     "seed": 42,
     "stage": "promote_and_finish",
     "start_at": "",
     "status": "success"
   },
-  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/final-llm-1",
-  "started_at": "2026-10-20T14:21:07Z",
+  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/final-llm-5",
+  "started_at": "2026-10-20T15:12:19Z",
   "token_usage": {
-    "completion_tokens": 3895,
-    "prompt_tokens": 15890,
+    "completion_tokens": 3607,
+    "prompt_tokens": 15874,
     "successful_requests": 12,
-    "total_tokens": 19785
+    "total_tokens": 19481
   },
   "warnings": []
 }

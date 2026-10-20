@@ -8,9 +8,9 @@
 
 | split | purchase dates | orders | late rate |
 |---|---|---|---|
-| censored_buffer | 2018-08-01 .. 2018-08-31 | 6,351 | 6.2% |
-| test | 2018-05-01 .. 2018-07-31 | 19,001 | 3.8% |
 | train | 2017-01-01 .. 2018-04-30 | 70,851 | 7.6% |
+| test | 2018-05-01 .. 2018-07-31 | 19,001 | 3.8% |
+| censored_buffer | 2018-08-01 .. 2018-08-31 | 6,351 | 6.2% |
 
 ## Cross-validation on the train window (computed)
 
@@ -84,30 +84,29 @@ Folds for the selected model (logistic_regression); note the shifting late rate:
 
 ## Reviewer commentary
 
-**Summary.** We evaluated a modest logistic regression model against a baseline prior and a histogram gradient boosting model to predict late deliveries. The late rate differs between the train and test windows, showing 7.6% prevalence in training and 3.8% in testing. The selected logistic regression model achieves a cross-validation PR-AUC of 18.0% and a test ROC-AUC of 73.3%, making it a pragmatic choice for operations despite its modest overall performance.
+**Summary.** We evaluated a baseline prior, a HistGradientBoostingClassifier, and a LogisticRegression model using TimeSeriesSplit(n_splits=3) on the train window. Note that the late rate differs between the train and test windows, with a train prevalence of 7.6% and a test prevalence of 3.8%. The selected model for operations is logistic_regression, chosen because it achieved the highest mean CV PR-AUC among non-baseline models with a selection margin of 0.0129.
 
-**Comparison.** The logistic regression model was selected because it achieved the highest mean cross-validation PR-AUC of 18.0%, narrowly beating the histogram gradient boosting model at 16.7% under our selection rule. While the gradient boosting model achieved a higher test precision at the top 10% (10.0% versus 12.0% for logistic regression), the logistic regression offers better calibration and a much higher test recall of 83.0% compared to 33.5% for gradient boosting at their respective thresholds.
+**Comparison.** The baseline prior achieved a cv_pr_auc_mean of 0.0898 and cv_roc_auc_mean of 0.5, with a test pr_auc of 0.038 and roc_auc of 0.5. The HistGradientBoostingClassifier achieved a cv_pr_auc_mean of 0.1674 and cv_roc_auc_mean of 0.6428, with a test pr_auc of 0.0839 and roc_auc of 0.6981. The selected LogisticRegression model achieved a cv_pr_auc_mean of 0.1803 and cv_roc_auc_mean of 0.6643, along with a test pr_auc of 0.1019 and roc_auc of 0.7326.
 
 **Strengths**
 
-- Achieves a strong test ROC-AUC of 73.3% and a test PR-AUC of 10.2%.
-- Provides a high test recall of 83.0%, catching a large majority of late orders.
-- Strong lift at the top 10% of 3.2, outperforming the baseline prior's 1.1 and gradient boosting's 2.6.
-- Lean and interpretable model structure relying on transparent coefficients.
+- LogisticRegression achieves the highest cross-validation PR-AUC (0.1803) and ROC-AUC (0.6643) among all candidates.
+- Shows strong ranking capability on test data with a test ROC-AUC of 0.7326 and a lift_at_top10pct of 3.1719.
+- Maintains a high recall of 83.0% on the test set at its tuned threshold.
 
 **Weaknesses**
 
-- Modest overall precision of 5.8% at the chosen threshold due to the low base rate.
-- Brier score of 0.0384 is slightly worse than the gradient boosting model's 0.0362.
-- Performance is sensitive to distribution shift, evidenced by the late rate differing between the train window (7.6%) and the test window (3.8%).
+- Modest precision of 5.8% on the test set, leading to a high volume of false alarms.
+- Low F1 score of 0.1085 reflecting the severe class imbalance challenge.
+- Brier score of 0.0384 indicates calibration can be further improved for operational reliability.
 
-**Threshold recommendation.** We recommend setting the operational decision threshold at 5.5% to balance catching late orders against operational review capacity, leveraging the model's strong ranking ability in the top 10% slice where precision reaches 12.0%.
+**Threshold recommendation.** We recommend setting the operational decision threshold to 0.055 for the logistic regression model, which successfully balances the trade-off to capture an 83.0% recall while maintaining a precision_at_top10pct of 12.1%.
 
 **Next steps**
 
-- Incorporate recent temporal features to adapt to the late rate differing between train and test windows.
-- Run a pilot with the operations team using the 5.5% threshold to measure real-world intervention impact.
-- Explore feature engineering on customer and seller state interactions to further boost PR-AUC.
+- Monitor model performance drift given the distribution shift between the train prevalence of 7.6% and test prevalence of 3.8%.
+- Explore post-processing probability calibration techniques to improve the Brier score.
+- Incorporate additional features beyond the top drivers like promised_days and customer_state to improve precision.
 
 ---
-<sub>narrative_source: llm | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=a3d237ceb8e9</sub>
+<sub>narrative_source: llm | grounding: metrics.json sha256=bb25900b6ecc, model_meta.json sha256=24dcf092d98c</sub>
