@@ -13,8 +13,8 @@ cleaning_narrative_task:
     Using the cleaning report from the previous task, document the data cleaning for business
     readers: the quality issues found (with exact counts), the decisions taken and why, and the
     caveats that remain. Quote only numbers that appear in the report.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. Write amounts as BRL with thousands separators.
   expected_output: >-
     A CleaningNarrative with summary, issues_found, decisions and caveats.
   agent: cleaning_documenter
@@ -35,9 +35,10 @@ insights_task:
     business. Use the all-orders layer for business volume (growth, peak month, busiest day) and
     say "among delivered orders" whenever you quote a late rate. Give 4 to 6 key findings with the
     exact numbers as evidence, 3 to 5 recommendations, data caveats and implications for modeling.
-    Every number must appear in the summary.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    Every number must appear in the summary; recommendations must not introduce new numbers or
+    thresholds.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. Write amounts as BRL with thousands separators.
   expected_output: >-
     An Insights object with headline, key_findings, recommendations, data_caveats and
     modeling_implications.
@@ -60,8 +61,8 @@ contract_narrative_task:
     of the dataset contract that the Data Scientist crew must follow: assumptions, business rules,
     notes on specific columns (use exact column names from the draft) and known limitations. In a
     column note, explain why promised_days is allowed as a feature while delivery_days is forbidden.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. Write amounts as BRL with thousands separators.
   expected_output: >-
     A ContractNarrative with assumptions, business_rules, column_notes and known_limitations.
   agent: contract_author

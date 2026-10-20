@@ -24,24 +24,27 @@ with tab_metrics:
         rows.append(
             {
                 "model": name + (" (selected)" if name == chosen else ""),
-                "CV PR-AUC": c["cv"]["pr_auc_mean"],
-                "CV ROC-AUC": c["cv"]["roc_auc_mean"],
-                "test ROC-AUC": c["test"]["roc_auc"],
-                "test PR-AUC": c["test"]["pr_auc"],
+                "CV PR-AUC": f"{c['cv']['pr_auc_mean']:.3f}",
+                "CV ROC-AUC": f"{c['cv']['roc_auc_mean']:.3f}",
+                "test ROC-AUC": f"{c['test']['roc_auc']:.3f}",
+                "test PR-AUC": f"{c['test']['pr_auc']:.3f}",
                 "precision, riskiest 10%": pct(c["test"]["precision_at_top10pct"]),
-                "lift, riskiest 10%": c["test"]["lift_at_top10pct"],
+                "lift, riskiest 10%": f"{c['test']['lift_at_top10pct']:.2f}x",
             }
         )
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    # Chronological order (the JSON keys are sorted alphabetically).
+    order = [k for k in ("train", "test", "censored_buffer") if k in metrics["split"]]
+    order += [k for k in metrics["split"] if k not in order]
     split = pd.DataFrame(
         [
             {
                 "split": k,
-                "dates": " .. ".join(v["dates"]),
-                "orders": v["rows"],
-                "late rate": pct(v["prevalence"]),
+                "dates": " to ".join(metrics["split"][k]["dates"]),
+                "orders": f"{metrics['split'][k]['rows']:,}",
+                "late rate": pct(metrics["split"][k]["prevalence"]),
             }
-            for k, v in metrics["split"].items()
+            for k in order
         ]
     )
     st.caption(

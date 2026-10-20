@@ -44,5 +44,12 @@ guarantees `artifacts/` is never a mix of two runs.
 artifacts (Python 3.13, a crewai-free `app/requirements.txt`). Running CrewAI there is unrealistic
 (memory, build time, API key exposure); the Flow runs locally and its artifacts are committed.
 
+**ADR-11. Narrators copy numbers, they never convert them.** A review of the LLM narratives found
+one rounding slip (9.3% written for 0.092474), an invented threshold and an invented "BRL 0.00"
+budget. Tool outputs now format every rate-like field as a percentage string before the narrators
+see it, the prompts forbid new numbers, thresholds and costs, and the model card prompt asks only
+for model-specific points; `merge_items` drops additions shorter than five words. After the change
+every percentage in the committed narratives matches a computed value.
+
 **ADR-10. Deferred.** Delivery-days regression, seller-history features, and a Railway deployment of
 the API are documented as future work to protect the core scope.

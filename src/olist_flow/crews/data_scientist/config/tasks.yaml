@@ -16,8 +16,9 @@ feature_narrative_task:
     State the contract version, the validated row count and how many required and forbidden
     features the contract lists; explain why these features cannot leak post-purchase information;
     describe the feature groups; list concerns such as the late rate shifting between splits.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. The feature spec contains no money amounts, so never write
+    BRL figures or invent costs.
   expected_output: >-
     A FeatureNarrative with contract_compliance, leakage_statement, feature_groups and concerns.
   agent: feature_reviewer
@@ -38,8 +39,9 @@ evaluation_task:
     summary, how the models compare, strengths, weaknesses, a threshold recommendation for the
     operations team and next steps. Quote only numbers from the comparison and mention that the late
     rate differs between the train and test windows.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. The comparison contains no money amounts, so never write
+    BRL figures or invent costs.
   expected_output: >-
     An EvaluationNarrative with executive_summary, comparison_summary, strengths, weaknesses,
     threshold_recommendation and next_steps.
@@ -50,11 +52,17 @@ model_card_task:
   description: >-
     Write the narrative parts of the model card for the selected model, following dataset contract
     {contract_version}: purpose, intended users, out-of-scope uses, a training data summary using
-    the split sizes and late rates from the comparison, limitations, ethical considerations
-    (regional bias between Brazilian states, seller fairness, privacy of zip prefixes and
-    timestamps, non-commercial data license) and monitoring recommendations.
-    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
-    decimal, and amounts as BRL with thousands separators.
+    the split sizes and late rates from the comparison, limitations, ethical considerations and
+    monitoring recommendations.
+    The pipeline already writes the general items that apply to any model trained on this data,
+    so do not repeat general points about the data, fairness, privacy or licensing. In each list,
+    add at most three new points that are specific to this model and its numbers, for example its
+    calibration, its precision and recall at the chosen threshold, or the gap between the train
+    and test late rates. Write every point as a full sentence, and return an empty list when there
+    is nothing specific to add.
+    Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
+    exactly and never recompute them. The comparison contains no money amounts, so never write
+    BRL figures or invent costs.
   expected_output: >-
     A ModelCardNarrative with purpose, intended_users, out_of_scope, training_data_summary,
     limitations, ethical_considerations and monitoring_recommendations.
