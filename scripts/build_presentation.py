@@ -25,6 +25,10 @@ FIG = ART / "figures"
 IMAGES = ROOT / "docs" / "images"
 OUT = ROOT / "docs" / "presentation.pptx"
 
+PRESENTER = "Matanel"
+REPO_URL = "github.com/matnael332/olist-crewai-flow"
+APP_URL = "olist-late-delivery-1.streamlit.app"  # Streamlit Community Cloud deployment
+
 NAVY = RGBColor(0x0F, 0x17, 0x2A)
 BLUE = RGBColor(0x25, 0x63, 0xEB)
 RED = RGBColor(0xDC, 0x26, 0x26)
@@ -281,17 +285,19 @@ def build() -> None:
         size=22,
         color=WHITE,
     )
+    deck.text(s, PRESENTER, 0.9, 4.45, 11.5, 0.6, size=22, color=WHITE, bold=True)
     deck.text(
         s,
         [
             "Olist Brazilian e-commerce data  |  CrewAI + Gemini, scikit-learn, Streamlit, "
             "Flask, GitHub",
-            "github.com/matnael332/olist-crewai-flow",
+            f"Code: {REPO_URL}",
+            f"Live dashboard: {APP_URL}",
         ],
         0.9,
         5.3,
         11.5,
-        1.0,
+        1.2,
         size=16,
         color=RGBColor(0xCB, 0xD5, 0xE1),
     )
@@ -825,11 +831,11 @@ def build() -> None:
     shot.line.width = Pt(1)
     deck.text(
         s,
-        f"Dashboard overview page, run {status['run_id']}",
+        [f"Live: {APP_URL}", f"Overview page, run {status['run_id']}"],
         6.85,
         5.5,
         6.1,
-        0.4,
+        0.7,
         size=12,
         color=GREY,
     )
