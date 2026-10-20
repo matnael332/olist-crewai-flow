@@ -1,0 +1,772 @@
+{
+  "all_orders": {
+    "mean_monthly_orders_2018_jan_aug": 6748.875,
+    "monthly": [
+      {
+        "delivered": 1,
+        "month": "2016-09",
+        "non_delivered_share": 0.75,
+        "not_delivered": 3,
+        "orders": 4
+      },
+      {
+        "delivered": 265,
+        "month": "2016-10",
+        "non_delivered_share": 0.182099,
+        "not_delivered": 59,
+        "orders": 324
+      },
+      {
+        "delivered": 1,
+        "month": "2016-12",
+        "non_delivered_share": 0.0,
+        "not_delivered": 0,
+        "orders": 1
+      },
+      {
+        "delivered": 750,
+        "month": "2017-01",
+        "non_delivered_share": 0.0625,
+        "not_delivered": 50,
+        "orders": 800
+      },
+      {
+        "delivered": 1653,
+        "month": "2017-02",
+        "non_delivered_share": 0.071348,
+        "not_delivered": 127,
+        "orders": 1780
+      },
+      {
+        "delivered": 2546,
+        "month": "2017-03",
+        "non_delivered_share": 0.050708,
+        "not_delivered": 136,
+        "orders": 2682
+      },
+      {
+        "delivered": 2303,
+        "month": "2017-04",
+        "non_delivered_share": 0.042013,
+        "not_delivered": 101,
+        "orders": 2404
+      },
+      {
+        "delivered": 3546,
+        "month": "2017-05",
+        "non_delivered_share": 0.041622,
+        "not_delivered": 154,
+        "orders": 3700
+      },
+      {
+        "delivered": 3135,
+        "month": "2017-06",
+        "non_delivered_share": 0.033898,
+        "not_delivered": 110,
+        "orders": 3245
+      },
+      {
+        "delivered": 3872,
+        "month": "2017-07",
+        "non_delivered_share": 0.038251,
+        "not_delivered": 154,
+        "orders": 4026
+      },
+      {
+        "delivered": 4193,
+        "month": "2017-08",
+        "non_delivered_share": 0.031863,
+        "not_delivered": 138,
+        "orders": 4331
+      },
+      {
+        "delivered": 4150,
+        "month": "2017-09",
+        "non_delivered_share": 0.031505,
+        "not_delivered": 135,
+        "orders": 4285
+      },
+      {
+        "delivered": 4478,
+        "month": "2017-10",
+        "non_delivered_share": 0.033038,
+        "not_delivered": 153,
+        "orders": 4631
+      },
+      {
+        "delivered": 7289,
+        "month": "2017-11",
+        "non_delivered_share": 0.033802,
+        "not_delivered": 255,
+        "orders": 7544
+      },
+      {
+        "delivered": 5513,
+        "month": "2017-12",
+        "non_delivered_share": 0.028204,
+        "not_delivered": 160,
+        "orders": 5673
+      },
+      {
+        "delivered": 7069,
+        "month": "2018-01",
+        "non_delivered_share": 0.027514,
+        "not_delivered": 200,
+        "orders": 7269
+      },
+      {
+        "delivered": 6555,
+        "month": "2018-02",
+        "non_delivered_share": 0.025713,
+        "not_delivered": 173,
+        "orders": 6728
+      },
+      {
+        "delivered": 7003,
+        "month": "2018-03",
+        "non_delivered_share": 0.028845,
+        "not_delivered": 208,
+        "orders": 7211
+      },
+      {
+        "delivered": 6798,
+        "month": "2018-04",
+        "non_delivered_share": 0.02032,
+        "not_delivered": 141,
+        "orders": 6939
+      },
+      {
+        "delivered": 6749,
+        "month": "2018-05",
+        "non_delivered_share": 0.018042,
+        "not_delivered": 124,
+        "orders": 6873
+      },
+      {
+        "delivered": 6099,
+        "month": "2018-06",
+        "non_delivered_share": 0.011026,
+        "not_delivered": 68,
+        "orders": 6167
+      },
+      {
+        "delivered": 6159,
+        "month": "2018-07",
+        "non_delivered_share": 0.021138,
+        "not_delivered": 133,
+        "orders": 6292
+      },
+      {
+        "delivered": 6351,
+        "month": "2018-08",
+        "non_delivered_share": 0.024724,
+        "not_delivered": 161,
+        "orders": 6512
+      },
+      {
+        "delivered": 0,
+        "month": "2018-09",
+        "non_delivered_share": 1.0,
+        "not_delivered": 16,
+        "orders": 16
+      },
+      {
+        "delivered": 0,
+        "month": "2018-10",
+        "non_delivered_share": 1.0,
+        "not_delivered": 4,
+        "orders": 4
+      }
+    ],
+    "n_orders": 99441,
+    "non_delivered_share": 0.029797,
+    "orders_2017_01": 800,
+    "peak_day": {
+      "date": "2017-11-24",
+      "orders": 1176
+    },
+    "peak_month": {
+      "month": "2017-11",
+      "orders": 7544
+    },
+    "purchase_range": [
+      "2016-09-04T21:15:19",
+      "2018-10-17T17:30:18"
+    ],
+    "second_busiest_day": {
+      "date": "2017-11-25",
+      "orders": 499
+    },
+    "status_counts": {
+      "approved": 2,
+      "canceled": 625,
+      "created": 5,
+      "delivered": 96478,
+      "invoiced": 314,
+      "processing": 301,
+      "shipped": 1107,
+      "unavailable": 609
+    }
+  },
+  "cleaning": {
+    "rows_in": 99441,
+    "rows_out": 96203,
+    "rules": [
+      {
+        "rows_removed": 2963,
+        "rule": "R1_keep_delivered"
+      },
+      {
+        "rows_removed": 8,
+        "rule": "R2_require_delivery_date"
+      },
+      {
+        "rows_removed": 267,
+        "rule": "R3_purchase_window"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R4_timestamp_sequences"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R5_items"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R6_payments"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R7_reviews"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R8_geography"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R9_derive"
+      },
+      {
+        "rows_removed": 0,
+        "rule": "R10_finalize"
+      }
+    ]
+  },
+  "delivered_population": {
+    "aov_brl": 136.999656,
+    "categories_top10_by_gmv": [
+      {
+        "category": "health_beauty",
+        "gmv_brl": 1228499.9,
+        "late_rate": 0.075487,
+        "orders": 8571
+      },
+      {
+        "category": "watches_gifts",
+        "gmv_brl": 1160596.28,
+        "late_rate": 0.074277,
+        "orders": 5466
+      },
+      {
+        "category": "bed_bath_table",
+        "gmv_brl": 1021443.98,
+        "late_rate": 0.075202,
+        "orders": 9162
+      },
+      {
+        "category": "sports_leisure",
+        "gmv_brl": 953931.72,
+        "late_rate": 0.066238,
+        "orders": 7473
+      },
+      {
+        "category": "computers_accessories",
+        "gmv_brl": 886401.14,
+        "late_rate": 0.064118,
+        "orders": 6488
+      },
+      {
+        "category": "furniture_decor",
+        "gmv_brl": 710157.46,
+        "late_rate": 0.072332,
+        "orders": 6166
+      },
+      {
+        "category": "housewares",
+        "gmv_brl": 616277.68,
+        "late_rate": 0.054059,
+        "orders": 5679
+      },
+      {
+        "category": "cool_stuff",
+        "gmv_brl": 610180.41,
+        "late_rate": 0.059324,
+        "orders": 3523
+      },
+      {
+        "category": "auto",
+        "gmv_brl": 577751.44,
+        "late_rate": 0.073467,
+        "orders": 3784
+      },
+      {
+        "category": "garden_tools",
+        "gmv_brl": 469564.25,
+        "late_rate": 0.066002,
+        "orders": 3409
+      }
+    ],
+    "delivery": {
+      "mean_days": 12.476825,
+      "mean_slack_days": 11.807969,
+      "median_days": 10.0,
+      "median_promised_days": 24.0,
+      "p90_days": 23.0
+    },
+    "freight_brl": 2196653.04,
+    "freight_share_of_gmv": 0.166668,
+    "gmv_brl": 13179777.95,
+    "late_orders": 6531,
+    "late_rate": 0.067888,
+    "late_rate_by_state": [
+      {
+        "late_rate": 0.214646,
+        "median_delivery_days": 22.0,
+        "orders": 396,
+        "state": "AL"
+      },
+      {
+        "late_rate": 0.175316,
+        "median_delivery_days": 19.0,
+        "orders": 713,
+        "state": "MA"
+      },
+      {
+        "late_rate": 0.153614,
+        "median_delivery_days": 18.0,
+        "orders": 332,
+        "state": "SE"
+      },
+      {
+        "late_rate": 0.138947,
+        "median_delivery_days": 16.0,
+        "orders": 475,
+        "state": "PI"
+      },
+      {
+        "late_rate": 0.138256,
+        "median_delivery_days": 18.0,
+        "orders": 1273,
+        "state": "CE"
+      },
+      {
+        "late_rate": 0.125,
+        "median_delivery_days": 25.0,
+        "orders": 40,
+        "state": "RR"
+      },
+      {
+        "late_rate": 0.121734,
+        "median_delivery_days": 17.0,
+        "orders": 3253,
+        "state": "BA"
+      },
+      {
+        "late_rate": 0.121446,
+        "median_delivery_days": 12.0,
+        "orders": 12310,
+        "state": "RJ"
+      },
+      {
+        "late_rate": 0.112527,
+        "median_delivery_days": 21.0,
+        "orders": 942,
+        "state": "PA"
+      },
+      {
+        "late_rate": 0.10743,
+        "median_delivery_days": 14.0,
+        "orders": 1992,
+        "state": "ES"
+      },
+      {
+        "late_rate": 0.104651,
+        "median_delivery_days": 18.0,
+        "orders": 516,
+        "state": "PB"
+      },
+      {
+        "late_rate": 0.09854,
+        "median_delivery_days": 16.0,
+        "orders": 274,
+        "state": "TO"
+      },
+      {
+        "late_rate": 0.097004,
+        "median_delivery_days": 14.0,
+        "orders": 701,
+        "state": "MS"
+      },
+      {
+        "late_rate": 0.096408,
+        "median_delivery_days": 16.0,
+        "orders": 1587,
+        "state": "PE"
+      },
+      {
+        "late_rate": 0.093617,
+        "median_delivery_days": 16.0,
+        "orders": 470,
+        "state": "RN"
+      },
+      {
+        "late_rate": 0.082273,
+        "median_delivery_days": 13.0,
+        "orders": 3537,
+        "state": "SC"
+      },
+      {
+        "late_rate": 0.065641,
+        "median_delivery_days": 14.0,
+        "orders": 1950,
+        "state": "GO"
+      },
+      {
+        "late_rate": 0.06101,
+        "median_delivery_days": 13.0,
+        "orders": 5327,
+        "state": "RS"
+      },
+      {
+        "late_rate": 0.059887,
+        "median_delivery_days": 16.0,
+        "orders": 885,
+        "state": "MT"
+      },
+      {
+        "late_rate": 0.056895,
+        "median_delivery_days": 11.0,
+        "orders": 2074,
+        "state": "DF"
+      },
+      {
+        "late_rate": 0.045852,
+        "median_delivery_days": 10.0,
+        "orders": 11319,
+        "state": "MG"
+      },
+      {
+        "late_rate": 0.044976,
+        "median_delivery_days": 7.0,
+        "orders": 40399,
+        "state": "SP"
+      },
+      {
+        "late_rate": 0.040587,
+        "median_delivery_days": 10.0,
+        "orders": 4903,
+        "state": "PR"
+      },
+      {
+        "late_rate": 0.0375,
+        "median_delivery_days": 18.0,
+        "orders": 80,
+        "state": "AC"
+      },
+      {
+        "late_rate": 0.029851,
+        "median_delivery_days": 25.0,
+        "orders": 67,
+        "state": "AP"
+      },
+      {
+        "late_rate": 0.028807,
+        "median_delivery_days": 18.0,
+        "orders": 243,
+        "state": "RO"
+      },
+      {
+        "late_rate": 0.027586,
+        "median_delivery_days": 26.0,
+        "orders": 145,
+        "state": "AM"
+      }
+    ],
+    "median_order_value_brl": 86.5,
+    "monthly": [
+      {
+        "gmv_brl": 111798.36,
+        "late_rate": 0.029333,
+        "median_delivery_days": 11.0,
+        "median_promised_days": 39.0,
+        "month": "2017-01",
+        "orders": 750
+      },
+      {
+        "gmv_brl": 234223.4,
+        "late_rate": 0.029643,
+        "median_delivery_days": 11.0,
+        "median_promised_days": 31.0,
+        "month": "2017-02",
+        "orders": 1653
+      },
+      {
+        "gmv_brl": 359198.85,
+        "late_rate": 0.045562,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 23.0,
+        "month": "2017-03",
+        "orders": 2546
+      },
+      {
+        "gmv_brl": 340669.68,
+        "late_rate": 0.065567,
+        "median_delivery_days": 13.0,
+        "median_promised_days": 26.0,
+        "month": "2017-04",
+        "orders": 2303
+      },
+      {
+        "gmv_brl": 489159.25,
+        "late_rate": 0.029901,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 24.0,
+        "month": "2017-05",
+        "orders": 3545
+      },
+      {
+        "gmv_brl": 421923.37,
+        "late_rate": 0.030303,
+        "median_delivery_days": 11.0,
+        "median_promised_days": 24.0,
+        "month": "2017-06",
+        "orders": 3135
+      },
+      {
+        "gmv_brl": 481604.52,
+        "late_rate": 0.027893,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 24.0,
+        "month": "2017-07",
+        "orders": 3872
+      },
+      {
+        "gmv_brl": 554699.7,
+        "late_rate": 0.029096,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 23.0,
+        "month": "2017-08",
+        "orders": 4193
+      },
+      {
+        "gmv_brl": 607399.67,
+        "late_rate": 0.043855,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 23.0,
+        "month": "2017-09",
+        "orders": 4150
+      },
+      {
+        "gmv_brl": 648247.65,
+        "late_rate": 0.04176,
+        "median_delivery_days": 10.0,
+        "median_promised_days": 23.0,
+        "month": "2017-10",
+        "orders": 4478
+      },
+      {
+        "gmv_brl": 987648.07,
+        "late_rate": 0.12404,
+        "median_delivery_days": 13.0,
+        "median_promised_days": 23.0,
+        "month": "2017-11",
+        "orders": 7288
+      },
+      {
+        "gmv_brl": 726033.19,
+        "late_rate": 0.074551,
+        "median_delivery_days": 13.0,
+        "median_promised_days": 28.0,
+        "month": "2017-12",
+        "orders": 5513
+      },
+      {
+        "gmv_brl": 924645.0,
+        "late_rate": 0.057009,
+        "median_delivery_days": 12.0,
+        "median_promised_days": 26.0,
+        "month": "2018-01",
+        "orders": 7069
+      },
+      {
+        "gmv_brl": 826437.13,
+        "late_rate": 0.141266,
+        "median_delivery_days": 14.0,
+        "median_promised_days": 25.0,
+        "month": "2018-02",
+        "orders": 6555
+      },
+      {
+        "gmv_brl": 953356.25,
+        "late_rate": 0.189633,
+        "median_delivery_days": 13.0,
+        "median_promised_days": 22.0,
+        "month": "2018-03",
+        "orders": 7003
+      },
+      {
+        "gmv_brl": 973534.09,
+        "late_rate": 0.045013,
+        "median_delivery_days": 9.0,
+        "median_promised_days": 24.0,
+        "month": "2018-04",
+        "orders": 6798
+      },
+      {
+        "gmv_brl": 977544.69,
+        "late_rate": 0.065639,
+        "median_delivery_days": 9.0,
+        "median_promised_days": 22.0,
+        "month": "2018-05",
+        "orders": 6749
+      },
+      {
+        "gmv_brl": 855591.97,
+        "late_rate": 0.011647,
+        "median_delivery_days": 8.0,
+        "median_promised_days": 28.0,
+        "month": "2018-06",
+        "orders": 6096
+      },
+      {
+        "gmv_brl": 867486.47,
+        "late_rate": 0.033788,
+        "median_delivery_days": 7.0,
+        "median_promised_days": 20.0,
+        "month": "2018-07",
+        "orders": 6156
+      },
+      {
+        "gmv_brl": 838576.64,
+        "late_rate": 0.06188,
+        "median_delivery_days": 7.0,
+        "median_promised_days": 14.0,
+        "month": "2018-08",
+        "orders": 6351
+      }
+    ],
+    "n_customers": 93096,
+    "n_orders": 96203,
+    "payments": {
+      "median_installments": 2.0,
+      "share_more_than_one_installment": 0.514516,
+      "type_share": {
+        "boleto": 0.198954,
+        "credit_card": 0.754779,
+        "debit_card": 0.015395,
+        "voucher": 0.030872
+      }
+    },
+    "prevalence_by_split": {
+      "censored_buffer": {
+        "late_rate": 0.06188,
+        "orders": 6351
+      },
+      "test": {
+        "late_rate": 0.037998,
+        "orders": 19001
+      },
+      "train": {
+        "late_rate": 0.076442,
+        "orders": 70851
+      }
+    },
+    "purchase_range": [
+      "2017-01-05T11:56:06",
+      "2018-08-29T15:00:37"
+    ],
+    "repeat_customer_share": 0.029958,
+    "reviews": {
+      "bad_review_rate": 0.127961,
+      "bad_review_rate_late": 0.624177,
+      "bad_review_rate_on_time": 0.092474,
+      "coverage": 0.993316,
+      "mean_score_late": 2.270618,
+      "mean_score_on_time": 4.291157,
+      "score_distribution": {
+        "1": 9313,
+        "2": 2915,
+        "3": 7895,
+        "4": 18837,
+        "5": 56600
+      }
+    },
+    "sellers": {
+      "n_sellers": 2936,
+      "top10_gmv_share": 0.133233
+    },
+    "states_top10_by_orders": [
+      {
+        "gmv_brl": 5054516.95,
+        "orders": 40399,
+        "state": "SP"
+      },
+      {
+        "gmv_brl": 1751433.85,
+        "orders": 12310,
+        "state": "RJ"
+      },
+      {
+        "gmv_brl": 1548206.88,
+        "orders": 11319,
+        "state": "MG"
+      },
+      {
+        "gmv_brl": 726194.92,
+        "orders": 5327,
+        "state": "RS"
+      },
+      {
+        "gmv_brl": 664048.0,
+        "orders": 4903,
+        "state": "PR"
+      },
+      {
+        "gmv_brl": 504774.07,
+        "orders": 3537,
+        "state": "SC"
+      },
+      {
+        "gmv_brl": 493339.26,
+        "orders": 3253,
+        "state": "BA"
+      },
+      {
+        "gmv_brl": 295454.64,
+        "orders": 2074,
+        "state": "DF"
+      },
+      {
+        "gmv_brl": 267783.66,
+        "orders": 1992,
+        "state": "ES"
+      },
+      {
+        "gmv_brl": 281932.21,
+        "orders": 1950,
+        "state": "GO"
+      }
+    ]
+  },
+  "figures": [
+    "monthly_orders_all_vs_delivered.png",
+    "late_rate_by_month.png",
+    "late_rate_by_state.png",
+    "delivery_days_hist.png",
+    "review_score_vs_late.png",
+    "gmv_by_category_top10.png",
+    "promised_vs_actual_by_month.png"
+  ]
+}

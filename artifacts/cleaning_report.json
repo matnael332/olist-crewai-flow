@@ -1,0 +1,137 @@
+{
+  "definitions": {
+    "aov": "GMV divided by the number of orders",
+    "gmv": "sum of item prices in BRL, excluding freight",
+    "is_late": "delivery_days > promised_days, both counted in calendar days from the purchase date",
+    "payment_total": "final charged amount; differs from price + freight by vouchers and interest"
+  },
+  "payment_reconciliation": {
+    "median_difference_brl": 0.0,
+    "orders": 96203,
+    "p95_abs_difference_brl": 0.0,
+    "paid_less_than_price_plus_freight": 145,
+    "paid_more_than_price_plus_freight": 288,
+    "within_1_cent": 95770
+  },
+  "rows_in": 99441,
+  "rows_out": 96203,
+  "rules": [
+    {
+      "description": "keep orders with status 'delivered' (lateness is only defined for delivered orders)",
+      "detail": {
+        "removed_by_status": {
+          "approved": 2,
+          "canceled": 625,
+          "created": 5,
+          "invoiced": 314,
+          "processing": 301,
+          "shipped": 1107,
+          "unavailable": 609
+        }
+      },
+      "rows_after": 96478,
+      "rows_before": 99441,
+      "rows_removed": 2963,
+      "rule": "R1_keep_delivered"
+    },
+    {
+      "description": "drop 'delivered' orders that have no customer delivery date",
+      "detail": {},
+      "rows_after": 96470,
+      "rows_before": 96478,
+      "rows_removed": 8,
+      "rule": "R2_require_delivery_date"
+    },
+    {
+      "description": "keep purchases from 2017-01-01 to 2018-08-31 (2016 and Sep/Oct 2018 are sparse edges)",
+      "detail": {
+        "window": [
+          "2017-01-01",
+          "2018-08-31"
+        ]
+      },
+      "rows_after": 96203,
+      "rows_before": 96470,
+      "rows_removed": 267,
+      "rule": "R3_purchase_window"
+    },
+    {
+      "description": "drop orders delivered before purchase; null carrier timestamps that are out of sequence (post-purchase fields, never used as features)",
+      "detail": {
+        "carrier_after_delivery_nulled": 19,
+        "carrier_before_purchase_nulled": 165
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R4_timestamp_sequences"
+    },
+    {
+      "description": "aggregate items to one row per order (counts, price, freight, weight, volume, primary item); drop orders without items",
+      "detail": {
+        "orders_with_unknown_category": 1357,
+        "orders_with_unknown_dimensions": 16,
+        "untranslated_categories_kept": [
+          "pc_gamer",
+          "portateis_cozinha_e_preparadores_de_alimentos"
+        ]
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R5_items"
+    },
+    {
+      "description": "drop payment rows typed 'not_defined' or with value <= 0, aggregate per order (type of the largest payment); drop orders left without a valid payment",
+      "detail": {
+        "invalid_payment_rows_dropped": 4
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R6_payments"
+    },
+    {
+      "description": "keep the latest review per order (score only; free text is never loaded into clean data)",
+      "detail": {
+        "orders_with_multiple_reviews": 523,
+        "orders_without_review": 643
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R7_reviews"
+    },
+    {
+      "description": "join customer and primary-seller geography; distance between zip-prefix centroids (null when a prefix is unknown); city names dropped",
+      "detail": {
+        "distance_unknown": 481
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R8_geography"
+    },
+    {
+      "description": "derive purchase time parts, promised_days and delivery_days (calendar days) and is_late = delivery_days > promised_days",
+      "detail": {
+        "late_orders": 6531,
+        "late_rate": 0.067888
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R9_derive"
+    },
+    {
+      "description": "fixed column order and dtypes, stable sort by (purchase_ts, order_id)",
+      "detail": {
+        "columns": 38
+      },
+      "rows_after": 96203,
+      "rows_before": 96203,
+      "rows_removed": 0,
+      "rule": "R10_finalize"
+    }
+  ]
+}

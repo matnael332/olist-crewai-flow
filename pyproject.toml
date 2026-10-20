@@ -39,7 +39,7 @@ app = [
 ]
 
 [project.scripts]
-kickoff = "olist_flow.run:main"
+kickoff = "olist_flow.run:kickoff"
 plot = "olist_flow.run:plot"
 
 [build-system]

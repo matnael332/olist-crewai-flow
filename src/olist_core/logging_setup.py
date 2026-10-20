@@ -61,6 +61,15 @@ class RedactingFormatter(logging.Formatter):
         return self._redact(super().format(record))
 
 
+class LFFileHandler(logging.FileHandler):
+    """File handler that writes LF line endings on every OS (the log is a committed artifact)."""
+
+    def _open(self):
+        return open(  # noqa: SIM115 - the handler owns and closes the stream
+            self.baseFilename, self.mode, encoding=self.encoding, errors=self.errors, newline="\n"
+        )
+
+
 class SafeStreamHandler(logging.StreamHandler):
     """Console handler that never crashes on characters the console code page cannot encode."""
 
@@ -94,7 +103,7 @@ class RunLog:
         formatter = RedactingFormatter(Redactor())
         if self.log_file is not None:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            file_handler = logging.FileHandler(self.log_file, encoding="utf-8")
+            file_handler = LFFileHandler(self.log_file, encoding="utf-8")
             file_handler.setFormatter(formatter)
             self._handlers.append(file_handler)
         if self.console:

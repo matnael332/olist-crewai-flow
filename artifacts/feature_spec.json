@@ -1,0 +1,708 @@
+{
+  "contract_sha256": "05f94f8cfd5c74843278ec9ec2c557bd357c2b63c7574a0d7e830b473b9b08e5",
+  "contract_version": "1.0",
+  "excluded_columns": [
+    {
+      "name": "order_id",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "customer_unique_id",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "primary_product_id",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "primary_seller_id",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "customer_zip_prefix",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "seller_zip_prefix",
+      "reason": "available_at=identifier"
+    },
+    {
+      "name": "approved_ts",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "delivered_carrier_ts",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "delivered_customer_ts",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "delivery_days",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "review_score",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "bad_review",
+      "reason": "available_at=post_purchase"
+    },
+    {
+      "name": "is_late",
+      "reason": "available_at=label"
+    }
+  ],
+  "features": [
+    {
+      "derived_from": [
+        "n_items"
+      ],
+      "description": "item units in the order",
+      "kind": "numeric",
+      "max": 21.0,
+      "median": 1.0,
+      "min": 1.0,
+      "name": "n_items",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "n_distinct_products"
+      ],
+      "description": "distinct products",
+      "kind": "numeric",
+      "max": 8.0,
+      "median": 1.0,
+      "min": 1.0,
+      "name": "n_distinct_products",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "n_sellers"
+      ],
+      "description": "distinct sellers (multi-seller orders ship separately)",
+      "kind": "numeric",
+      "max": 5.0,
+      "median": 1.0,
+      "min": 1.0,
+      "name": "n_sellers",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "total_price"
+      ],
+      "description": "order GMV in BRL",
+      "kind": "numeric",
+      "max": 13440.0,
+      "median": 86.5,
+      "min": 0.85,
+      "name": "total_price",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "total_freight"
+      ],
+      "description": "freight charged in BRL",
+      "kind": "numeric",
+      "max": 1794.96,
+      "median": 17.18,
+      "min": 0.0,
+      "name": "total_freight",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "total_freight",
+        "total_price"
+      ],
+      "description": "freight / price: expensive shipping relative to value signals distance or bulk",
+      "kind": "numeric",
+      "max": 21.447059,
+      "median": 0.22443,
+      "min": 0.0,
+      "name": "freight_ratio",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "total_weight_g"
+      ],
+      "description": "total weight",
+      "kind": "numeric",
+      "max": 184400.0,
+      "median": 750.0,
+      "min": 0.0,
+      "name": "total_weight_g",
+      "null_rate": 0.000166,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "total_volume_cm3"
+      ],
+      "description": "total package volume",
+      "kind": "numeric",
+      "max": 1476000.0,
+      "median": 7240.0,
+      "min": 168.0,
+      "name": "total_volume_cm3",
+      "null_rate": 0.000166,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "max_length_cm"
+      ],
+      "description": "largest package length",
+      "kind": "numeric",
+      "max": 105.0,
+      "median": 25.0,
+      "min": 7.0,
+      "name": "max_length_cm",
+      "null_rate": 0.000166,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "max_height_cm"
+      ],
+      "description": "largest package height",
+      "kind": "numeric",
+      "max": 105.0,
+      "median": 13.0,
+      "min": 2.0,
+      "name": "max_height_cm",
+      "null_rate": 0.000166,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "max_width_cm"
+      ],
+      "description": "largest package width",
+      "kind": "numeric",
+      "max": 118.0,
+      "median": 20.0,
+      "min": 6.0,
+      "name": "max_width_cm",
+      "null_rate": 0.000166,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "payment_total"
+      ],
+      "description": "amount charged at checkout",
+      "kind": "numeric",
+      "max": 13664.08,
+      "median": 105.28,
+      "min": 9.59,
+      "name": "payment_total",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "max_installments"
+      ],
+      "description": "installments chosen",
+      "kind": "numeric",
+      "max": 24.0,
+      "median": 2.0,
+      "min": 0.0,
+      "name": "max_installments",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "n_payments"
+      ],
+      "description": "payment records (vouchers split payments)",
+      "kind": "numeric",
+      "max": 26.0,
+      "median": 1.0,
+      "min": 1.0,
+      "name": "n_payments",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "distance_km"
+      ],
+      "description": "customer-seller distance",
+      "kind": "numeric",
+      "max": 3398.5468,
+      "median": 433.8585,
+      "min": 0.0,
+      "name": "distance_km",
+      "null_rate": 0.005,
+      "nullable": true
+    },
+    {
+      "derived_from": [
+        "promised_days"
+      ],
+      "description": "delivery promise shown at checkout",
+      "kind": "numeric",
+      "max": 156.0,
+      "median": 24.0,
+      "min": 3.0,
+      "name": "promised_days",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "purchase_ts"
+      ],
+      "description": "month of year (seasonality)",
+      "kind": "numeric",
+      "max": 12.0,
+      "median": 6.0,
+      "min": 1.0,
+      "name": "purchase_month_num",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "purchase_dow"
+      ],
+      "description": "day of week, 0 = Monday",
+      "kind": "numeric",
+      "max": 6.0,
+      "median": 3.0,
+      "min": 0.0,
+      "name": "purchase_dow",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "purchase_hour"
+      ],
+      "description": "hour of day",
+      "kind": "numeric",
+      "max": 23.0,
+      "median": 15.0,
+      "min": 0.0,
+      "name": "purchase_hour",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "purchase_dow"
+      ],
+      "description": "purchase on Saturday or Sunday",
+      "kind": "numeric",
+      "max": 1.0,
+      "median": 0.0,
+      "min": 0.0,
+      "name": "is_weekend",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "derived_from": [
+        "same_state"
+      ],
+      "description": "customer and seller in the same state (0/1)",
+      "kind": "numeric",
+      "max": 1.0,
+      "median": 0.0,
+      "min": 0.0,
+      "name": "same_state",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "categories": [
+        "AC",
+        "AL",
+        "AM",
+        "AP",
+        "BA",
+        "CE",
+        "DF",
+        "ES",
+        "GO",
+        "MA",
+        "MG",
+        "MS",
+        "MT",
+        "PA",
+        "PB",
+        "PE",
+        "PI",
+        "PR",
+        "RJ",
+        "RN",
+        "RO",
+        "RR",
+        "RS",
+        "SC",
+        "SE",
+        "SP",
+        "TO"
+      ],
+      "derived_from": [
+        "customer_state"
+      ],
+      "description": "customer state (UF)",
+      "kind": "categorical",
+      "name": "customer_state",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "categories": [
+        "AM",
+        "BA",
+        "CE",
+        "DF",
+        "ES",
+        "GO",
+        "MA",
+        "MG",
+        "MS",
+        "MT",
+        "PA",
+        "PB",
+        "PE",
+        "PI",
+        "PR",
+        "RJ",
+        "RN",
+        "RO",
+        "RS",
+        "SC",
+        "SE",
+        "SP"
+      ],
+      "derived_from": [
+        "seller_state"
+      ],
+      "description": "seller state (UF)",
+      "kind": "categorical",
+      "name": "seller_state",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "categories": [
+        "boleto",
+        "credit_card",
+        "debit_card",
+        "voucher"
+      ],
+      "derived_from": [
+        "payment_type"
+      ],
+      "description": "type of the largest payment",
+      "kind": "categorical",
+      "name": "payment_type",
+      "null_rate": 0.0,
+      "nullable": false
+    },
+    {
+      "categories": [
+        "agro_industry_and_commerce",
+        "air_conditioning",
+        "art",
+        "arts_and_craftmanship",
+        "audio",
+        "auto",
+        "baby",
+        "bed_bath_table",
+        "books_general_interest",
+        "books_imported",
+        "books_technical",
+        "cds_dvds_musicals",
+        "christmas_supplies",
+        "cine_photo",
+        "computers",
+        "computers_accessories",
+        "consoles_games",
+        "construction_tools_construction",
+        "construction_tools_lights",
+        "construction_tools_safety",
+        "cool_stuff",
+        "costruction_tools_garden",
+        "costruction_tools_tools",
+        "diapers_and_hygiene",
+        "drinks",
+        "dvds_blu_ray",
+        "electronics",
+        "fashio_female_clothing",
+        "fashion_bags_accessories",
+        "fashion_childrens_clothes",
+        "fashion_male_clothing",
+        "fashion_shoes",
+        "fashion_sport",
+        "fashion_underwear_beach",
+        "fixed_telephony",
+        "flowers",
+        "food",
+        "food_drink",
+        "furniture_bedroom",
+        "furniture_decor",
+        "furniture_living_room",
+        "furniture_mattress_and_upholstery",
+        "garden_tools",
+        "health_beauty",
+        "home_appliances",
+        "home_appliances_2",
+        "home_comfort_2",
+        "home_confort",
+        "home_construction",
+        "housewares",
+        "industry_commerce_and_business",
+        "kitchen_dining_laundry_garden_furniture",
+        "la_cuisine",
+        "luggage_accessories",
+        "market_place",
+        "music",
+        "musical_instruments",
+        "office_furniture",
+        "party_supplies",
+        "pc_gamer",
+        "perfumery",
+        "pet_shop",
+        "portateis_cozinha_e_preparadores_de_alimentos",
+        "security_and_services",
+        "signaling_and_security",
+        "small_appliances",
+        "small_appliances_home_oven_and_coffee",
+        "sports_leisure",
+        "stationery",
+        "tablets_printing_image",
+        "telephony",
+        "toys",
+        "unknown",
+        "watches_gifts"
+      ],
+      "derived_from": [
+        "primary_category"
+      ],
+      "description": "category of the first item",
+      "kind": "categorical",
+      "name": "primary_category",
+      "null_rate": 0.0,
+      "nullable": false
+    }
+  ],
+  "grain": "one row per delivered order (same rows as clean_data.csv)",
+  "id_columns": [
+    "order_id",
+    "purchase_ts",
+    "split"
+  ],
+  "input_validation": {
+    "checks": [
+      {
+        "detail": "dataset_contract.json parsed",
+        "name": "contract_readable",
+        "passed": true
+      },
+      {
+        "detail": "clean_data.csv loaded (96,203 rows)",
+        "name": "data_readable",
+        "passed": true
+      },
+      {
+        "detail": "all contract columns present, no extras",
+        "name": "columns_match",
+        "passed": true
+      },
+      {
+        "detail": "every column parses as its declared dtype",
+        "name": "dtypes",
+        "passed": true
+      },
+      {
+        "detail": "no nulls in non-nullable columns",
+        "name": "non_nullable",
+        "passed": true
+      },
+      {
+        "detail": "all values within declared bounds",
+        "name": "bounds",
+        "passed": true
+      },
+      {
+        "detail": "all categorical values allowed",
+        "name": "allowed_values",
+        "passed": true
+      },
+      {
+        "detail": "all patterns match",
+        "name": "patterns",
+        "passed": true
+      },
+      {
+        "detail": "96,203 rows (contract 96,203)",
+        "name": "row_count",
+        "passed": true
+      },
+      {
+        "detail": "purchase_ts within 2017-01-05 11:56:06..2018-08-29 15:00:37",
+        "name": "date_range",
+        "passed": true
+      },
+      {
+        "detail": "C01 one row per order: ok",
+        "name": "constraint_C01",
+        "passed": true
+      },
+      {
+        "detail": "C02 item counts are consistent: ok",
+        "name": "constraint_C02",
+        "passed": true
+      },
+      {
+        "detail": "C03 amounts are non-negative: ok",
+        "name": "constraint_C03",
+        "passed": true
+      },
+      {
+        "detail": "C04 every order has a valid payment: ok",
+        "name": "constraint_C04",
+        "passed": true
+      },
+      {
+        "detail": "C05 day counts are non-negative: ok",
+        "name": "constraint_C05",
+        "passed": true
+      },
+      {
+        "detail": "C06 target definition: ok",
+        "name": "constraint_C06",
+        "passed": true
+      },
+      {
+        "detail": "C07 same_state is consistent: ok",
+        "name": "constraint_C07",
+        "passed": true
+      },
+      {
+        "detail": "C08 delivery happens after purchase: ok",
+        "name": "constraint_C08",
+        "passed": true
+      },
+      {
+        "detail": "C09 review score range: ok",
+        "name": "constraint_C09",
+        "passed": true
+      },
+      {
+        "detail": "C10 bad_review consistency: ok",
+        "name": "constraint_C10",
+        "passed": true
+      },
+      {
+        "detail": "C11 purchase window: ok",
+        "name": "constraint_C11",
+        "passed": true
+      }
+    ],
+    "errors": [],
+    "gate": "gate_contract",
+    "passed": true,
+    "summary": "PASS (21/21 checks)"
+  },
+  "leakage_rule": "every model feature is derived only from clean_data columns tagged available_at == 'checkout'; identifiers and post-purchase columns are excluded",
+  "model_features": [
+    "n_items",
+    "n_distinct_products",
+    "n_sellers",
+    "total_price",
+    "total_freight",
+    "freight_ratio",
+    "total_weight_g",
+    "total_volume_cm3",
+    "max_length_cm",
+    "max_height_cm",
+    "max_width_cm",
+    "payment_total",
+    "max_installments",
+    "n_payments",
+    "distance_km",
+    "promised_days",
+    "purchase_month_num",
+    "purchase_dow",
+    "purchase_hour",
+    "is_weekend",
+    "same_state",
+    "customer_state",
+    "seller_state",
+    "payment_type",
+    "primary_category"
+  ],
+  "narrative": {
+    "concerns": [
+      "The late rate differs between train (7.6%) and test (3.8%); thresholds must be re-tuned on recent data.",
+      "Package dimensions and distance are missing for a small share of orders."
+    ],
+    "contract_compliance": "Follows dataset contract v1.0 (sha256 05f94f8cfd5c): the handoff was re-validated before feature work (PASS (21/21 checks)), 96,203 rows, all 14 required features built, none of the 7 forbidden columns used.",
+    "feature_groups": [
+      "Basket: item, product and seller counts, price, freight and freight ratio.",
+      "Package: total weight and volume and the largest dimensions.",
+      "Payment: amount, installments, number of payments and payment type.",
+      "Geography: customer and seller states, same-state flag, distance.",
+      "Promise and timing: promised days, purchase month, weekday, hour, weekend flag.",
+      "Product: category of the first item."
+    ],
+    "leakage_statement": "Every feature is derived from columns available at checkout; delivery timestamps, delivery_days and review fields are excluded, so the model only sees what is known when the customer pays.",
+    "narrative_source": "template"
+  },
+  "spec_version": "1.0",
+  "split": {
+    "policy": {
+      "censored_buffer": [
+        "2018-08-01",
+        "2018-08-31"
+      ],
+      "column": "purchase_ts",
+      "cv": "TimeSeriesSplit(n_splits=3) on the train split ordered by purchase_ts",
+      "note": "August 2018 purchases are excluded from metrics: the snapshot ends 2018-10-17, so very late August orders may still have been undelivered (right-censoring)",
+      "test": [
+        "2018-05-01",
+        "2018-07-31"
+      ],
+      "train": [
+        "2017-01-01",
+        "2018-04-30"
+      ],
+      "type": "time"
+    },
+    "rows": {
+      "censored_buffer": 6351,
+      "test": 19001,
+      "train": 70851
+    }
+  },
+  "target": {
+    "name": "is_late",
+    "positive_rate": {
+      "censored_buffer": 0.06188,
+      "test": 0.037998,
+      "train": 0.076442
+    }
+  },
+  "time_column": "purchase_ts"
+}
