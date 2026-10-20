@@ -14,7 +14,8 @@ risky orders early protects customer satisfaction.
 |---|---|
 | What happened (Crew 1) | 99,441 orders; 96,203 delivered orders analysed; **6.8% delivered late**; median delivery 10 days vs 24 promised; Black Friday 2017-11-24 had 1,176 orders (next busiest day: 499) |
 | What will happen (Crew 2) | Logistic regression selected over gradient boosting and a baseline; test **ROC-AUC 0.733**, PR-AUC 0.102 (baseline 0.038); the riskiest 10% of orders are late **12.1%** of the time, **3.2x** the 3.8% test late rate |
-| Dashboard | Streamlit app in `app/` (deployment link added in M6) |
+| Dashboard | Streamlit app in `app/` (`uv run streamlit run app/streamlit_app.py`); cloud deployment steps in [docs/deploy.md](docs/deploy.md) |
+| Documentation | [architecture](docs/architecture.md), [decision records](docs/decisions.md), [interactive Flow diagram](docs/flow_plot/olist_flow.html) |
 | Presentation and video | added in M7 |
 
 ## Architecture

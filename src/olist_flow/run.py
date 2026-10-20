@@ -204,7 +204,7 @@ def plot() -> None:
 
     out = REPO_ROOT / "docs" / "flow_plot"
     out.mkdir(parents=True, exist_ok=True)
-    html = Path(OlistFlow().plot("olist_flow", show=False))
+    html = Path(OlistFlow().plot("olist_flow.html", show=False))
     for file in sorted(html.parent.glob("olist_flow*")):
         shutil.copyfile(file, out / file.name)
     write_text_lf(
