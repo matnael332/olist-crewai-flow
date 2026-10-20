@@ -98,10 +98,20 @@ if submitted:
     b.metric("Riskiest 10% of orders?", "yes" if prediction["top_10pct_risk"] else "no")
     c.metric("Promise", f"{(promise - purchase_day).days} days")
     st.progress(min(1.0, p / max(model.top10_cutoff * 2, 0.01)))
+    threshold = (getattr(model, "meta", None) or {}).get("threshold")
+    at_threshold = f" ({pct(threshold)})" if threshold is not None else ""
     if prediction["top_10pct_risk"]:
-        st.warning("High risk: notify the customer proactively or upgrade the carrier.")
+        st.warning(
+            "High risk: among the riskiest 10% of orders. Notify the customer proactively or "
+            "upgrade the carrier."
+        )
+    elif prediction["predicted_late"]:
+        st.info(
+            f"Elevated risk: above the model's decision threshold{at_threshold}, but outside the "
+            "riskiest 10% of orders. Keep an eye on this shipment."
+        )
     else:
-        st.success("Normal risk.")
+        st.success(f"Normal risk: below the model's decision threshold{at_threshold}.")
     st.caption(
         "Scores rank orders by risk; act on the riskiest 10% (precision there is about 3x the "
         "base rate). The model uses only information known at checkout."

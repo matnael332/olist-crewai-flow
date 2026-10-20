@@ -38,6 +38,18 @@ def test_every_page_renders(page):
     assert not at.exception, [e.value for e in at.exception]
 
 
+def test_predict_scores_the_default_order():
+    at = AppTest.from_file(str(APP / "streamlit_app.py"), default_timeout=120)
+    at.run()
+    at.switch_page("views/predict.py")
+    at.run()
+    next(b for b in at.button if b.label == "Score order").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert "Late-delivery probability" in [m.label for m in at.metric]
+    messages = [str(m.value) for m in (*at.warning, *at.info, *at.success)]
+    assert sum("risk" in m for m in messages) == 1, messages
+
+
 def test_overview_shows_status_and_metrics():
     at = AppTest.from_file(str(APP / "streamlit_app.py"), default_timeout=120)
     at.run()
