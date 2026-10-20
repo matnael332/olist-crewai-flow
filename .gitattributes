@@ -1,0 +1,13 @@
+# Normalize every text file to LF so hashes match on Windows and Linux (CI).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.joblib binary
+*.pkl binary
+*.pdf binary
+*.pptx binary
+*.parquet binary
+
+# Artifacts are written byte-exact by the pipeline (UTF-8, LF); never rewrite them.
+artifacts/** -text

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Raw data is re-downloadable (scripts/download_data.py); manifest and schema are committed
+data/raw/*
+!data/raw/manifest.json
+!data/raw/raw_schema.json
+
+# Per-run working directories; only the promoted artifacts/ folder is committed
+runs/
+artifacts.prev-*/
+artifacts.staging-*/
+*.tmp
+
+# Course material (not ours to redistribute)
+/Final Project.pdf
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
