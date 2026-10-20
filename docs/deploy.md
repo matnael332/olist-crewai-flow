@@ -2,6 +2,9 @@
 
 ## Streamlit Community Cloud (dashboard)
 
+Live app: https://olist-late-delivery-1.streamlit.app, deployed from `main`. Community Cloud
+redeploys it on every push to `main`.
+
 The dashboard reads the committed `artifacts/` only, so the cloud app needs no API key and never
 installs CrewAI. `app/requirements.txt` sits next to the entrypoint, so Community Cloud uses it
 instead of the root `uv.lock`.

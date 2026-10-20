@@ -2,15 +2,17 @@
 
 Target length 4:30, hard limit 5:00. Every pipeline run in the video is recorded in advance and
 sped up in editing, so nothing on screen waits for an LLM call. Slide numbers refer to
-`docs/presentation.pdf`.
+`docs/presentation.pdf`. The video is narrated in Hebrew from
+[video_narration_he.md](video_narration_he.md); the **Say** lines below are the English version.
 
 ## Before recording
 
 1. Run `uv sync` and `uv run python scripts/download_data.py` once, so the real data is present.
 2. Record the long terminal takes first (segments 4, 7 and 8) and keep the raw clips.
 3. Use `--no-promote` for every run you record, so the committed `artifacts/` stay unchanged.
-4. Start the dashboard (`uv run streamlit run app/streamlit_app.py`) and the API
-   (`uv run python -m api.serve`) before the dashboard take, and open each page once.
+4. Open the live dashboard at https://olist-late-delivery-1.streamlit.app a few minutes before
+   the dashboard take (a sleeping app takes a minute to wake) and click through every page once.
+   Start the API (`uv run python -m api.serve`) for segment 6.
 5. Never show `.env`, environment variables or the Google AI Studio page. The logs redact keys,
    but the screen does not.
 6. Terminal: dark theme, font size 18 or larger, window maximised. Turn off notifications.
@@ -72,9 +74,9 @@ total, and every artifact is written to the run folder."
 
 ### 5. The dashboard (2:15-3:05)
 
-**Show:** the Streamlit app (the deployed URL if available, otherwise local). Overview (KPIs and
-the gate table), Data and contract (scroll the contract columns), EDA and insights (the late rate
-by state), Model (metrics table, then the precision-recall chart).
+**Show:** the live app at https://olist-late-delivery-1.streamlit.app. Overview (KPIs and the gate
+table), Data and contract (scroll the contract columns), EDA and insights (the late rate by
+state), Model (metrics table, then the precision-recall chart).
 
 **Say:** "The dashboard reads only the committed artifacts. The overview shows the run status and
 all three gates. Here is the dataset contract the scientists had to follow. The analysis shows
@@ -97,7 +99,8 @@ The first call returns late probabilities of about 0.164 and 0.038. The second r
 with `'XX' is not an allowed value`.
 
 **Say:** "The same order is about four times as risky when it ships across the country: 16 percent
-for a customer in Bahia against 4 percent within Sao Paulo. The Flask API uses the same feature
+for a customer in Bahia against 4 percent within Sao Paulo, so the page flags it as elevated risk.
+The Flask API uses the same feature
 code as training, and it validates every request against the dataset contract, so an unknown state
 is rejected with a clear error."
 
