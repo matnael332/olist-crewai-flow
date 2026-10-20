@@ -1,0 +1,62 @@
+feature_task:
+  description: >-
+    You received dataset contract version {contract_version} (sha256 {contract_sha256}) from the
+    Data Analyst crew: {row_count} rows; target: {target_definition}; required features:
+    {required_features}; forbidden columns: {forbidden_features}; split: {split_policy}.
+    First call validate_inputs to re-validate the cleaned data against the contract, then call
+    build_features exactly once to obtain the checkout-time feature spec.
+  expected_output: >-
+    The JSON feature spec returned by build_features.
+  agent: feature_engineer
+  context: []
+
+feature_narrative_task:
+  description: >-
+    Review the feature spec from the previous task against dataset contract {contract_version}.
+    State the contract version, the validated row count and how many required and forbidden
+    features the contract lists; explain why these features cannot leak post-purchase information;
+    describe the feature groups; list concerns such as the late rate shifting between splits.
+    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
+    decimal, and amounts as BRL with thousands separators.
+  expected_output: >-
+    A FeatureNarrative with contract_compliance, leakage_statement, feature_groups and concerns.
+  agent: feature_reviewer
+  context: [feature_task]
+
+training_task:
+  description: >-
+    Call the train_models tool exactly once. It trains a prior baseline, a logistic regression and
+    a histogram gradient boosting model with time-aware cross-validation and returns the comparison.
+  expected_output: >-
+    The JSON model comparison returned by the tool.
+  agent: model_trainer
+  context: []
+
+evaluation_task:
+  description: >-
+    Using the model comparison from the previous task, write the evaluation commentary: an executive
+    summary, how the models compare, strengths, weaknesses, a threshold recommendation for the
+    operations team and next steps. Quote only numbers from the comparison and mention that the late
+    rate differs between the train and test windows.
+    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
+    decimal, and amounts as BRL with thousands separators.
+  expected_output: >-
+    An EvaluationNarrative with executive_summary, comparison_summary, strengths, weaknesses,
+    threshold_recommendation and next_steps.
+  agent: model_evaluator
+  context: [training_task]
+
+model_card_task:
+  description: >-
+    Write the narrative parts of the model card for the selected model, following dataset contract
+    {contract_version}: purpose, intended users, out-of-scope uses, a training data summary using
+    the split sizes and late rates from the comparison, limitations, ethical considerations
+    (regional bias between Brazilian states, seller fairness, privacy of zip prefixes and
+    timestamps, non-commercial data license) and monitoring recommendations.
+    Rates in the JSON are fractions (0.068 means 6.8%): write them as percentages with one
+    decimal, and amounts as BRL with thousands separators.
+  expected_output: >-
+    A ModelCardNarrative with purpose, intended_users, out_of_scope, training_data_summary,
+    limitations, ethical_considerations and monitoring_recommendations.
+  agent: model_card_author
+  context: [training_task, evaluation_task]
