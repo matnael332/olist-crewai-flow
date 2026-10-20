@@ -1,0 +1,23 @@
+{
+  "errors": [],
+  "finished_at": "2026-10-20T14:03:28Z",
+  "inject_fault": "",
+  "mode": "deterministic",
+  "narrative_sources": {},
+  "run_id": "20261020-140156-32a113",
+  "stage": "promote_and_finish",
+  "stage_started_at": "2026-10-20T14:02:53Z",
+  "stages_done": [
+    "check_inputs",
+    "run_analyst_stage",
+    "gate_contract",
+    "run_feature_phase",
+    "gate_required_features",
+    "run_modeling_phase",
+    "gate_artifacts",
+    "promote_and_finish"
+  ],
+  "started_at": "2026-10-20T14:02:12Z",
+  "status": "success",
+  "warnings": []
+}
