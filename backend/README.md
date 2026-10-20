@@ -1,0 +1,22 @@
+# Backend
+
+Python backend of the Olist late-delivery workflow: the data and ML library, the CrewAI Flow with its
+two crews, and the Flask prediction service. It writes everything the frontend shows into the
+repository's `artifacts/` folder.
+
+| Package | What it is |
+|---|---|
+| `olist_core/` | pure library, no CrewAI: download, cleaning (R1-R10), two-layer EDA, dataset contract, the three validation gates, checkout-time features, model training and comparison, reports, promotion, manifest, `paths.repo_root()` |
+| `olist_flow/` | the CrewAI layer: `flow.py` (Flow with routers, gates and graceful failure), `crews/` (Data Analyst crew, 6 agents; Data Scientist crew, 5 agents; YAML config), `tools/`, `events.py` (LLM call ledger), `run.py` (CLI) |
+| `olist_api/` | Flask app factory (`/health`, `POST /predict`) that validates requests against the dataset contract and scores with the committed model; `examples/` holds request bodies |
+| `tests/` | unit, gate, Flow, crew (fake LLM), API and reproducibility tests, plus the `olist_mini` fixture |
+
+Run everything from the repository root:
+
+```bash
+uv run kickoff                                    # full pipeline, LLM mode (needs GEMINI_API_KEY)
+uv run python -m olist_flow.run --no-llm          # deterministic mode
+uv run python -m olist_core.validate artifacts    # the three gates on the committed artifacts
+uv run olist-api                                  # prediction API on http://127.0.0.1:8000
+uv run pytest backend/tests                       # backend tests, no LLM calls
+```

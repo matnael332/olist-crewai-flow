@@ -13,4 +13,4 @@
 artifacts/** -text
 
 # Fixture raw CSVs are hashed in their manifest; review texts contain embedded CRLF.
-tests/fixtures/olist_mini/raw/*.csv -text
+backend/tests/fixtures/olist_mini/raw/*.csv -text

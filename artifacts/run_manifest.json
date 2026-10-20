@@ -2,12 +2,12 @@
   "artifacts": {
     "clean_data.csv": "614e4351e1478c1afe6248755537e74cfd294d771a52dcc1c6ee2e1434a1057b",
     "cleaning_report.json": "4cebaa7c7148bd76e0019de4dad05061ad5abc11be7ed8fd3e62e74ba3520dfe",
-    "cleaning_report.md": "e7e24b3fc0aa0e69ca8761e3c6d9ee4f6c33c688fdfc0f15a6ac5d57349fb299",
-    "dataset_contract.json": "e881be9f2bb0c17297a799ab0852c7015c99309fb3822ce9fa414b80c06591c7",
-    "eda_report.html": "b79121e216dd07e88309c39bf6948b5018cc502770196e03000a3a97215d552a",
+    "cleaning_report.md": "7764bbe4f827713cfe5ac6e9958102a851831fd6ea84db871c02b82dc721be69",
+    "dataset_contract.json": "c330762f13cd68bef9031fdaf4891a3faa3aecbf854de3eb912d8181ccbdaf99",
+    "eda_report.html": "0f90fdaa90b58f0c7b9c73f90d658033c7df1f928b63b5c6f26b65be04cd349a",
     "eda_summary.json": "ab5021a4aeb1b0666043f8c695943f526ddcc0160463b3a88ceff54003a95e23",
-    "evaluation_report.md": "7203140d33c2bf0c80518bb0d7d4138cd3f0351bd5c6f82c95abab23138c0f58",
-    "feature_spec.json": "a750926c78144e18f76bef97562b448a125fc282e80adf0f0189fdb691c6861b",
+    "evaluation_report.md": "b68b27bf2237710dfce9c2bd1a331f7480e1512e088816a7820a95cfde5c6e6d",
+    "feature_spec.json": "820215e64f9a7eb0e1ec8b2b104646693310036af52d9ee012ecc5233d07801e",
     "features.csv": "0030562e0073974dc353d5f57e9bfe6f4e87c5aad1c0eb6a89e8009864622f25",
     "figures/calibration_selected.png": "ade5f05b71eee4802a61aa471bfd3ebd27f62720511197a1a4006eaa3f8f602e",
     "figures/delivery_days_hist.png": "7b933864f86210e1de4f61ec2be8d816f881b629938b53b535fad841ef08066a",
@@ -20,18 +20,18 @@
     "figures/promised_vs_actual_by_month.png": "75ec8f016c84e8d675e79c6141832c85600b9084288886c049f66172a57a638e",
     "figures/review_score_vs_late.png": "087a3c8ca7c7f0cfbd6e2d33da63fcdf1cdbbaa57d0f43cec7e7c0a660c547e6",
     "figures/roc_curves.png": "e74b417c172fde1fd29b2d8d08bb388bdb64580b8a0d78ec133e59ff61858ec5",
-    "insights.md": "f22c08653a28433f3e33592bb56ed66ad95cd7043988123a83d8ec28a0eac4c9",
-    "logs/data_analyst_crew.json": "2f6d05a4c422b3335f8e5b2b867c1cd27afc21432e7cf1bd300089eb8a1a6030",
-    "logs/data_scientist_crew.json": "f53c4ad6b1784aec544c95756a82308e88c775bc2e9dfb59036f548b027bf7be",
+    "insights.md": "9756ec9a2217248308ad68554baace3e6ea91ea27283ed3ced9d06e20de750f9",
+    "logs/data_analyst_crew.json": "d50fbbd174a54e83e53c2208b5ffe2866b3546443f57f5fc13751bf4033a34f9",
+    "logs/data_scientist_crew.json": "c0bf9994734300e67e521e0947f2fbdd0e462c0e9604626a16c3c012c11f215f",
     "metrics.json": "bb25900b6ecc7143cb7525910de7d6249eeca752b36cec561a4ba6c05938b327",
     "model.joblib": "4c32dc86a7e5d86dc60a98aa7c4c2f57bc338c24d04322d9b0039d9b127d99c4",
-    "model_card.md": "d3565e16d096e0b40104ac2a115043cfe8c9012924ca5bc11857b40e025067e3",
-    "model_meta.json": "24dcf092d98c3ddb8c4d149ecd1aee4d75ba63f833c2d50678e50af264e20f8e",
+    "model_card.md": "934331373f93bfc09a700701fda53f0d65a60a7c831d1c6e61dfa3f065e2675f",
+    "model_meta.json": "fb91a8fbfee56ed62711c7aebe9b27c0d094c0dc23b9078eeb14980cf0c1e464",
     "predictions_test.csv": "32f680888f60b0e0de9aaa21394db892a3dc4bb11ac2b78af18ec9ff7ec27fd0",
     "provenance.json": "fb8751d54f8364ad1ee3b877da35a21d2ef4d74fdf8d7d85ea3361eb9fec9bcc",
     "raw_profile.json": "3b6f14fe2af9e146bc335ee7aec7ce9f826518c003eb01dff0faa9eaa71740ee",
-    "run_status.json": "a437c6110b36ca82f036ff9fcf37eb9956f473c122e120f96593a1750e406425",
-    "validation_report.json": "5b5e85bd2e2ed679d7710b695c4165dc5d0001515d6d6890bd2d50f9c235df0f"
+    "run_status.json": "3130ff206bf5f513c9cdcde007cdf0f997fc7846bba2800da89b756212132e1a",
+    "validation_report.json": "31641c65255cfa3308013155b305061defc1d91eb5a9ba9864d4df5129d52738"
   },
   "environment": {
     "OMP_NUM_THREADS": "2",
@@ -57,11 +57,11 @@
     "python_prefix": "C:/Users/Matanel/Desktop/final_project/.venv"
   },
   "errors": [],
-  "finished_at": "2026-10-20T15:14:56Z",
+  "finished_at": "2026-10-20T17:17:44Z",
   "git": {
-    "branch": "fix/pr-curve-baseline",
+    "branch": "refactor/backend-frontend-layout",
     "dirty": true,
-    "sha": "c8039769ce16bb3715c0fd60a838ee53d10710b6"
+    "sha": "9c75e80d2f9b4abf0d27abad2266e47775637cd2"
   },
   "inputs": {
     "olist_customers_dataset.csv": "c26c17f59f3027a6a0dbeb8f1fa373c38f3323ecc84f225a8f4820e5bb288df8",
@@ -87,19 +87,19 @@
     "inject_fault": "",
     "llm_model": "gemini-3.5-flash-lite",
     "mode": "llm",
-    "run_id": "final-llm-5",
+    "run_id": "final-llm-6",
     "seed": 42,
     "stage": "promote_and_finish",
     "start_at": "",
     "status": "success"
   },
-  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/final-llm-5",
-  "started_at": "2026-10-20T15:12:19Z",
+  "run_dir": "C:/Users/Matanel/Desktop/final_project/runs/final-llm-6",
+  "started_at": "2026-10-20T17:14:55Z",
   "token_usage": {
-    "completion_tokens": 3607,
-    "prompt_tokens": 15874,
+    "completion_tokens": 3990,
+    "prompt_tokens": 15974,
     "successful_requests": 12,
-    "total_tokens": 19481
+    "total_tokens": 19964
   },
   "warnings": []
 }

@@ -1,6 +1,6 @@
 # Cleaning report
 
-This data cleaning process prepared the orders dataset by filtering for successfully delivered orders within a specific purchase window and validating timestamps, payments, items, reviews, and geography. As a result, the dataset was refined from 99,441 input rows down to 96,203 output rows for reliable business analysis.
+This data cleaning process standardized the dataset from 99,441 rows down to 96,203 rows by focusing strictly on successfully delivered orders within the specified purchase window and removing incomplete records. These steps ensure that subsequent business analyses, revenue calculations, and delivery performance metrics are computed on reliable and verified transactions.
 
 ## Rules applied (computed)
 
@@ -19,33 +19,28 @@ This data cleaning process prepared the orders dataset by filtering for successf
 
 ## Issues found
 
-- 2,963 rows removed by status consisting of 2 approved, 625 canceled, 5 created, 314 invoiced, 301 processing, 1,107 shipped, and 609 unavailable orders
-- 8 rows removed due to missing delivery dates
-- 267 rows removed falling outside the purchase window of 2017-01-01 to 2018-08-31
-- 165 timestamps with carrier dates occurring before purchase dates
-- 19 timestamps with carrier dates occurring after delivery dates
-- 1,357 orders with unknown category
-- 16 orders with unknown dimensions
-- 2 untranslated categories kept: pc_gamer and portateis_cozinha_e_preparadores_de_alimentos
-- 4 invalid payment rows dropped
-- 523 orders with multiple reviews
-- 643 orders without review
-- 481 instances of unknown distance in geography
-- 6,531 late orders identified representing a late rate of 6.8%
-- Payment reconciliation showed 145 orders paid less than price plus freight, 288 orders paid more than price plus freight, and 95,770 orders within 1 cent
+- 2963 rows removed due to non-delivered order statuses, broken down as: 2 approved, 625 canceled, 5 created, 314 invoiced, 301 processing, 1107 shipped, and 609 unavailable.
+- 8 rows removed due to missing delivery dates.
+- 267 rows removed due to falling outside the purchase window of 2017-01-01 to 2018-08-31.
+- 184 timestamp sequence issues identified, including 165 carrier timestamps before purchase and 19 carrier timestamps after delivery.
+- 1357 orders with unknown category and 16 orders with unknown dimensions.
+- 4 invalid payment rows dropped.
+- 1166 review anomalies noted, including 523 orders with multiple reviews and 643 orders without a review.
+- 481 orders with unknown geographic distance.
+- 6531 late orders identified, resulting in a late rate of 6.8%.
 
 ## Decisions
 
-- R1_keep_delivered applied to retain only delivered orders, removing 2,963 rows because non-delivered statuses lack complete fulfillment metrics
-- R2_require_delivery_date applied to drop 8 rows missing delivery dates to ensure delivery duration metrics can be calculated
-- R3_purchase_window applied to remove 267 rows outside the 2017-01-01 to 2018-08-31 window to focus analysis on the stable period
-- R4_timestamp_sequences applied to null out 165 carrier dates occurring before purchase and 19 carrier dates occurring after delivery without dropping rows
-- R5_items applied to keep 1,357 orders with unknown category, 16 orders with unknown dimensions, and 2 untranslated categories without removing rows
-- R6_payments applied to drop 4 invalid payment rows while preserving the rest
-- R7_reviews retained 523 orders with multiple reviews and 643 orders without review without dropping rows
-- R8_geography retained 481 rows with unknown distance without dropping rows
-- R9_derive calculated 6,531 late orders and a late rate of 6.8%
-- R10_finalize completed the dataset structure with 38 columns
+- Applied rule R1_keep_delivered to retain only delivered orders, removing 2963 rows with non-delivered statuses to ensure consistency in performance metrics.
+- Applied rule R2_require_delivery_date to remove 8 orders lacking a delivery date, ensuring complete delivery lifecycle data.
+- Applied rule R3_purchase_window to exclude 267 rows outside the 2017-01-01 to 2018-08-31 window, focusing the analysis on the target timeframe.
+- Applied rule R4_timestamp_sequences to null out 165 carrier timestamps occurring before purchase and 19 carrier timestamps occurring after delivery without dropping rows.
+- Applied rule R5_items to handle item-level data by retaining 1357 orders with unknown category, 16 orders with unknown dimensions, and keeping untranslated categories pc_gamer and portateis_cozinha_e_preparadores_de_alimentos.
+- Applied rule R6_payments to drop 4 invalid payment rows while keeping 96203 reconciled payment records.
+- Applied rule R7_reviews to retain review data despite 523 orders having multiple reviews and 643 orders lacking reviews.
+- Applied rule R8_geography to retain 481 records where the distance was unknown.
+- Applied rule R9_derive to calculate late orders, identifying 6531 late orders and a late rate of 6.8%.
+- Applied rule R10_finalize to produce the final dataset containing 38 columns.
 
 ## Payment reconciliation (computed)
 
@@ -64,11 +59,11 @@ This data cleaning process prepared the orders dataset by filtering for successf
 
 ## Caveats
 
-- Some orders still contain unknown categories or unknown dimensions
-- Certain categories like pc_gamer and portateis_cozinha_e_preparadores_de_alimentos remain untranslated
-- Orders with multiple reviews or missing reviews are still present in the dataset
-- Geography data retains 481 instances of unknown distance
-- Payment totals may differ from price plus freight due to vouchers and interest, with 145 orders paid less and 288 orders paid more
+- 1357 orders still contain unknown categories and 16 orders have unknown dimensions.
+- Some categories remain untranslated, specifically pc_gamer and portateis_cozinha_e_preparadores_de_alimentos.
+- 523 orders contain multiple reviews and 643 orders have no review at all.
+- 481 orders have an unknown geographic distance.
+- Payment reconciliation shows 145 orders paid less than price plus freight, 288 orders paid more than price plus freight, and 95770 orders within 1 cent.
 
 ---
 <sub>narrative_source: llm | grounding: cleaning_report.json sha256=4cebaa7c7148</sub>
