@@ -16,12 +16,23 @@ from olist_core.columns import read_clean_data
 from olist_core.contract.builder import build_contract, merge_narrative
 from olist_core.eda.figures import make_eda_figures
 from olist_core.eda.summary import compute_eda_summary
+from olist_core.features.build import build_features
 from olist_core.io import read_json, sha256_file, write_csv_stable, write_json_lf, write_text_lf
-from olist_core.narratives import CleaningNarrative, ContractNarrative, Insights
+from olist_core.modeling.train import train_and_evaluate
+from olist_core.narratives import (
+    CleaningNarrative,
+    ContractNarrative,
+    EvaluationNarrative,
+    FeatureNarrative,
+    Insights,
+    ModelCardNarrative,
+)
+from olist_core.policy import SEED
 from olist_core.raw import load_raw_schema, load_raw_tables, profile_raw_tables
-from olist_core.reporting import templates
+from olist_core.reporting import templates, templates_ds
 from olist_core.reporting.html import render_eda_report_html
 from olist_core.reporting.markdown import render_cleaning_md, render_insights_md
+from olist_core.reporting.markdown_ds import render_evaluation_md, render_model_card_md
 
 ANALYST_ARTIFACTS = (
     "raw_profile.json",
@@ -111,4 +122,77 @@ def assemble_analyst_narratives(
     narrative = merge_narrative(templates.contract_template(summary, report), contract)
     contract_doc = build_contract(out_dir / "clean_data.csv", report, provenance, narrative)
     write_json_lf(out_dir / "dataset_contract.json", contract_doc)
+    return sources
+
+
+def run_feature_stage(out_dir: str | Path) -> dict:
+    """Re-validate the handoff, build features.csv and feature_spec.json (template narrative)."""
+    out_dir = Path(out_dir)
+    summary = build_features(out_dir / "clean_data.csv", out_dir / "dataset_contract.json", out_dir)
+    assemble_feature_narrative(out_dir)
+    return summary
+
+
+def assemble_feature_narrative(
+    out_dir: str | Path, narrative: FeatureNarrative | None = None
+) -> str:
+    out_dir = Path(out_dir)
+    spec = read_json(out_dir / "feature_spec.json")
+    contract = read_json(out_dir / "dataset_contract.json")
+    source = "llm" if narrative else "template"
+    narrative = narrative or templates_ds.feature_template(spec, contract)
+    spec["narrative"] = {"narrative_source": source, **narrative.model_dump()}
+    write_json_lf(out_dir / "feature_spec.json", spec)
+    return source
+
+
+def run_modeling_stage(out_dir: str | Path, seed: int = SEED) -> dict:
+    """Train and compare models, write model.joblib, metrics and the two reports (templates)."""
+    out_dir = Path(out_dir)
+    summary = train_and_evaluate(
+        out_dir / "features.csv",
+        out_dir / "feature_spec.json",
+        out_dir / "dataset_contract.json",
+        out_dir,
+        seed=seed,
+    )
+    assemble_modeling_narratives(out_dir)
+    return summary
+
+
+def assemble_modeling_narratives(
+    out_dir: str | Path,
+    evaluation: EvaluationNarrative | None = None,
+    model_card: ModelCardNarrative | None = None,
+) -> dict[str, str]:
+    out_dir = Path(out_dir)
+    metrics = read_json(out_dir / "metrics.json")
+    meta = read_json(out_dir / "model_meta.json")
+    contract = read_json(out_dir / "dataset_contract.json")
+    grounding = {
+        "metrics.json": sha256_file(out_dir / "metrics.json"),
+        "model_meta.json": sha256_file(out_dir / "model_meta.json"),
+    }
+    sources = {
+        "evaluation_report.md": "llm" if evaluation else "template",
+        "model_card.md": "template+llm" if model_card else "template",
+    }
+    evaluation = evaluation or templates_ds.evaluation_template(metrics, meta)
+    write_text_lf(
+        out_dir / "evaluation_report.md",
+        render_evaluation_md(metrics, meta, evaluation, sources["evaluation_report.md"], grounding),
+    )
+    card_template = templates_ds.model_card_template(metrics, meta)
+    write_text_lf(
+        out_dir / "model_card.md",
+        render_model_card_md(
+            metrics,
+            meta,
+            contract,
+            model_card or card_template,
+            card_template,
+            sources["model_card.md"],
+            grounding,
+        ),
+    )
     return sources

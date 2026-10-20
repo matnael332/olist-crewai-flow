@@ -116,7 +116,9 @@ def read_json(path: str | os.PathLike) -> Any:
         return json.load(fh)
 
 
-def write_csv_stable(df: pd.DataFrame, path: str | os.PathLike) -> Path:
+def write_csv_stable(
+    df: pd.DataFrame, path: str | os.PathLike, float_format: str = CSV_FLOAT_FORMAT
+) -> Path:
     """Write a CSV that is byte-identical across runs and operating systems."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -125,7 +127,7 @@ def write_csv_stable(df: pd.DataFrame, path: str | os.PathLike) -> Path:
         tmp,
         index=False,
         lineterminator="\n",
-        float_format=CSV_FLOAT_FORMAT,
+        float_format=float_format,
         date_format=CSV_DATE_FORMAT,
         encoding="utf-8",
     )

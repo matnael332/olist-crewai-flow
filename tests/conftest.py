@@ -39,3 +39,27 @@ def analyst_out(tmp_path_factory, fixture_raw_dir, fixture_lookups_dir) -> Path:
     out = tmp_path_factory.mktemp("analyst")
     run_analyst_stage(fixture_raw_dir, fixture_lookups_dir, out)
     return out
+
+
+@pytest.fixture(scope="session")
+def pipeline_out(tmp_path_factory, analyst_out) -> Path:
+    """Analyst output plus the feature and modeling stages (deterministic), shared read-only."""
+    import shutil
+
+    from olist_core.stages import run_feature_stage, run_modeling_stage
+
+    out = tmp_path_factory.mktemp("pipeline") / "artifacts"
+    shutil.copytree(analyst_out, out)
+    run_feature_stage(out)
+    run_modeling_stage(out)
+    return out
+
+
+@pytest.fixture()
+def pipeline_copy(tmp_path, pipeline_out) -> Path:
+    """A private, mutable copy of the full pipeline output."""
+    import shutil
+
+    target = tmp_path / "artifacts"
+    shutil.copytree(pipeline_out, target)
+    return target
