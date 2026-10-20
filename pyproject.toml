@@ -62,6 +62,8 @@ src = ["src", "."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+# The formatter enforces line length for code; long user-facing strings are allowed.
+ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

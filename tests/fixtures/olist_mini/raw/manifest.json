@@ -1,0 +1,44 @@
+{
+  "base_url": "https://raw.githubusercontent.com/olist/work-at-olist-data/d9e49802f3e92d09ee94ab9ccc5e457f207a8959/datasets/",
+  "dataset": "Olist Brazilian E-Commerce Public Dataset",
+  "files": {
+    "olist_customers_dataset.csv": {
+      "bytes": 219295,
+      "sha256": "be8263b352a8f5ef49c02bdf05b9b08383da98ae4006fb76c74856f7c670b649"
+    },
+    "olist_geolocation_dataset.csv": {
+      "bytes": 475263,
+      "sha256": "dc259378e48031fc38330dc82b9354789f8ce0c937b95d0229c99c7480388447"
+    },
+    "olist_order_items_dataset.csv": {
+      "bytes": 375013,
+      "sha256": "ac3a6f9d8d6a2704c660801aa63ce4d43c51b14129aa292260348ab9bb715057"
+    },
+    "olist_order_payments_dataset.csv": {
+      "bytes": 144868,
+      "sha256": "944c0fda120fd416cc94fba9376dee0288074ff0b9b87e22994af7e0bcbef9a6"
+    },
+    "olist_order_reviews_dataset.csv": {
+      "bytes": 364910,
+      "sha256": "3f3300fa76fa61b19721a9a8f1340aacdff39628fe9e250737f3e07caf931855"
+    },
+    "olist_orders_dataset.csv": {
+      "bytes": 442939,
+      "sha256": "4d137c2dc380552855dcbd24564e8078b805e735f3daa97e9f7c0457f29811f5"
+    },
+    "olist_products_dataset.csv": {
+      "bytes": 150321,
+      "sha256": "61f282c9c0babcd9265e1c7e38fb9f547745fe75371c7784d17d8f8382ca85dd"
+    },
+    "olist_sellers_dataset.csv": {
+      "bytes": 46315,
+      "sha256": "82e81872868606f30f95dd96b70fd24318f9f70ab387d5de1834eec7be6afb65"
+    },
+    "product_category_name_translation.csv": {
+      "bytes": 2540,
+      "sha256": "5233473346639d5ff3da9b784385ba284778abfaac1062572abe99e8aba8b7e3"
+    }
+  },
+  "github_commit": "d9e49802f3e92d09ee94ab9ccc5e457f207a8959",
+  "source": "github"
+}
