@@ -92,32 +92,34 @@ class RiskLevel:
     kind: str  # "warning" | "info" | "success": the Streamlit alert used for the message
 
 
+# How each backend level looks; the level itself and its action come from olist_api.risk.
+_LOOK = {
+    "high": ("High risk", "red", "#DC2626", "warning"),
+    "elevated": ("Elevated risk", "orange", "#F59E0B", "info"),
+    "normal": ("Normal risk", "green", "#16A34A", "success"),
+}
+
+
 def risk_level(prediction: dict, threshold: float) -> RiskLevel:
-    if prediction["top_10pct_risk"]:
-        return RiskLevel(
-            "High risk",
-            "red",
-            "#DC2626",
-            "Among the riskiest 10% of orders. Notify the customer proactively or upgrade the "
-            "carrier.",
-            "warning",
+    """Presentation of the backend's decision (prediction["risk_level"], recommended_action)."""
+    level = prediction.get("risk_level")
+    if level not in _LOOK:  # an older API without risk_level: fall back to its flags
+        level = (
+            "high"
+            if prediction["top_10pct_risk"]
+            else "elevated"
+            if prediction["predicted_late"]
+            else "normal"
         )
-    if prediction["predicted_late"]:
-        return RiskLevel(
-            "Elevated risk",
-            "orange",
-            "#F59E0B",
-            f"Above the model's decision threshold ({pct(threshold)}), but outside the riskiest "
-            "10% of orders. Keep an eye on this shipment.",
-            "info",
-        )
-    return RiskLevel(
-        "Normal risk",
-        "green",
-        "#16A34A",
-        f"Below the model's decision threshold ({pct(threshold)}). No action needed.",
-        "success",
-    )
+    why = {
+        "high": "Among the riskiest 10% of orders.",
+        "elevated": f"Above the model's decision threshold ({pct(threshold)}), but outside the "
+        "riskiest 10% of orders.",
+        "normal": f"Below the model's decision threshold ({pct(threshold)}).",
+    }[level]
+    action = prediction.get("recommended_action") or ""
+    label, color, bar, kind = _LOOK[level]
+    return RiskLevel(label, color, bar, f"{why} {action}".strip(), kind)
 
 
 def what_if(record: dict, base_probability: float) -> list[dict]:

@@ -63,3 +63,23 @@ same code the Flask API serves, so there is no second service to host; setting `
 to HTTP. Modules locate the repository with `olist_core.paths.repo_root()` instead of counting
 parent folders, so files can move without breaking paths. The `api` package was renamed
 `olist_api` to avoid a generic top-level import name.
+
+**ADR-13. The product is an Ops copilot for the agent operator.** The user is the data team that
+operates the agents. They work in a WhatsApp-style chat page inside the existing dashboard (no new
+account or channel), backed by Gemini with eleven read-only tools (`backend/olist_copilot`). The
+copilot reads runs, gates, metrics, insights, documents and the contract, and scores orders; it
+never runs the Flow (CrewAI is not installed in the cloud app, and a run changes artifacts).
+Numbers must come from tools: rates reach the model pre-formatted (ADR-11), the Sources line is
+built from the recorded tool calls, and unmatched percentages are flagged. Quick replies answer
+from templates without any LLM, which is cheaper, instant, exact and keeps the chat useful when
+Gemini is unavailable. The chat sits behind a passcode with 25 messages per session, because it
+spends the owner's Gemini quota; the key and passcode come from environment variables (Streamlit
+Cloud secrets). Rejected for the MVP: a Telegram or WhatsApp bot (new accounts, a process to host;
+the same `olist_copilot` core can serve one later) and running the Flow from chat.
+
+**ADR-14. One risk policy for every channel.** `backend/olist_api/risk.py` turns a probability into
+high (the riskiest 10%, p >= 0.1698), elevated (p >= the 0.055 decision threshold) or normal, with
+one recommended action per level and a template customer message for high-risk orders. The API,
+the batch scorer, the copilot and the dashboard all call it, so the same order never gets two
+labels. Batches report counts per level, not a sum of probabilities: the model over-predicts on
+recent months (trained at a 7.6% late rate, tested at 3.8%).

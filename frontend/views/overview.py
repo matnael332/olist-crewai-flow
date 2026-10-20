@@ -123,7 +123,8 @@ cards.insight(
 )
 
 layout.section("Explore")
-c1, c2, c3 = st.columns(3)
+c0, c1, c2, c3 = st.columns(4)
+c0.page_link("views/copilot.py", label="Ask the Ops copilot", icon=":material/forum:")
 c1.page_link("views/scoring.py", label="Score an order at checkout", icon=":material/speed:")
 c2.page_link("views/insights.py", label="See what happened", icon=":material/insights:")
 c3.page_link("views/model.py", label="How good is the model?", icon=":material/model_training:")

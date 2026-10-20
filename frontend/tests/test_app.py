@@ -69,3 +69,70 @@ def test_scoring_same_state_order_is_normal_risk():
     next(b for b in at.button if b.label == "Score order").click().run()
     assert not at.exception, [e.value for e in at.exception]
     assert _risk_labels(at) == ["Normal risk"]
+
+
+# Ops copilot ---------------------------------------------------------------------------------
+
+
+def _copilot() -> AppTest:
+    return _app("views/copilot.py")
+
+
+def _quick(at: AppTest, label: str) -> AppTest:
+    # AppTest serializes a single-select pills widget only when its value is set as a list.
+    at.button_group[0].set_value([label]).run()
+    return at
+
+
+def test_copilot_page_greets_offline_without_a_key():
+    at = _copilot()
+    assert not at.exception, [e.value for e in at.exception]
+    text = " ".join(m.value for m in at.markdown)
+    assert "Hi! I keep an eye on the late-delivery agents." in text
+
+
+def test_copilot_quick_replay_answers_instantly_with_a_table():
+    at = _quick(_copilot(), "Replay 2018-07-16")
+    assert not at.exception, [e.value for e in at.exception]
+    text = " ".join(m.value for m in at.markdown)
+    assert "238 orders were purchased on 2018-07-16: 42 high" in text
+    assert any("instant answer, no LLM" in c.value for c in at.caption)
+    assert any(
+        c.value.startswith(":material/description: Sources: clean_data.csv") for c in at.caption
+    )
+    assert [m.label for m in at.metric][:3] == ["High", "Elevated", "Normal"]
+    assert at.dataframe
+
+
+def test_copilot_chat_input_takes_text_and_csv_files():
+    # AppTest cannot submit to a file-accepting chat input; free text offline is covered by
+    # backend/tests/test_copilot_agent.py and the Playwright check.
+    at = _copilot()
+    proto = at.chat_input[0].proto
+    assert list(proto.file_type) == [".csv"] and proto.max_chars == 2000
+
+
+def test_copilot_passcode_gate_blocks_until_the_right_code(monkeypatch):
+    monkeypatch.setenv("COPILOT_PASSCODE", "open-sesame")
+    at = _copilot()
+    assert not at.chat_input
+    at.text_input[0].set_value("wrong").run()
+    at.button[0].click().run()
+    assert at.error
+    at.text_input[0].set_value("open-sesame").run()
+    at.button[0].click().run()
+    assert at.chat_input and not at.exception
+
+
+def test_copilot_message_cap_stops_the_session(monkeypatch):
+    monkeypatch.setenv("COPILOT_MAX_MESSAGES", "1")
+    at = _quick(_copilot(), "Which gates passed?")
+    assert not at.warning
+    at = _quick(at, "Replay 2018-07-16")
+    assert at.warning and "used all 1 messages" in at.warning[0].value
+
+
+def test_scoring_page_shows_the_backend_action():
+    at = _app("views/scoring.py")
+    messages = [str(m.value) for m in (*at.warning, *at.info, *at.success)]
+    assert any("Monitor the shipment" in m for m in messages), messages

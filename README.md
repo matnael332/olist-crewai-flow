@@ -14,11 +14,49 @@ risky orders early protects customer satisfaction.
 |---|---|
 | What happened (Crew 1) | 99,441 orders; 96,203 delivered orders analysed; **6.8% delivered late**; median delivery 10 days vs 24 promised; Black Friday 2017-11-24 had 1,176 orders (next busiest day: 499) |
 | What will happen (Crew 2) | Logistic regression selected over gradient boosting and a baseline; test **ROC-AUC 0.733**, PR-AUC 0.102 (baseline 0.038); the riskiest 10% of orders are late **12.1%** of the time, **3.2x** the 3.8% test late rate |
-| Dashboard | **Live: [olist-late-delivery-1.streamlit.app](https://olist-late-delivery-1.streamlit.app)** (Streamlit Community Cloud). Locally: `uv run streamlit run frontend/streamlit_app.py`; deployment steps in [docs/deploy.md](docs/deploy.md) |
+| The product | **Ops copilot**: a chat for the team that operates the agents, plus a dashboard and an API. **Live: [olist-late-delivery-1.streamlit.app](https://olist-late-delivery-1.streamlit.app)** (Streamlit Community Cloud; the copilot needs a passcode). Locally: `uv run streamlit run frontend/streamlit_app.py`; deployment in [docs/deploy.md](docs/deploy.md); API contract in [docs/api.md](docs/api.md) |
 | Documentation | [architecture](docs/architecture.md), [decision records](docs/decisions.md), [interactive Flow diagram](docs/flow_plot/olist_flow.html) |
 | Presentation and video | [slides (PDF)](docs/presentation.pdf), [PowerPoint](docs/presentation.pptx) (12 slides, rebuilt from `artifacts/` by `scripts/build_presentation.py`), [video script](docs/video_script.md) |
 
 ![Dashboard overview: run status, KPIs, the Flow and the three gates](docs/images/dashboard_overview.png)
+
+## The product: Ops copilot
+
+**Who uses it.** The data team that operates the agents. Instead of reading logs and JSON, they
+ask in plain language (any language) in a WhatsApp-style chat inside the dashboard:
+
+- *How did the last run go?* The status, the three gates (21/21, 13/13, 9/9), 12 LLM calls.
+- *Replay 2018-07-16.* 238 orders ranked by risk: 42 high, 142 elevated, 54 normal. Because the
+  day is in the past, the copilot shows what really happened: 5 of the 42 high-risk orders
+  arrived late (11.9%) against 4.2% for the whole day.
+- *Why are orders to Bahia riskier?* Answered from the analysts' numbers, with sources.
+- A CSV of orders attached to the chat comes back as a ranked list and an action list with a
+  customer-message draft for every high-risk order.
+
+![Ops copilot: a replayed day ranked by risk, with the real outcome](docs/images/ops_copilot.png)
+
+```mermaid
+flowchart LR
+  U[Operator] -->|question / CSV / day / order in words| C[Ops copilot page<br/>passcode, 25 msgs/session]
+  C -->|free text| G[Gemini + 11 read-only tools]
+  C -->|quick replies| Q[Instant answers, no LLM]
+  G & Q --> T[Tools: runs, gates, metrics, insights,<br/>documents, contract, scoring]
+  T --> V[Validate against the dataset contract]
+  V --> M[model.joblib] --> P[Risk policy:<br/>high / elevated / normal + action]
+  P --> A[Answer + Sources + table + CSV downloads]
+  A --> X[Operator acts: message the customer,<br/>review a carrier upgrade, monitor]
+```
+
+**How it stays trustworthy.**
+- The copilot is read-only: it never runs, changes or deletes anything.
+- Every number comes from a tool. The **Sources** line is built from the tool calls, and any
+  percentage the tools did not return is flagged.
+- Quick replies answer instantly without an LLM, and the chat keeps working when Gemini is down.
+- One risk policy (`backend/olist_api/risk.py`) drives the chat, the dashboard and the API:
+  **high** is the riskiest 10% (probability >= 0.1698), **elevated** is above the decision
+  threshold (0.055), and the rest are **normal**.
+- The same scoring is an API for other systems: `POST /predict`, `POST /predict/batch` (CSV,
+  partial success) and `GET /risk-list` (a replayed day). See [docs/api.md](docs/api.md).
 
 ## Architecture
 
@@ -84,7 +122,7 @@ is passed to the scientist agents, and the contract hash is recorded in `feature
 git clone https://github.com/matnael332/olist-crewai-flow && cd olist-crewai-flow
 uv sync                                                     # Python 3.13 + locked dependencies
 uv run python -m olist_core.validate artifacts              # the 3 gates on the committed artifacts
-uv run pytest                                               # 96 tests, no LLM calls (~3 min)
+uv run pytest                                               # 164 tests, no LLM calls (~2 min)
 uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote
 uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote \
     --inject-fault missing_feature                          # graceful failure: exit 1, nothing promoted
@@ -156,13 +194,14 @@ backend/                 Python backend (pipeline + prediction service)
   olist_core/            pure data + ML library (no CrewAI): download, cleaning, EDA, contract,
                          validators, features, modeling, reporting, promotion, manifest, paths
   olist_flow/            CrewAI layer: flow.py, crews/ (YAML + classes), tools/, events.py, run.py (CLI)
-  olist_api/             Flask prediction API (validates requests against the dataset contract)
+  olist_api/             Flask prediction API: risk policy, batch scoring, daily replay (docs/api.md)
     examples/            order.json (200) and invalid_order.json (422) request bodies
+  olist_copilot/         Ops copilot: read-only tools, the Gemini loop, instant answers
   tests/                 backend tests + the olist_mini fixture (real subset with injected defects)
 frontend/                Streamlit dashboard (reads artifacts/ only; Community Cloud entrypoint)
   streamlit_app.py       entrypoint and navigation
-  views/                 one module per page
-  services/              cached artifact loading
+  views/                 one module per page (copilot.py is the Ops copilot chat)
+  services/              cached artifact loading, scoring, the chat session
   tests/                 AppTest suite against the committed artifacts
   requirements.txt       slim deploy dependencies (no CrewAI), exported from uv.lock
 artifacts/               the last promoted run (committed): the 8 spec files + reports, figures, logs
