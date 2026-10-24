@@ -4,6 +4,8 @@ signals rather than noise."""
 
 import json
 import re
+import shutil
+from pathlib import Path
 from types import SimpleNamespace
 
 import joblib
@@ -13,7 +15,7 @@ import pytest
 from sklearn.metrics import roc_auc_score
 
 from pulse_core.columns import read_clean_data
-from pulse_core.io import read_json
+from pulse_core.io import read_json, write_json_lf
 from pulse_core.raw import load_raw_tables
 from pulse_core.spec import SpecNotConfigured, load_spec
 from pulse_core.stages import run_analyst_stage, run_feature_stage, run_modeling_stage
@@ -327,3 +329,107 @@ def test_flow_runs_end_to_end(tmp_path, wf80):
             "test"
         ]["roc_auc"]
     )
+
+
+# ----------------------------------------------------------------------------- 7. optional data groups
+
+
+def _trimmed_raw(raw: Path, out: Path, groups: tuple[str, ...]) -> Path:
+    """A copy of ``raw`` holding only the tables of ``groups``, as the hosted ingestion writes it:
+    the schema and the manifest list the present tables only."""
+    keep = {t for g in groups for t in wf.GROUP_TABLES[g]}
+    schema = read_json(raw / "raw_schema.json")
+    schema["tables"] = {t: s for t, s in schema["tables"].items() if t in keep}
+    manifest = read_json(raw / "manifest.json")
+    files = {s["file"] for s in schema["tables"].values()}
+    manifest["files"] = {f: e for f, e in manifest["files"].items() if f in files}
+    (out / "raw").mkdir(parents=True)
+    (out / "lookups").mkdir()
+    for name in files:
+        shutil.copyfile(raw / name, out / "raw" / name)
+    write_json_lf(out / "raw" / "raw_schema.json", schema, ndigits=None)
+    write_json_lf(out / "raw" / "manifest.json", manifest, ndigits=None)
+    return out
+
+
+def _run_groups(tmp_path: Path, data: Path, groups: tuple[str, ...], run_id: str) -> int:
+    from pulse_flow.run import main
+
+    params = tmp_path / f"{run_id}_params.json"
+    params.write_text(
+        json.dumps({"snapshot_date": SPEC.snapshot_date, "groups": list(groups)}),
+        encoding="utf-8",
+    )
+    return main(
+        [
+            "--no-llm",
+            "--spec",
+            FACTORY_REF,
+            "--spec-params",
+            str(params),
+            "--data-dir",
+            str(data),
+            "--runs-dir",
+            str(tmp_path / "runs"),
+            "--artifacts-dir",
+            str(tmp_path / "artifacts"),
+            "--run-id",
+            run_id,
+        ]
+    )
+
+
+def test_groups_are_checked():
+    with pytest.raises(ValueError, match="core data groups missing"):
+        make_spec(groups=("commercial", "punches", "usage"))
+    with pytest.raises(ValueError, match="unknown data groups"):
+        make_spec(groups=(*wf.CORE_GROUPS, "weather"))
+    names = {c.name for c in wf.columns_for((*wf.CORE_GROUPS, "hours"))}
+    assert "overtime_share" in names and "labor_cost" not in names  # needs the wages as well
+    assert wf.columns_for(wf.ALL_GROUPS) == wf.COLUMNS
+    assert make_spec().data_groups["missing"] == []
+
+
+def test_hours_without_wages_drop_labor_cost_only(wf80):
+    spec = make_spec(groups=(*wf.CORE_GROUPS, "hours"))
+    clean, _report = spec.clean(wf80.tables, wf80.data / "lookups")
+    assert list(clean.columns) == [c.name for c in spec.columns]
+    assert "overtime_share" in clean and "labor_cost" not in clean
+    # same values as the full run (wf80.clean comes back from the CSV, hence no dtype check)
+    pd.testing.assert_frame_equal(clean, wf80.clean[list(clean.columns)], check_dtype=False)
+
+
+def test_core_groups_alone_run_end_to_end(tmp_path, wf80):
+    data = _trimmed_raw(wf80.raw, tmp_path / "core_data", wf.CORE_GROUPS)
+    assert _run_groups(tmp_path, data, wf.CORE_GROUPS, "core") == 0
+    art = tmp_path / "artifacts"
+    contract = read_json(art / "dataset_contract.json")
+    missing = [g for g in wf.ALL_GROUPS if g not in wf.CORE_GROUPS]
+    assert contract["data_groups"]["missing"] == missing
+    columns = {c["name"] for c in contract["columns"]}
+    assert "labor_cost" not in columns and "punches" in columns
+    features = read_json(art / "feature_spec.json")
+    names = {f["name"] for f in features["features"]}
+    assert "overtime_share_delta_1m" not in names and "punches_delta_1m" in names
+    card = (art / "model_card.md").read_text(encoding="utf-8")
+    assert "No device health data (devices)" in card and "data_gap" not in card
+
+
+def test_a_missing_core_group_fails_gracefully(tmp_path, wf80):
+    groups = ("commercial", "punches", "usage")
+    data = _trimmed_raw(wf80.raw, tmp_path / "no_payroll", groups)
+    assert _run_groups(tmp_path, data, groups, "nopayroll") == 1
+    status = json.loads(
+        (tmp_path / "runs" / "nopayroll" / "run_status.json").read_text(encoding="utf-8")
+    )
+    assert status["stage"] == "check_inputs"
+    assert "core data groups missing: ['payroll']" in status["errors"][0]
+
+
+def test_a_group_the_spec_reads_must_be_in_the_raw_schema(tmp_path, wf80):
+    data = _trimmed_raw(wf80.raw, tmp_path / "core_only", wf.CORE_GROUPS)
+    assert _run_groups(tmp_path, data, (*wf.CORE_GROUPS, "shifts"), "noshifts") == 1
+    status = json.loads(
+        (tmp_path / "runs" / "noshifts" / "run_status.json").read_text(encoding="utf-8")
+    )
+    assert "the spec reads shifts" in status["errors"][0]

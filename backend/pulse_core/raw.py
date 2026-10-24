@@ -7,7 +7,7 @@ about types; an optional ``renames`` block in the schema fixes column names at l
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 import pandas as pd
@@ -55,8 +55,11 @@ def read_header(path: Path) -> list[str]:
         return [column.strip().strip('"') for column in fh.readline().rstrip("\r\n").split(",")]
 
 
-def check_raw_schema(raw_dir: str | Path, gate: str = "check_inputs") -> GateReport:
-    """Every raw table exists and has exactly the expected columns."""
+def check_raw_schema(
+    raw_dir: str | Path, gate: str = "check_inputs", required_tables: Sequence[str] = ()
+) -> GateReport:
+    """Every raw table exists and has exactly the expected columns, and the schema lists every
+    table the spec reads (``required_tables``)."""
     raw_dir = Path(raw_dir)
     report = GateReport(gate)
     try:
@@ -64,6 +67,11 @@ def check_raw_schema(raw_dir: str | Path, gate: str = "check_inputs") -> GateRep
     except (OSError, ValueError) as exc:
         report.record("raw_schema_readable", False, f"cannot read {SCHEMA_FILE}: {exc}")
         return report
+    for table in required_tables:
+        if table not in schema["tables"]:
+            report.record(
+                f"{table}_in_schema", False, f"the spec reads {table}, not in {SCHEMA_FILE}"
+            )
     for table, spec in schema["tables"].items():
         path = raw_dir / spec["file"]
         if not path.exists():

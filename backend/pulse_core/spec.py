@@ -51,6 +51,12 @@ class DatasetSpec:
     contract_version: str = "1.0"
     seed: int = 42
     required_lookups: tuple[str, ...] = ()
+    # raw tables the spec reads (empty: whatever raw_schema.json lists); check_inputs fails
+    # gracefully when one is not in the raw schema
+    required_tables: tuple[str, ...] = ()
+    # free-form account of the input data groups (present, missing, what that costs); written
+    # into dataset_contract.json as is
+    data_groups: Mapping[str, object] = field(default_factory=dict)
 
     # row semantics
     id_column: str

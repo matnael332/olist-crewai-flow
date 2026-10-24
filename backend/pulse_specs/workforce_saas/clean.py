@@ -220,7 +220,8 @@ def _absences(absences: pd.DataFrame, spine: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([requests, sick_days], axis=1).reset_index()
 
 
-def _hours(hours: pd.DataFrame, wages: pd.DataFrame) -> pd.DataFrame:
+def _hours(hours: pd.DataFrame, wages: pd.DataFrame | None) -> pd.DataFrame:
+    """Overtime and rest violations; labor_cost only when the wages (group 10) are there too."""
     h = _in_month(hours, "work_date")
     for column in ("regular_hours", "overtime_125_hours", "overtime_150_hours"):
         h[column] = h[column].fillna(0.0)
@@ -228,26 +229,27 @@ def _hours(hours: pd.DataFrame, wages: pd.DataFrame) -> pd.DataFrame:
     h["all_hours"] = h["regular_hours"] + h["overtime"]
     h["violation"] = h["rest_violation"].fillna(False).astype(bool)
     h = h.sort_values(["work_date", "account_id", "employee_id"], kind="mergesort")
-    w = wages[wages["effective_from"].notna() & wages["hourly_rate"].notna()]
-    w = w.sort_values(["effective_from", "account_id", "employee_id"], kind="mergesort")
-    priced = pd.merge_asof(
-        h,
-        w[["account_id", "employee_id", "effective_from", "hourly_rate"]],
-        left_on="work_date",
-        right_on="effective_from",
-        by=["account_id", "employee_id"],
-        direction="backward",
-    )
-    priced["cost"] = priced["all_hours"] * priced["hourly_rate"]
-    g = priced.groupby(KEY)
-    out = pd.DataFrame(
-        {
-            "overtime_hours": g["overtime"].sum(),
-            "all_hours": g["all_hours"].sum(),
-            "rest_violations": g["violation"].sum(),
-            "labor_cost": g["cost"].sum(min_count=1),
-        }
-    ).reset_index()
+    if wages is not None:
+        w = wages[wages["effective_from"].notna() & wages["hourly_rate"].notna()]
+        w = w.sort_values(["effective_from", "account_id", "employee_id"], kind="mergesort")
+        h = pd.merge_asof(
+            h,
+            w[["account_id", "employee_id", "effective_from", "hourly_rate"]],
+            left_on="work_date",
+            right_on="effective_from",
+            by=["account_id", "employee_id"],
+            direction="backward",
+        )
+        h["cost"] = h["all_hours"] * h["hourly_rate"]
+    g = h.groupby(KEY)
+    parts = {
+        "overtime_hours": g["overtime"].sum(),
+        "all_hours": g["all_hours"].sum(),
+        "rest_violations": g["violation"].sum(),
+    }
+    if wages is not None:
+        parts["labor_cost"] = g["cost"].sum(min_count=1)
+    out = pd.DataFrame(parts).reset_index()
     out["overtime_share"] = (out["overtime_hours"] / out["all_hours"]).where(
         out["all_hours"] > 0, 0.0
     )
@@ -314,19 +316,33 @@ def _devices(devices: pd.DataFrame, health: pd.DataFrame, spine: pd.DataFrame) -
 # ----------------------------------------------------------------------------- assembly
 
 
-def _merge_all(spine: pd.DataFrame, tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
+def _parts(
+    spine: pd.DataFrame, tables: dict[str, pd.DataFrame], groups: tuple[str, ...]
+) -> list[pd.DataFrame]:
+    """One aggregate per data group that is present, in a fixed order."""
+    t = tables
+    parts = [_commercial(spine, t["billing_monthly"])]
+    if "organisation" in groups:
+        parts.append(_organisation(t["employees"], t["sites"]))
+    parts.append(_punches(t["punches"]))
+    if "shifts" in groups:
+        parts.append(_shifts(t["shifts"]))
+    if "absences" in groups:
+        parts.append(_absences(t["absence_requests"], spine))
+    if "hours" in groups:
+        parts.append(_hours(t["hours_daily"], t["wages"] if "money" in groups else None))
+    parts.append(_payroll(t["payroll_exports"], spine))
+    parts.append(_usage(t["usage_daily"]))
+    if "devices" in groups:
+        parts.append(_devices(t["devices"], t["device_health_daily"], spine))
+    return parts
+
+
+def _merge_all(
+    spine: pd.DataFrame, tables: dict[str, pd.DataFrame], groups: tuple[str, ...]
+) -> pd.DataFrame:
     df = spine
-    for part in (
-        _commercial(spine, tables["billing_monthly"]),
-        _organisation(tables["employees"], tables["sites"]),
-        _punches(tables["punches"]),
-        _shifts(tables["shifts"]),
-        _absences(tables["absence_requests"], spine),
-        _hours(tables["hours_daily"], tables["wages"]),
-        _payroll(tables["payroll_exports"], spine),
-        _usage(tables["usage_daily"]),
-        _devices(tables["devices"], tables["device_health_daily"], spine),
-    ):
+    for part in _parts(spine, tables, groups):
         df = df.merge(part, on=KEY, how="left")
     zero = [
         "employees_joined",
@@ -355,25 +371,29 @@ def _merge_all(spine: pd.DataFrame, tables: dict[str, pd.DataFrame]) -> pd.DataF
         "failed_recognitions",
     ]
     for column in zero:
-        df[column] = df[column].fillna(0)
+        if column in df:
+            df[column] = df[column].fillna(0)
     df["payroll_exported"] = df["payroll_exported"].eq(True)
     df["has_billing"] = df["has_billing"].eq(True)
     active = df["active_employees"].astype(float)
-    df["sick_days_per_employee"] = (df["sick_days"] / active).where(active > 0, 0.0)
+    if "absences" in groups:
+        df["sick_days_per_employee"] = (df["sick_days"] / active).where(active > 0, 0.0)
     df["app_install_share"] = (df["app_installs_total"] / active).clip(0, 1).where(active > 0)
-    punches = df["punches"].astype(float)
-    df["device_failure_rate"] = (df["failed_recognitions"] / punches).clip(0, 1).where(punches > 0)
-    capacity = 0.5 * 24 * df["days_in_month"] * df["devices_total"]
-    df["data_gap"] = (df["devices_total"] > 0) & (df["device_offline_hours"] > capacity)
+    if "devices" in groups:
+        punches = df["punches"].astype(float)
+        failures = df["failed_recognitions"] / punches
+        df["device_failure_rate"] = failures.clip(0, 1).where(punches > 0)
+        capacity = 0.5 * 24 * df["days_in_month"] * df["devices_total"]
+        df["data_gap"] = (df["devices_total"] > 0) & (df["device_offline_hours"] > capacity)
     seconds = (df["cancelled_at"] - df["month_end"]).dt.total_seconds()
     df["days_to_cancel"] = pd.array(np.ceil(seconds / 86400), dtype="Int64")
     df[wf.TARGET] = df["days_to_cancel"].between(1, wf.HORIZON_DAYS).fillna(False).astype(bool)
     return df
 
 
-def _typed(df: pd.DataFrame) -> pd.DataFrame:
+def _typed(df: pd.DataFrame, groups: tuple[str, ...]) -> pd.DataFrame:
     out = pd.DataFrame(index=df.index)
-    for column in wf.COLUMNS:
+    for column in wf.columns_for(groups):
         values = df[column.name]
         if column.dtype == "int":
             out[column.name] = (
@@ -402,10 +422,19 @@ def _rule(name: str, description: str, before: int, after: int, detail: str) -> 
 
 
 def clean_tables(
-    tables: dict[str, pd.DataFrame], lookups_dir: str | Path, *, snapshot: pd.Timestamp
+    tables: dict[str, pd.DataFrame],
+    lookups_dir: str | Path,
+    *,
+    snapshot: pd.Timestamp,
+    groups: tuple[str, ...] = wf.ALL_GROUPS,
 ) -> tuple[pd.DataFrame, dict]:
-    """The DatasetSpec ``clean`` callable, bound to a snapshot date by ``spec.make_spec``."""
+    """The DatasetSpec ``clean`` callable, bound to a snapshot and the data groups by make_spec.
+
+    Tables of groups outside ``groups`` are never read, even when they are in ``tables``.
+    """
     del lookups_dir  # the spec needs no lookups
+    needed = {t for g in groups for t in wf.GROUP_TABLES[g]}
+    tables = {name: df for name, df in tables.items() if name in needed}
     tables, raw_fixes = normalise_raw(tables)
     spine = build_spine(tables["accounts"], snapshot)
     rows_in = len(spine)
@@ -433,7 +462,7 @@ def clean_tables(
             "the account is no longer a customer at the decision time, so days_to_cancel >= 1",
         )
     )
-    df = _merge_all(kept.reset_index(drop=True), tables)
+    df = _merge_all(kept.reset_index(drop=True), tables, groups)
     before = len(df)
     df = df[df["has_billing"]]
     rules.append(
@@ -446,7 +475,7 @@ def clean_tables(
         )
     )
     df = df.sort_values([wf.TIME_COLUMN, "account_id"], kind="mergesort").reset_index(drop=True)
-    clean = _typed(df)
+    clean = _typed(df, groups)
     report = {
         "rows_in": int(rows_in),
         "rows_out": int(len(clean)),

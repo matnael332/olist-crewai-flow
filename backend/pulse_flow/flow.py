@@ -242,7 +242,7 @@ class PulseFlow(Flow[PipelineState]):
             raw_dir = faults.tampered_raw_copy(raw_dir, Path(self.state.run_dir))
             log.warning("FAULT INJECTED bad_input_hash (one byte appended to a raw file copy)")
         verify_manifest(raw_dir, log=lambda message: log.info("INPUT %s", message))
-        schema = check_raw_schema(raw_dir)
+        schema = check_raw_schema(raw_dir, required_tables=spec.required_tables)
         if not schema.passed:
             raise ValueError("; ".join(schema.errors))
         missing = [
