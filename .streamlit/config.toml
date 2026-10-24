@@ -1,4 +1,4 @@
-# Dashboard theme (read from the repository root locally and on Streamlit Community Cloud).
+# Dashboard theme (read from the working directory: the repository root locally, /app in Docker).
 [theme]
 base = "light"
 primaryColor = "#2563EB"

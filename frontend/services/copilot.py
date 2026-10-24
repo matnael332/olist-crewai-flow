@@ -2,8 +2,7 @@
 
 The brain lives in the backend (pulse_copilot). This module only keeps the chat in
 st.session_state, checks the passcode, enforces the message cap, reads attachments and draws
-messages. Keys and the passcode come from environment variables (Streamlit Cloud exposes
-root-level secrets as environment variables).
+messages. Keys and the passcode come from environment variables (`.env` on the server).
 """
 
 from __future__ import annotations
