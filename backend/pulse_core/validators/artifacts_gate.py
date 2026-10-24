@@ -58,7 +58,7 @@ def validate_artifacts(artifacts_dir: str | Path) -> GateReport:
     report.record(
         "spec_files_present",
         not missing,
-        "all 8 spec-required files present" if not missing else f"missing {', '.join(missing)}",
+        "all required files present" if not missing else f"missing {', '.join(missing)}",
     )
     missing_support = _present(art, SUPPORTING_FILES)
     report.record(
@@ -66,10 +66,17 @@ def validate_artifacts(artifacts_dir: str | Path) -> GateReport:
         not missing_support,
         "supporting files present" if not missing_support else f"missing {missing_support}",
     )
-    figures = sorted((art / "figures").glob("*.png")) if (art / "figures").exists() else []
-    report.record(
-        "figures_present", len(figures) >= 11, f"{len(figures)} figures (need 11: 7 EDA + 4 model)"
-    )
+    try:
+        declared = list((read_json(art / "eda_summary.json") or {}).get("figures", []))
+        declared += list((read_json(art / "metrics.json") or {}).get("figures", []))
+        absent = [n for n in declared if not (art / "figures" / n).exists()]
+        report.record(
+            "figures_present",
+            not absent,
+            f"all {len(declared)} declared figures exist" if not absent else f"missing {absent}",
+        )
+    except (OSError, ValueError) as exc:
+        report.record("figures_present", False, f"cannot read the declared figures: {exc}")
 
     try:
         spec = read_json(art / "feature_spec.json")
@@ -132,7 +139,15 @@ def validate_artifacts(artifacts_dir: str | Path) -> GateReport:
         else ""
     )
     images = html.count('src="data:image/png;base64,')
-    report.record("eda_report_figures", images >= 7, f"eda_report.html embeds {images} figures")
+    try:
+        expected_images = len((read_json(art / "eda_summary.json") or {}).get("figures", []))
+    except (OSError, ValueError):
+        expected_images = 0
+    report.record(
+        "eda_report_figures",
+        bool(html) and images >= expected_images,
+        f"eda_report.html embeds {images} of {expected_images} EDA figures",
+    )
 
     dirty = []
     for path in sorted(art.rglob("*")):

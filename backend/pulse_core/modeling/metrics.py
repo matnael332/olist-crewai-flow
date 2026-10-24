@@ -1,4 +1,4 @@
-"""Metrics for an imbalanced late-delivery classifier, and a deterministic threshold search."""
+"""Metrics for an imbalanced binary classifier, and a deterministic threshold search."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def best_f1_threshold(y_true: np.ndarray, proba: np.ndarray) -> tuple[float, flo
 
 
 def precision_at_top(y_true: np.ndarray, proba: np.ndarray, fraction: float = 0.10) -> float:
-    """Precision among the top `fraction` of orders by risk (stable tie order)."""
+    """Precision among the top `fraction` of rows by score (stable tie order)."""
     n = max(1, int(round(len(proba) * fraction)))
     order = np.argsort(-round_probs(proba), kind="mergesort")[:n]
     return float(np.asarray(y_true)[order].mean())

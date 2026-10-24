@@ -1,4 +1,4 @@
-"""CrewAI layer of the Olist late-delivery project (Flow, crews, tools, CLI)."""
+"""CrewAI layer of pulse (Flow, crews, tools, CLI)."""
 
 import os
 

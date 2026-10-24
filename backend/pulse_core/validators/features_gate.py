@@ -1,5 +1,5 @@
 """Gate 2 (before modeling): all required features exist, nothing forbidden is used, and every
-feature is derived from checkout-time columns only. Never raises."""
+feature is derived from decision-stage columns only. Reads names from the artifacts; never raises."""
 
 from __future__ import annotations
 
@@ -7,8 +7,9 @@ from pathlib import Path
 
 import pandas as pd
 
+from pulse_core.columns import DATETIME_FORMAT
 from pulse_core.io import read_json, sha256_file
-from pulse_core.policy import assign_split
+from pulse_core.splits import assign_split, windows_of
 from pulse_core.validators.report import GateReport
 
 GATE = "gate_required_features"
@@ -21,12 +22,16 @@ def validate_features(
     try:
         contract = read_json(contract_json)
         spec = read_json(spec_json)
+        id_col, time_col, split_col = (
+            spec[k] for k in ("id_column", "time_column", "split_column")
+        )
+        stage = contract["feature_rules"]["feature_available_at"]
         report.record("inputs_readable", True, "dataset_contract.json and feature_spec.json parsed")
-    except (OSError, ValueError) as exc:
-        report.record("inputs_readable", False, f"cannot read contract or feature spec: {exc}")
+    except (OSError, ValueError, KeyError) as exc:
+        report.record("inputs_readable", False, f"cannot read contract or feature spec: {exc!r}")
         return report
     try:
-        df = pd.read_csv(features_csv, dtype={"order_id": str, "split": str}, encoding="utf-8")
+        df = pd.read_csv(features_csv, dtype={id_col: str, split_col: str}, encoding="utf-8")
         report.record("features_readable", True, f"features.csv loaded ({len(df):,} rows)")
     except (OSError, ValueError) as exc:
         report.record("features_readable", False, f"cannot read features.csv: {exc}")
@@ -74,9 +79,9 @@ def validate_features(
     report.record(
         "no_forbidden_columns",
         not stray,
-        "features.csv carries no post-purchase columns"
+        "features.csv carries no forbidden columns"
         if not stray
-        else f"post-purchase column(s) present in features.csv: {stray}",
+        else f"forbidden column(s) present in features.csv: {stray}",
     )
 
     available = {c["name"]: c["available_at"] for c in contract.get("columns", [])}
@@ -84,14 +89,14 @@ def validate_features(
         f"{feat['name']} <- {src} ({available.get(src)})"
         for feat in spec.get("features", [])
         for src in feat.get("derived_from", [])
-        if available.get(src) != "checkout"
+        if available.get(src) != stage
     ]
     report.record(
-        "derived_from_checkout_only",
+        "derived_from_allowed_stage",
         not leaks,
-        "every feature derives from checkout-time columns"
+        f"every feature derives from {stage} columns"
         if not leaks
-        else f"features derived from non-checkout columns: {leaks}",
+        else f"features derived from non-{stage} columns: {leaks}",
     )
 
     if target in df:
@@ -104,9 +109,10 @@ def validate_features(
     else:
         report.record("target_binary", False, f"target column {target} missing")
 
-    if {"purchase_ts", "split"} <= set(columns):
-        ts = pd.to_datetime(df["purchase_ts"], format="%Y-%m-%d %H:%M:%S", errors="coerce")
-        mismatched = int((assign_split(ts) != df["split"]).sum())
+    if {time_col, split_col} <= set(columns):
+        ts = pd.to_datetime(df[time_col], format=DATETIME_FORMAT, errors="coerce")
+        windows = windows_of(contract["target"]["split_policy"])
+        mismatched = int((assign_split(ts, windows) != df[split_col]).sum())
         report.record(
             "split_matches_policy",
             mismatched == 0,
@@ -115,7 +121,7 @@ def validate_features(
             else f"{mismatched} rows have a split that differs from the policy",
         )
     else:
-        report.record("split_matches_policy", False, "purchase_ts or split column missing")
+        report.record("split_matches_policy", False, f"{time_col} or {split_col} column missing")
 
     nullable = {f["name"]: f.get("nullable", False) for f in spec.get("features", [])}
     null_violations = [

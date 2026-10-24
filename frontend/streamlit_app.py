@@ -1,4 +1,4 @@
-"""Olist late-delivery AI workflow: dashboard entrypoint (Streamlit Community Cloud main file).
+"""pulse: dashboard entrypoint (Streamlit Community Cloud main file).
 
 uv run streamlit run frontend/streamlit_app.py
 """
@@ -13,7 +13,7 @@ from components import layout
 ASSETS = Path(__file__).resolve().parent / "assets"
 
 st.set_page_config(
-    page_title="Olist delivery risk",
+    page_title="pulse",
     page_icon=str(ASSETS / "icon.svg"),
     layout="wide",
     initial_sidebar_state="auto",  # open on desktop, collapsed on phones
@@ -30,27 +30,25 @@ pages = {
     "Operate": [
         st.Page("views/copilot.py", title="Ops copilot", icon=":material/forum:"),
     ],
-    "Business": [
-        st.Page(
-            "views/overview.py", title="Overview", icon=":material/space_dashboard:", default=True
-        ),
-        st.Page("views/insights.py", title="Insights", icon=":material/insights:"),
-        st.Page("views/scoring.py", title="Risk scoring", icon=":material/speed:"),
-    ],
     "Data science": [
         st.Page("views/model.py", title="Model", icon=":material/model_training:"),
         st.Page("views/data_contract.py", title="Data contract", icon=":material/fact_check:"),
     ],
     "Engineering": [
-        st.Page("views/pipeline_runs.py", title="Pipeline runs", icon=":material/account_tree:"),
+        st.Page(
+            "views/pipeline_runs.py",
+            title="Pipeline runs",
+            icon=":material/account_tree:",
+            default=True,
+        ),
     ],
 }
 navigation = st.navigation(pages)
 
 with st.sidebar:
     st.caption(
-        "Predicts at checkout which Olist orders will arrive late. A CrewAI Flow hands off from a "
-        "Data Analyst crew to a Data Scientist crew, with three quality gates in between."
+        "A CrewAI Flow hands off from a Data Analyst crew to a Data Scientist crew, with three "
+        "quality gates in between, and publishes a model with its contract and model card."
     )
     st.caption(f"[Source code on GitHub]({layout.REPO_URL})")
 

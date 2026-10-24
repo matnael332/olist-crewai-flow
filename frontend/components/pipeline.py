@@ -9,22 +9,22 @@ from components.cards import badge
 STEPS = [
     {
         "title": "Analyze",
-        "body": "Data Analyst crew (6 agents): clean the 9 raw tables, explore, write insights "
+        "body": "Data Analyst crew (6 agents): clean the raw tables, explore, write insights "
         "and the dataset contract.",
         "gate": "gate_contract",
         "gate_label": "Contract gate",
     },
     {
         "title": "Engineer features",
-        "body": "Data Scientist crew, phase 1: 25 checkout-time features, validated against the "
+        "body": "Data Scientist crew, phase 1: decision-time features, validated against the "
         "contract.",
         "gate": "gate_required_features",
         "gate_label": "Feature gate",
     },
     {
         "title": "Train and document",
-        "body": "Data Scientist crew, phase 2: three models compared on later months, evaluation "
-        "report and model card.",
+        "body": "Data Scientist crew, phase 2: three models compared on a later window, "
+        "evaluation report and model card.",
         "gate": "gate_artifacts",
         "gate_label": "Artifacts gate",
     },

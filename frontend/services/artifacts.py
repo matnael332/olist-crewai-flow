@@ -48,12 +48,7 @@ def _read_text(path: str, mtime: float) -> str:
 def _read_csv(
     path: str, mtime: float, nrows: int | None, usecols: tuple[str, ...] | None
 ) -> pd.DataFrame:
-    return pd.read_csv(
-        path,
-        nrows=nrows,
-        usecols=list(usecols) if usecols else None,
-        dtype={"order_id": str, "customer_zip_prefix": str},
-    )
+    return pd.read_csv(path, nrows=nrows, usecols=list(usecols) if usecols else None)
 
 
 def load_json(name: str, base: Path = ARTIFACTS):
@@ -135,19 +130,6 @@ def insights_headline() -> str | None:
     return _headline(load_text("insights.md"))
 
 
-def review_shares() -> pd.DataFrame | None:
-    """Share of each review score among late and on-time delivered orders."""
-    df = load_csv("clean_data.csv", usecols=("review_score", "is_late"))
-    if df is None:
-        return None
-    df = df.dropna(subset=["review_score"])
-    df["delivery"] = np.where(df["is_late"].astype(int) == 1, "Late", "On time")
-    df["score"] = df["review_score"].astype(int)
-    counts = df.groupby(["delivery", "score"]).size().rename("n").reset_index()
-    counts["share"] = counts["n"] / counts.groupby("delivery")["n"].transform("sum")
-    return counts
-
-
 # Model evaluation curves, computed from the committed test-window predictions -----------------
 
 
@@ -178,7 +160,7 @@ def _curves(path: str, mtime: float, models: tuple[str, ...], selected: str):
         roc_rows += [{"model": name, "fpr": fpr[i], "tpr": tpr[i]} for i in _thin(len(fpr))]
         precision, recall, _ = precision_recall_curve(y, p)
         precision, recall = precision[:-1], recall[:-1]  # drop the threshold-less end point
-        keep = recall > 0  # points before the first late order is caught carry no information
+        keep = recall > 0  # points before the first positive is caught carry no information
         precision, recall = precision[keep], recall[keep]
         pr_rows += [
             {"model": name, "recall": recall[i], "precision": precision[i]}

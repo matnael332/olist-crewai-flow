@@ -38,10 +38,18 @@ def merge_items(base: list[str], extra: list[str] | None) -> list[str]:
     return out
 
 
-SPLIT_ORDER = ("train", "test", "censored_buffer")
+SPLIT_ORDER = ("train", "test")
 
 
-def split_table(meta: dict) -> str:
+def _label(contract: dict) -> str:
+    return contract["target"].get("label") or contract["target"]["name"]
+
+
+def _entity(contract: dict) -> str:
+    return contract["target"].get("entity") or "row"
+
+
+def split_table(meta: dict, contract: dict) -> str:
     # Chronological order; the JSON keys are sorted alphabetically.
     names = [n for n in SPLIT_ORDER if n in meta["split"]]
     names += [n for n in meta["split"] if n not in names]
@@ -51,14 +59,22 @@ def split_table(meta: dict) -> str:
         rows.append(
             [name, f"{s['dates'][0]} .. {s['dates'][1]}", num(s["rows"]), pct(s["prevalence"])]
         )
-    return md_table(["split", "purchase dates", "orders", "late rate"], rows)
+    return md_table(
+        ["split", "dates", f"{_entity(contract)} rows", f"{_label(contract)} rate"], rows
+    )
 
 
 def render_evaluation_md(
-    metrics: dict, meta: dict, narrative: EvaluationNarrative, source: str, grounding: dict
+    metrics: dict,
+    meta: dict,
+    contract: dict,
+    narrative: EvaluationNarrative,
+    source: str,
+    grounding: dict,
 ) -> str:
     cands = metrics["candidates"]
     chosen = metrics["selected_model"]
+    label, entity = _label(contract), _entity(contract)
     cv_rows = [
         [
             name,
@@ -95,7 +111,7 @@ def render_evaluation_md(
     t = cands[chosen]["test"]
     op_rows = [
         ["threshold (tuned on out-of-fold F1)", f"{t['threshold']:.3f}"],
-        ["orders flagged", pct(t["flagged_share"])],
+        [f"{entity} rows flagged", pct(t["flagged_share"])],
         ["precision", pct(t["precision"])],
         ["recall", pct(t["recall"])],
         ["F1", _f3(t["f1"])],
@@ -106,29 +122,30 @@ def render_evaluation_md(
         [i + 1, f["feature"], f"{f['importance_mean']:.4f}"] for i, f in enumerate(importance)
     ]
     sel = metrics["selection"]
-    buffer = meta["censored_buffer"]
+    excluded = meta.get("excluded_splits") or {}
     parts = [
-        "# Evaluation report: late-delivery risk at checkout",
+        f"# Evaluation report: {label} risk per {entity}",
         "",
         "## Setup (computed)",
         "",
-        "- **Task:** binary classification of `is_late` (delivered after the promised date, "
-        "calendar days), measured among delivered orders.",
+        f"- **Task:** binary classification of `{contract['target']['name']}` "
+        f"({contract['target']['definition']}).",
         f"- **Validation:** {metrics['cv_scheme']}; threshold tuned on out-of-fold predictions; "
         "the test window is scored once.",
-        f"- **Censored buffer:** {num(buffer['rows'])} August-2018 orders "
-        f"({pct(buffer['late_rate'])} late) are excluded from metrics (right-censoring).",
+        f"- **Excluded windows:** {num(excluded.get('rows', 0))} rows outside train and test "
+        f"({pct(excluded.get('positive_rate'))} {label}) are not used in the metrics.",
         "",
-        split_table(meta),
+        split_table(meta, contract),
         "",
         "## Cross-validation on the train window (computed)",
         "",
         md_table(["model", "ROC-AUC (mean ± std)", "PR-AUC (mean ± std)"], cv_rows),
         "",
-        f"Folds for the selected model ({chosen}); note the shifting late rate:",
+        f"Folds for the selected model ({chosen}); note the shifting {label} rate:",
         "",
         md_table(
-            ["fold", "train rows", "validation rows", "late rate", "ROC-AUC", "PR-AUC"], fold_rows
+            ["fold", "train rows", "validation rows", f"{label} rate", "ROC-AUC", "PR-AUC"],
+            fold_rows,
         ),
         "",
         "## Test window results (computed)",
@@ -156,17 +173,15 @@ def render_evaluation_md(
         "## Figures",
         "",
         "\n".join(f"- `figures/{name}`" for name in metrics["figures"]),
-        "- `figures/late_rate_by_month.png` (from the EDA): the late rate drifts over time",
         "",
         "## Limitations of this evaluation",
         "",
         bullets(
             [
-                f"Prevalence shift: {pct(meta['split']['train']['prevalence'])} late in train vs "
-                f"{pct(meta['split']['test']['prevalence'])} in test, so absolute precision and "
-                "the threshold do not transfer automatically.",
-                "Delivered orders only; orders that never arrived are not scored.",
-                "One test window (May-July 2018); results may differ in other seasons.",
+                f"Prevalence shift: {pct(meta['split']['train']['prevalence'])} {label} in train "
+                f"vs {pct(meta['split']['test']['prevalence'])} in test, so absolute precision "
+                "and the threshold do not transfer automatically.",
+                "One test window; results may differ in other periods.",
             ]
         ),
         "",
@@ -207,6 +222,8 @@ def render_model_card_md(
     t = c["test"]
     base = metrics["candidates"]["baseline_prior"]["test"]
     versions = meta["versions"]
+    label, entity = _label(contract), _entity(contract)
+    stage = contract["feature_rules"]["feature_available_at"]
     facts = md_table(
         ["fact", "value"],
         [
@@ -221,20 +238,17 @@ def render_model_card_md(
                 f"({meta['split']['test']['dates'][0]} .. {meta['split']['test']['dates'][1]})",
             ],
             [
-                "late rate train / test",
+                f"{label} rate train / test",
                 f"{pct(meta['split']['train']['prevalence'])} / "
                 f"{pct(meta['split']['test']['prevalence'])}",
             ],
-            ["features", f"{len(meta['model_features'])} checkout-time features"],
+            ["features", f"{len(meta['model_features'])} {stage} features"],
             [
                 "dataset contract",
                 f"v{meta['contract_version']} sha256 {meta['contract_sha256'][:12]}",
             ],
-            [
-                "raw data",
-                f"Olist GitHub commit {str(contract['provenance'].get('github_commit'))[:12]}",
-            ],
-            ["privacy", "pseudonymous ids; no names, cities or review text"],
+            ["raw data", str(contract.get("provenance", {}).get("source") or "see provenance")],
+            ["privacy", str(contract.get("privacy", {}).get("note") or "see the contract")],
         ],
     )
     metric_rows = [
@@ -253,14 +267,8 @@ def render_model_card_md(
             "n/a",
         ],
     ]
-    example = (
-        '{"records": [{"n_items": 1, "total_price": 129.9, "total_freight": 21.5, '
-        '"customer_state": "BA", "seller_state": "SP", "primary_category": "furniture_decor", '
-        '"payment_type": "boleto", "max_installments": 1, "purchase_ts": "2018-06-12 14:03:00", '
-        '"estimated_delivery_date": "2018-07-05 00:00:00"}]}'
-    )
     parts = [
-        "# Model card: late-delivery risk at checkout",
+        f"# Model card: {label} risk per {entity}",
         "",
         "## Model details",
         "",
@@ -323,10 +331,8 @@ def render_model_card_md(
         "",
         "## How to use",
         "",
-        "Run the API (`uv run pulse-api`) and POST checkout records:",
-        "",
-        "```json",
-        example,
-        "```",
+        "Run the API (`uv run pulse-api`) and POST records whose fields are the model features "
+        f"listed in feature_spec.json ({len(meta['model_features'])} fields); the response gives "
+        "a probability, a risk level and a recommended action per record.",
     ]
     return "\n".join(parts) + "\n" + footer(source, grounding)

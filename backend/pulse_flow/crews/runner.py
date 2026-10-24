@@ -25,7 +25,6 @@ from pulse_flow.llm import resolve_model
 from pulse_flow.runctx import RunContext, set_context
 
 log = get_logger("crew")
-DATASET_NAME = "Olist Brazilian E-Commerce"
 _JSON_BLOCK = re.compile(r"\{.*\}", re.DOTALL)
 
 
@@ -62,13 +61,19 @@ def usage_of(output) -> dict[str, int]:
     return {k: int(getattr(usage, k, 0) or 0) for k in keys}
 
 
-def narrate(phase: str, artifacts_dir: Path, context: dict) -> dict:
+def narrate(phase: str, artifacts_dir: Path, context: dict, spec) -> dict:
     """Returns {"sources": {...}, "warnings": [...], "token_usage": {...}}."""
     art = Path(artifacts_dir)
     model = resolve_model(context.get("llm_model") or None)
     set_context(RunContext(artifacts_dir=art, run_dir=art.parent, model=model))
     warnings: list[str] = []
     digest = {k: str(v) for k, v in (context.get("contract_digest") or {}).items()}
+    common = {
+        "run_id": context["run_id"],
+        "dataset_name": spec.name,
+        "entity": spec.entity,
+        "target_label": spec.target_label,
+    }
 
     if phase == "analyst":
         from pulse_flow.crews.data_analyst.crew import DataAnalystCrew
@@ -76,8 +81,9 @@ def narrate(phase: str, artifacts_dir: Path, context: dict) -> dict:
         instance = DataAnalystCrew()
         crew = instance.crew()
         log.info("CREW data_analyst agents=%s model=%s", [a.role for a in crew.agents], model)
-        output = kickoff(crew, {"run_id": context["run_id"], "dataset_name": DATASET_NAME})
+        output = kickoff(crew, common)
         sources = stages.assemble_analyst_narratives(
+            spec,
             art,
             extract(output, "cleaning_narrative_task", CleaningNarrative, warnings),
             extract(output, "insights_task", Insights, warnings),
@@ -89,7 +95,7 @@ def narrate(phase: str, artifacts_dir: Path, context: dict) -> dict:
         instance = DataScientistCrew()
         crew = instance.feature_phase()
         log.info("CREW data_scientist phase=1/2 agents=%s", [a.role for a in crew.agents])
-        output = kickoff(crew, {"run_id": context["run_id"], **digest})
+        output = kickoff(crew, {**common, **digest})
         narrative = extract(output, "feature_narrative_task", FeatureNarrative, warnings)
         sources = {"feature_spec.json": stages.assemble_feature_narrative(art, narrative)}
     elif phase == "modeling":
@@ -98,8 +104,9 @@ def narrate(phase: str, artifacts_dir: Path, context: dict) -> dict:
         instance = DataScientistCrew()
         crew = instance.modeling_phase()
         log.info("CREW data_scientist phase=2/2 agents=%s", [a.role for a in crew.agents])
-        output = kickoff(crew, {"run_id": context["run_id"], **digest})
+        output = kickoff(crew, {**common, **digest})
         sources = stages.assemble_modeling_narratives(
+            spec,
             art,
             extract(output, "evaluation_task", EvaluationNarrative, warnings),
             extract(output, "model_card_task", ModelCardNarrative, warnings),

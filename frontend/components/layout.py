@@ -52,7 +52,6 @@ def footer() -> None:
     st.space("medium")
     st.divider()
     st.caption(
-        "Data: Olist Brazilian E-Commerce Public Dataset (CC BY-NC-SA 4.0, non-commercial "
-        f"coursework). Every number on this page is read from the committed pipeline artifacts. "
+        "Every number on this page is read from the promoted pipeline artifacts. "
         f"[Source code]({REPO_URL})"
     )

@@ -1,12 +1,12 @@
-"""Command line entry point for the Olist Flow.
+"""Command line entry point for the pulse Flow.
 
     uv run kickoff                                   # LLM mode when GEMINI_API_KEY is set
     uv run python -m pulse_flow.run --no-llm         # deterministic mode
-    uv run python -m pulse_flow.run --no-llm --data-dir tests/fixtures/olist_mini --no-promote \
+    uv run python -m pulse_flow.run --no-llm --spec pkg.module:SPEC --data-dir data --no-promote \
         --inject-fault missing_feature               # graceful-failure demo
     uv run python -m pulse_flow.run --from-run <id> --start-at modeling --no-promote
     uv run python -m pulse_flow.run --no-llm --no-promote --compare-to artifacts
-    uv run python -m pulse_flow.run verify-repro --data-dir tests/fixtures/olist_mini
+    uv run python -m pulse_flow.run verify-repro --spec pkg.module:SPEC --data-dir data
 
 Exit codes: 0 success, 1 graceful failure (see runs/<id>/run_status.json), 2 unexpected error.
 """
@@ -39,12 +39,17 @@ def new_run_id() -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="pulse_flow.run", description="Run the Olist CrewAI Flow")
+    parser = argparse.ArgumentParser(prog="pulse_flow.run", description="Run the pulse CrewAI Flow")
     parser.add_argument("command", nargs="?", default="run", choices=["run", "verify-repro"])
     parser.add_argument(
         "--no-llm", action="store_true", help="deterministic mode (no Gemini calls)"
     )
     parser.add_argument("--mode", choices=["llm", "deterministic"])
+    parser.add_argument(
+        "--spec",
+        default="",
+        help="dataset spec as pkg.module:ATTR (default: the PIPELINE_DATASET_SPEC variable)",
+    )
     parser.add_argument("--data-dir", default="data", help="folder with raw/ and lookups/")
     parser.add_argument("--runs-dir", default="runs")
     parser.add_argument("--artifacts-dir", default="artifacts")
@@ -111,6 +116,7 @@ def run(args: argparse.Namespace) -> int:
         "llm_model": resolve_model(args.model) if mode == "llm" else "",
         "start_at": args.start_at if args.from_run else "",
         "from_run": args.from_run or "",
+        "spec_ref": args.spec or "",
     }
     status = "error"
     with RunLog(run_dir / "pipeline.log"):
@@ -161,6 +167,7 @@ def verify_repro(args: argparse.Namespace) -> int:
             "--no-promote",
             "--data-dir",
             args.data_dir,
+            *(["--spec", args.spec] if args.spec else []),
             "--runs-dir",
             str(base),
             "--run-id",

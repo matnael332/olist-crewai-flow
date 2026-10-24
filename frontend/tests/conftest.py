@@ -1,6 +1,5 @@
-"""Frontend test setup: the dashboard is tested against the committed artifacts/ it deploys with."""
+"""Frontend test setup: isolate the environment so the pages read ARTIFACTS_DIR afresh."""
 
-import shutil
 import sys
 from pathlib import Path
 
@@ -27,16 +26,3 @@ def frontend_env(monkeypatch):
     _forget_frontend_modules()
     yield
     _forget_frontend_modules()
-
-
-@pytest.fixture
-def untrusted_artifacts(tmp_path, monkeypatch):
-    """A copy of the small artifact files without run_status/run_manifest (no promoted run)."""
-    for path in (ROOT / "artifacts").iterdir():
-        if path.suffix in {".json", ".md"} and path.name not in {
-            "run_status.json",
-            "run_manifest.json",
-        }:
-            shutil.copy2(path, tmp_path / path.name)
-    monkeypatch.setenv("ARTIFACTS_DIR", str(tmp_path))
-    return tmp_path

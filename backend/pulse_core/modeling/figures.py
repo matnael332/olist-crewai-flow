@@ -79,7 +79,7 @@ def make_model_figures(
         ax.plot(
             recall[:-1], precision[:-1], color=COLORS.get(name), drawstyle="steps-post", label=label
         )
-        # Scale the axis to recall >= 1%: the first few orders give noisy spikes up to 1.0.
+        # Scale the axis to recall >= 1%: the first few rows give noisy spikes up to 1.0.
         stable = precision[:-1][recall[:-1] >= 0.01]
         if stable.size:
             visible_max = max(visible_max, float(stable.max()))
@@ -104,7 +104,7 @@ def make_model_figures(
     ax.plot([0, 1], [0, 1], linestyle=":", color="#cbd5e1", label="perfect calibration")
     ax.set_title(f"Calibration of {selected} (test window)")
     ax.set_xlabel("mean predicted probability")
-    ax.set_ylabel("observed late rate")
+    ax.set_ylabel("observed positive rate")
     ax.legend(fontsize=8)
     names.append(_save(fig, out / "calibration_selected.png"))
 

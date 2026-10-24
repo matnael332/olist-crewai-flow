@@ -40,3 +40,7 @@ class GateReport:
             "checks": list(self.checks),
             "errors": self.errors,
         }
+
+
+class LeakageError(ValueError):
+    """A feature would be derived from a column that is not available at the decision stage."""

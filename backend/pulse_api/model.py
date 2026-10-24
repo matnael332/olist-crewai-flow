@@ -1,4 +1,4 @@
-"""Model bundle shared by the Flask API and the Streamlit Predict page (no Flask import)."""
+"""Model bundle shared by the Flask API, the ops copilot and the dashboard (no Flask import)."""
 
 from __future__ import annotations
 
@@ -12,8 +12,7 @@ import sklearn
 from sklearn.exceptions import InconsistentVersionWarning
 
 from pulse_api.risk import RiskPolicy
-from pulse_api.validation import RecordValidator, to_features
-from pulse_core.cleaning.geo import load_centroids
+from pulse_api.validation import RecordValidator
 from pulse_core.io import read_json
 
 SCORE_CHUNK = 1000
@@ -22,12 +21,13 @@ SCORE_CHUNK = 1000
 class ModelBundle:
     """Model + contract + validator + risk policy. Never raises: on any problem `error` says why."""
 
-    def __init__(self, artifacts_dir: Path, lookups_dir: Path) -> None:
+    def __init__(self, artifacts_dir: Path) -> None:
         self.error: str | None = None
         self.model = None
         try:
             self.meta = read_json(artifacts_dir / "model_meta.json")
             self.contract = read_json(artifacts_dir / "dataset_contract.json")
+            self.feature_spec = read_json(artifacts_dir / "feature_spec.json")
             trained_with = self.meta["versions"]["scikit_learn"]
             if trained_with != sklearn.__version__:
                 raise RuntimeError(
@@ -36,9 +36,8 @@ class ModelBundle:
             with warnings.catch_warnings():
                 warnings.simplefilter("error", InconsistentVersionWarning)
                 self.model = joblib.load(artifacts_dir / "model.joblib")
-            centroids_path = Path(lookups_dir) / "zip_prefix_centroids.csv"
-            centroids = load_centroids(lookups_dir) if centroids_path.exists() else None
-            self.validator = RecordValidator(self.contract, centroids)
+            self.validator = RecordValidator(self.contract, self.feature_spec)
+            self.id_field = self.validator.id_field
             preds = pd.read_csv(artifacts_dir / "predictions_test.csv")
             self.top10_cutoff = float(np.quantile(preds[f"p_{self.meta['model_name']}"], 0.9))
             self.test_prevalence = float(preds["y_true"].mean())
@@ -51,9 +50,9 @@ class ModelBundle:
         return self.error is None
 
     def score_rows(self, rows: list[dict]) -> np.ndarray:
-        """Late probabilities for rows already validated by RecordValidator, in chunks."""
+        """Probabilities for rows already validated by RecordValidator, in chunks."""
         parts = [
-            self.model.predict_proba(to_features(rows[i : i + SCORE_CHUNK]))[:, 1]
+            self.model.predict_proba(self.validator.to_features(rows[i : i + SCORE_CHUNK]))[:, 1]
             for i in range(0, len(rows), SCORE_CHUNK)
         ]
         return np.concatenate(parts) if parts else np.array([], dtype=float)
@@ -62,11 +61,11 @@ class ModelBundle:
         """One prediction in the API's shape, with the risk level and the recommended action."""
         level = self.policy.level(probability)
         out: dict = {"index": index}
-        if isinstance(record, dict) and record.get("order_id") is not None:
-            out["order_id"] = str(record["order_id"])
+        if isinstance(record, dict) and self.id_field and record.get(self.id_field) is not None:
+            out["id"] = str(record[self.id_field])
         out.update(
-            late_probability=round(float(probability), 4),
-            predicted_late=bool(probability >= self.meta["threshold"]),
+            probability=round(float(probability), 4),
+            predicted_positive=bool(probability >= self.meta["threshold"]),
             top_10pct_risk=bool(probability >= self.top10_cutoff),
             risk_level=level,
             recommended_action=self.policy.action(level),

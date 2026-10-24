@@ -1,9 +1,9 @@
-"""Risk policy: the one place that turns a late-delivery probability into a level and an action.
+"""Risk policy: the one place that turns a probability into a level and an action.
 
 Used by the Flask API, the batch scorer, the ops copilot and the dashboard, so every channel
-shows the same level for the same order.
+shows the same level for the same record.
 
-    high      p >= top-10% cutoff     (the riskiest 10% of test-window orders)
+    high      p >= top-10% cutoff     (the riskiest 10% of test-window rows)
     elevated  p >= decision threshold (tuned on out-of-fold F1)
     normal    otherwise
 """
@@ -14,15 +14,10 @@ from dataclasses import dataclass
 
 LEVELS = ("high", "elevated", "normal")
 ACTIONS = {
-    "high": "Notify the customer proactively and review a carrier upgrade.",
-    "elevated": "Monitor the shipment; contact the customer if tracking stalls.",
+    "high": "Act now: review this record and contact the owner.",
+    "elevated": "Monitor: re-check at the next refresh and act if the score rises.",
     "normal": "No action needed.",
 }
-CUSTOMER_MESSAGE = (
-    "Hi! Your order{ref} is on its way{to}. Deliveries to your region are taking longer than "
-    "usual right now, so we are keeping a close eye on it and will update you as soon as "
-    "anything changes."
-)
 
 
 @dataclass(frozen=True)
@@ -44,15 +39,6 @@ class RiskPolicy:
     @staticmethod
     def action(level: str) -> str:
         return ACTIONS[level]
-
-    @staticmethod
-    def customer_message(level: str, order_id: str | None = None, state: str | None = None) -> str:
-        """A template draft for high-risk orders (no LLM); empty for the other levels."""
-        if level != "high":
-            return ""
-        ref = f" {order_id}" if order_id else ""
-        to = f" to {state}" if state else ""
-        return CUSTOMER_MESSAGE.format(ref=ref, to=to)
 
     def describe(self) -> dict:
         return {

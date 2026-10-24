@@ -17,9 +17,10 @@ from pulse_core.narratives import (
     Insights,
     ModelCardNarrative,
 )
+from tests.conftest import SPEC_REF
 
 CREWS = Path(__file__).resolve().parents[1] / "pulse_flow" / "crews"
-FIXTURE = Path(__file__).parent / "fixtures" / "olist_mini"
+COMMON = {"run_id", "dataset_name", "entity", "target_label"}
 DIGEST_KEYS = {
     "contract_version",
     "contract_sha256",
@@ -48,7 +49,7 @@ FAKES = {
         assumptions=["LLM assumption"],
         business_rules=["LLM rule"],
         column_notes=[
-            ColumnNote(name="promised_days", note="LLM note"),
+            ColumnNote(name="x_num", note="LLM note"),
             ColumnNote(name="not_a_column", note="dropped"),
         ],
         known_limitations=["LLM limitation"],
@@ -130,10 +131,7 @@ def test_both_crews_have_at_least_three_agents_and_tool_less_narrators(context):
 
 
 def test_yaml_placeholders_are_all_kickoff_inputs():
-    allowed = {
-        "data_analyst": {"run_id", "dataset_name"},
-        "data_scientist": {"run_id"} | DIGEST_KEYS,
-    }
+    allowed = {"data_analyst": COMMON, "data_scientist": COMMON | DIGEST_KEYS}
     for crew, names in allowed.items():
         for name in ("agents.yaml", "tasks.yaml"):
             text = (CREWS / crew / "config" / name).read_text(encoding="utf-8")
@@ -166,17 +164,17 @@ def test_tool_outputs_give_narrators_formatted_percentages():
 
     out = as_percentages(
         {
-            "late_rate": 0.068,
-            "bad_review_rate_on_time": 0.092474,
-            "late_rate_by_state": [{"state": "AL", "late_rate": 0.214646, "orders": 396}],
-            "payments": {"type_share": {"boleto": 0.198954}, "median_installments": 2.0},
+            "positive_rate": 0.068,
+            "bad_rate_on_time": 0.092474,
+            "positive_rate_by_group": [{"group": "AL", "positive_rate": 0.214646, "rows": 396}],
+            "mix": {"type_share": {"card": 0.198954}, "median_count": 2.0},
             "test": {"roc_auc": 0.7326, "precision_at_top10pct": 0.1213, "lift": 3.17},
             "threshold": 0.055,
         }
     )
-    assert out["late_rate"] == "6.8%" and out["bad_review_rate_on_time"] == "9.2%"
-    assert out["late_rate_by_state"] == [{"state": "AL", "late_rate": "21.5%", "orders": 396}]
-    assert out["payments"] == {"type_share": {"boleto": "19.9%"}, "median_installments": 2.0}
+    assert out["positive_rate"] == "6.8%" and out["bad_rate_on_time"] == "9.2%"
+    assert out["positive_rate_by_group"] == [{"group": "AL", "positive_rate": "21.5%", "rows": 396}]
+    assert out["mix"] == {"type_share": {"card": "19.9%"}, "median_count": 2.0}
     assert out["test"] == {"roc_auc": 0.7326, "precision_at_top10pct": "12.1%", "lift": 3.17}
     assert out["threshold"] == 0.055
 
@@ -184,16 +182,16 @@ def test_tool_outputs_give_narrators_formatted_percentages():
 def test_merge_items_keeps_statements_and_drops_labels_and_repeats():
     from pulse_core.reporting.markdown_ds import merge_items
 
-    base = ["Regional bias: customers in the North wait longer."]
+    base = ["Group bias: rows in the North score higher."]
     extra = [
-        "Seller fairness",
-        "regional bias: customers in the north wait longer.",
-        "Recall at the 0.055 threshold is 83.0%, so most late orders are flagged.",
+        "Fairness",
+        "group bias: rows in the north score higher.",
+        "Recall at the 0.055 threshold is 83.0%, so most positives are flagged.",
     ]
     assert merge_items(base, extra) == [*base, extra[2]]
 
 
-def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypatch):
+def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypatch, spec):
     from pulse_flow.crews import runner
 
     monkeypatch.setattr(runner, "kickoff", fake_kickoff)
@@ -202,7 +200,7 @@ def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypat
         "llm_model": "gemini-3.5-flash-lite",
         "contract_digest": dict.fromkeys(DIGEST_KEYS, "x"),
     }
-    result = runner.narrate("analyst", context, ctx)
+    result = runner.narrate("analyst", context, ctx, spec)
     assert result["sources"]["insights.md"] == "llm" and not result["warnings"]
     contract = json.loads((context / "dataset_contract.json").read_text(encoding="utf-8"))
     assert "LLM assumption" in contract["assumptions"]["items"]
@@ -213,14 +211,14 @@ def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypat
         return FakeOutput([FakeTaskOutput(t.name, None, raw="not json") for t in crew.tasks])
 
     monkeypatch.setattr(runner, "kickoff", broken_kickoff)
-    result = runner.narrate("modeling", context, ctx)
+    result = runner.narrate("modeling", context, ctx, spec)
     assert result["sources"]["evaluation_report.md"] == "template"
     assert any("evaluation_task" in w for w in result["warnings"])
     card = (context / "model_card.md").read_text(encoding="utf-8")
     assert "## Ethical considerations" in card and "narrative_source: template" in card
 
 
-def _run_llm(tmp_path, monkeypatch, kickoff, run_id):
+def _run_llm(tmp_path, data_dir, monkeypatch, kickoff, run_id):
     from pulse_flow.crews import runner
     from pulse_flow.run import main
 
@@ -230,8 +228,10 @@ def _run_llm(tmp_path, monkeypatch, kickoff, run_id):
         [
             "--mode",
             "llm",
+            "--spec",
+            SPEC_REF,
             "--data-dir",
-            str(FIXTURE),
+            str(data_dir),
             "--runs-dir",
             str(tmp_path / "runs"),
             "--artifacts-dir",
@@ -246,29 +246,29 @@ def _run_llm(tmp_path, monkeypatch, kickoff, run_id):
     return code, status
 
 
-def test_flow_llm_mode_end_to_end_with_fake_crews(tmp_path, monkeypatch):
-    code, status = _run_llm(tmp_path, monkeypatch, fake_kickoff, "llm-ok")
+def test_flow_llm_mode_end_to_end_with_fake_crews(tmp_path, toy_data_dir, monkeypatch):
+    code, status = _run_llm(tmp_path, toy_data_dir, monkeypatch, fake_kickoff, "llm-ok")
     assert code == 0 and status["status"] == "success"
     assert status["narrative_sources"]["insights.md"] == "llm"
     assert status["narrative_sources"]["model_card.md"] == "template+llm"
     card = (tmp_path / "artifacts" / "model_card.md").read_text(encoding="utf-8")
-    assert "LLM ethics" in card and "Regional bias" in card
+    assert "LLM ethics" in card and "Toy data carries no personal information" in card
 
 
-def test_quota_error_fails_gracefully(tmp_path, monkeypatch):
+def test_quota_error_fails_gracefully(tmp_path, toy_data_dir, monkeypatch):
     def quota(crew, inputs):
         raise RuntimeError("429 RESOURCE_EXHAUSTED: quota exceeded for model")
 
-    code, status = _run_llm(tmp_path, monkeypatch, quota, "llm-quota")
+    code, status = _run_llm(tmp_path, toy_data_dir, monkeypatch, quota, "llm-quota")
     assert code == 1 and status["stage"] == "run_analyst_stage"
     assert status["errors"][0].startswith("run_analyst_stage: quota exhausted:")
     assert not (tmp_path / "artifacts").exists()
 
 
-def test_other_crew_errors_degrade_to_templates(tmp_path, monkeypatch):
+def test_other_crew_errors_degrade_to_templates(tmp_path, toy_data_dir, monkeypatch):
     def flaky(crew, inputs):
         raise RuntimeError("model returned an empty response")
 
-    code, status = _run_llm(tmp_path, monkeypatch, flaky, "llm-degraded")
+    code, status = _run_llm(tmp_path, toy_data_dir, monkeypatch, flaky, "llm-degraded")
     assert code == 0 and status["status"] == "success"
     assert any(w.startswith("narrative_degraded (analyst)") for w in status["warnings"])

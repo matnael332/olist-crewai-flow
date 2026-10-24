@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-# Keys whose numbers are fractions in [0, 1]: late_rate, freight_share_of_gmv, prevalence, ...
+# Keys whose numbers are fractions in [0, 1]: positive_rate, share, prevalence, precision, ...
 _PCT_KEY = re.compile(r"(^|_)(rate|share|prevalence|coverage)(_|$)|^(precision|recall)(_|$)")
 
 
@@ -12,9 +12,8 @@ def as_percentages(value, pct: bool = False):
     """Format rate-like numbers as percentage strings ("6.8%") before an LLM sees them.
 
     LLMs copy these strings instead of converting fractions themselves, which removes rounding
-    slips such as writing 9.3% for 0.092474 (ADR-11). Children of a rate-like key inherit it
-    (late_rate_by_state[*].late_rate, type_share.boleto); only floats in [0, 1] are converted.
-    Used by the crews' tools and by the ops copilot's tools.
+    slips such as writing 9.3% for 0.092474. Children of a rate-like key inherit it; only floats
+    in [0, 1] are converted. Used by the crews' tools and by the ops copilot's tools.
     """
     if isinstance(value, dict):
         return {
@@ -35,14 +34,19 @@ def num(value: float | int | None, digits: int = 0) -> str:
     return "n/a" if value is None else f"{value:,.{digits}f}"
 
 
-def brl(value: float | None) -> str:
+def key_number(label: str, value) -> str:
+    """Format one key number by its label: rates and shares as %, counts with separators."""
     if value is None:
         return "n/a"
-    if abs(value) >= 1_000_000:
-        return f"BRL {value / 1_000_000:.2f}M"
-    if abs(value) >= 1_000:
-        return f"BRL {value / 1_000:.1f}k"
-    return f"BRL {value:.2f}"
+    if isinstance(value, float) and _PCT_KEY.search(label.lower().replace(" ", "_")):
+        return pct(value)
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, int):
+        return num(value)
+    if isinstance(value, float):
+        return f"{value:,.2f}"
+    return str(value)
 
 
 def md_table(headers: list[str], rows: list[list]) -> str:

@@ -14,10 +14,7 @@ from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 
-import pandas as pd
-
 from pulse_api.model import ModelBundle
-from pulse_api.replay import load_clean
 from pulse_core.paths import repo_root
 
 STAGE_END = re.compile(r"STAGE (\w+) END status=(\w+) elapsed=([\d.]+)s")
@@ -36,8 +33,8 @@ def _read_text(path: str, mtime: float) -> str:
 
 
 @lru_cache(maxsize=2)
-def _bundle(artifacts: str, lookups: str, mtime: float) -> ModelBundle:
-    return ModelBundle(Path(artifacts), Path(lookups))
+def _bundle(artifacts: str, mtime: float) -> ModelBundle:
+    return ModelBundle(Path(artifacts))
 
 
 def gate_summary(report: dict | None) -> dict[str, dict]:
@@ -83,14 +80,13 @@ def duration_seconds(started: str | None, finished: str | None) -> float | None:
 class Workspace:
     root: Path
     artifacts: Path
-    lookups: Path
     runs: Path
 
     @classmethod
     def from_env(cls, artifacts_dir: str | Path | None = None) -> Workspace:
         root = repo_root()
         artifacts = Path(artifacts_dir or os.getenv("ARTIFACTS_DIR", root / "artifacts"))
-        return cls(root, artifacts, root / "data" / "lookups", root / "runs")
+        return cls(root, artifacts, root / "runs")
 
     def text(self, name: str, base: Path | None = None) -> str | None:
         path = (base or self.artifacts) / name
@@ -108,10 +104,7 @@ class Workspace:
 
     def bundle(self) -> ModelBundle:
         model = self.artifacts / "model.joblib"
-        return _bundle(str(self.artifacts), str(self.lookups), _mtime(model))
-
-    def clean(self) -> pd.DataFrame:
-        return load_clean(self.artifacts)
+        return _bundle(str(self.artifacts), _mtime(model))
 
     def promoted_run_id(self) -> str | None:
         return (self.json("run_status.json") or {}).get("run_id")

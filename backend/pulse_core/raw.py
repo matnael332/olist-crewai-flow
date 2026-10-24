@@ -1,29 +1,53 @@
-"""Raw Olist tables: schema check, typed loading and profiling.
+"""Raw tables: manifest verification, schema check, typed loading and profiling.
 
-The expected schema lives in data/raw/raw_schema.json (committed). Loading is explicit about types:
-identifiers and zip prefixes stay strings (zip prefixes keep their leading zeros), timestamps are
-parsed with one fixed format, and the misspelled product columns are renamed.
+The expected schema lives in ``<raw_dir>/raw_schema.json`` and the pinned hashes in
+``<raw_dir>/manifest.json``, both committed next to the data they describe. Loading is explicit
+about types; an optional ``renames`` block in the schema fixes column names at load time.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pandas as pd
 
-from pulse_core.io import read_json
+from pulse_core.io import read_json, sha256_file
 from pulse_core.validators.report import GateReport
 
 SCHEMA_FILE = "raw_schema.json"
-RENAMES = {
-    "product_name_lenght": "product_name_length",
-    "product_description_lenght": "product_description_length",
-}
-ENCODING = "utf-8-sig"  # the translation table ships with a UTF-8 BOM
+MANIFEST_FILE = "manifest.json"
+ENCODING = "utf-8-sig"
+
+
+class ManifestMismatch(RuntimeError):
+    """A raw file is missing or its sha256 differs from the manifest."""
 
 
 def load_raw_schema(raw_dir: str | Path) -> dict:
     return read_json(Path(raw_dir) / SCHEMA_FILE)
+
+
+def verify_manifest(raw_dir: str | Path, log: Callable[[str], None] | None = None) -> dict:
+    """Every file in manifest.json exists and matches its sha256. Returns the manifest."""
+    raw_dir = Path(raw_dir)
+    manifest = read_json(raw_dir / MANIFEST_FILE)
+    problems = []
+    for name, entry in sorted(manifest.get("files", {}).items()):
+        path = raw_dir / name
+        if not path.exists():
+            problems.append(f"{name}: missing")
+            continue
+        digest = sha256_file(path)
+        if digest != entry.get("sha256"):
+            problems.append(
+                f"{name}: sha256 {digest[:12]} != manifest {str(entry.get('sha256'))[:12]}"
+            )
+        elif log:
+            log(f"{name} verified ({path.stat().st_size:,} bytes)")
+    if problems:
+        raise ManifestMismatch("; ".join(problems))
+    return manifest
 
 
 def read_header(path: Path) -> list[str]:
@@ -60,41 +84,42 @@ def check_raw_schema(raw_dir: str | Path, gate: str = "check_inputs") -> GateRep
 
 
 def _read_table(path: Path, columns: dict[str, str], datetime_format: str) -> pd.DataFrame:
-    dtype = {name: str for name, kind in columns.items() if kind in ("string", "zip")}
+    dtype = {name: str for name, kind in columns.items() if kind == "string"}
     df = pd.read_csv(path, encoding=ENCODING, dtype=dtype, keep_default_na=True)
     for name, kind in columns.items():
         if kind == "datetime":
             df[name] = pd.to_datetime(df[name], format=datetime_format, errors="coerce")
-        elif kind == "zip":
-            df[name] = df[name].str.strip().str.zfill(5)
         elif kind == "int":
             df[name] = pd.to_numeric(df[name], errors="coerce").astype("Int64")
         elif kind == "float":
             df[name] = pd.to_numeric(df[name], errors="coerce").astype("float64")
+        elif kind == "bool":
+            df[name] = df[name].map({"True": True, "False": False, True: True, False: False})
     return df
 
 
 def load_raw_tables(
     raw_dir: str | Path, tables: list[str] | None = None
 ) -> dict[str, pd.DataFrame]:
-    """Load raw tables with explicit types. Geolocation is skipped unless requested."""
+    """Load the raw tables named in the schema with explicit types."""
     raw_dir = Path(raw_dir)
     schema = load_raw_schema(raw_dir)
-    wanted = tables or [t for t in schema["tables"] if t != "geolocation"]
+    renames = schema.get("renames", {})
     loaded = {}
-    for table in wanted:
+    for table in tables or list(schema["tables"]):
         spec = schema["tables"][table]
         df = _read_table(raw_dir / spec["file"], spec["columns"], schema["datetime_format"])
-        loaded[table] = df.rename(columns=RENAMES)
+        loaded[table] = df.rename(columns=renames)
     return loaded
 
 
 def profile_raw_tables(tables: dict[str, pd.DataFrame], schema: dict) -> dict:
     """Shape, nulls, duplicates and key uniqueness per raw table (raw_profile.json)."""
+    renames = schema.get("renames", {})
     profile = {}
     for table, df in tables.items():
         spec = schema["tables"][table]
-        key = [RENAMES.get(c, c) for c in spec["primary_key"]]
+        key = [renames.get(c, c) for c in spec.get("primary_key", [])]
         nulls = {col: int(n) for col, n in df.isna().sum().items() if int(n) > 0}
         entry = {
             "file": spec["file"],
@@ -107,12 +132,4 @@ def profile_raw_tables(tables: dict[str, pd.DataFrame], schema: dict) -> dict:
             entry["primary_key"] = key
             entry["duplicate_keys"] = int(df.duplicated(subset=key).sum())
         profile[table] = entry
-    orders = tables.get("orders")
-    if orders is not None:
-        status = orders["order_status"].value_counts(sort=False)
-        entry = profile["orders"]
-        entry["status_counts"] = {str(k): int(v) for k, v in sorted(status.items())}
-        purchase = orders["order_purchase_timestamp"]
-        entry["purchase_min"] = purchase.min().isoformat()
-        entry["purchase_max"] = purchase.max().isoformat()
     return profile
