@@ -1,4 +1,4 @@
-"""Promote a run's artifacts to the committed artifacts/ folder by directory swap.
+"""Promote a run's artifacts to the published artifacts/ folder by directory swap.
 
 Copying file by file into artifacts/ could leave a half-promoted mix of two runs if Windows refuses
 one replace (a file held open by Streamlit). Instead the new set is staged next to the target and

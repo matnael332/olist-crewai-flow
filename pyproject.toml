@@ -1,7 +1,7 @@
 [project]
 name = "pulse"
 version = "0.1.0"
-description = "CrewAI Flow that hands off from a Data Analyst crew to a Data Scientist crew to predict late deliveries on the Olist e-commerce dataset"
+description = "pulse: a CrewAI Flow that turns a dataset spec into a validated, documented prediction model (Data Analyst crew -> Data Scientist crew, three gates)"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.13,<3.14"

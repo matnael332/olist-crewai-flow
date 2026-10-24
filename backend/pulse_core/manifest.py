@@ -54,13 +54,14 @@ def blas_name() -> str | None:
 
 
 def environment_check(repo_root: Path) -> dict:
-    """Warn when the interpreter is not the project's uv venv (e.g. Anaconda on PATH)."""
+    """Warn when the interpreter is not a project venv (.venv or .venv-<platform>)."""
     expected = (repo_root / ".venv").resolve()
     actual = Path(sys.prefix).resolve()
+    in_project = actual.parent == repo_root.resolve() and actual.name.startswith(".venv")
     return {
         "python_prefix": actual.as_posix(),
         "expected_prefix": expected.as_posix(),
-        "environment_mismatch": actual != expected,
+        "environment_mismatch": not in_project,
     }
 
 
