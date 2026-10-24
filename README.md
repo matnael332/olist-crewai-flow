@@ -94,4 +94,4 @@ scripts/             repository hygiene check
 ```
 
 `artifacts/` is the contract between the backend and the frontend: it holds the last promoted
-run and is empty until one exists. Code: MIT (`LICENSE`).
+run. It is git-ignored, like `data/`: on the server both live in the customer's own folder. Code: MIT (`LICENSE`).
