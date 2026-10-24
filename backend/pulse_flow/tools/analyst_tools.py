@@ -33,66 +33,20 @@ def ingest_view() -> dict:
             }
             for name, entry in profile.items()
         },
-        "order_status_counts": profile["orders"]["status_counts"],
         "rows_in": report["rows_in"],
         "rows_out": report["rows_out"],
         "rules": [
             {"rule": r["rule"], "rows_removed": r["rows_removed"], "detail": r["detail"]}
             for r in report["rules"]
         ],
-        "payment_reconciliation": report["payment_reconciliation"],
-        "definitions": report["definitions"],
+        "definitions": report.get("definitions", {}),
     }
 
 
 def eda_view() -> dict:
+    """The dataset spec's EDA summary as written (it is responsible for keeping it LLM-sized)."""
     summary = read_json(get_context().artifacts_dir / "eda_summary.json")
-    ao, dp = summary["all_orders"], summary["delivered_population"]
-    floor = max(1, int(0.004 * dp["n_orders"]))
-    states = [s for s in dp["late_rate_by_state"] if s["orders"] >= floor]
-    return {
-        "all_orders": {
-            k: ao[k]
-            for k in (
-                "n_orders",
-                "non_delivered_share",
-                "status_counts",
-                "peak_day",
-                "second_busiest_day",
-                "peak_month",
-                "orders_2017_01",
-                "mean_monthly_orders_2018_jan_aug",
-            )
-        },
-        "delivered_orders": {
-            **{
-                k: dp[k]
-                for k in (
-                    "n_orders",
-                    "n_customers",
-                    "repeat_customer_share",
-                    "gmv_brl",
-                    "aov_brl",
-                    "late_orders",
-                    "late_rate",
-                    "delivery",
-                    "reviews",
-                    "payments",
-                    "freight_share_of_gmv",
-                    "sellers",
-                    "prevalence_by_split",
-                )
-            },
-            "monthly_late_rate": [
-                {"month": m["month"], "orders": m["orders"], "late_rate": m["late_rate"]}
-                for m in dp["monthly"]
-            ],
-            "highest_late_rate_states": states[:5],
-            "lowest_late_rate_states": states[-3:],
-            "top_categories_by_gmv": dp["categories_top10_by_gmv"][:5],
-        },
-        "figures": summary["figures"],
-    }
+    return {k: v for k, v in summary.items() if k != "figures"} | {"figures": summary["figures"]}
 
 
 def contract_view() -> dict:
@@ -127,15 +81,15 @@ def contract_view() -> dict:
 
 @tool("ingest_and_clean", result_as_answer=True)
 def ingest_and_clean() -> str:
-    """Profile the nine raw Olist tables and return the cleaning report (rules R1-R10 with the rows
-    each rule removed). The deterministic pipeline has already written clean_data.csv."""
+    """Profile the raw tables and return the cleaning report (every rule with the rows it
+    removed). The deterministic pipeline has already written clean_data.csv."""
     return _safe(ingest_view)
 
 
 @tool("run_eda", result_as_answer=True)
 def run_eda() -> str:
-    """Return the EDA summary: an all-orders layer (business volume, every status) and a
-    delivered-orders layer (late rates, delivery times, reviews, geography, categories)."""
+    """Return the computed EDA summary: key numbers, the positive rate of the target and any
+    dataset-specific breakdowns the analysis produced."""
     return _safe(eda_view)
 
 

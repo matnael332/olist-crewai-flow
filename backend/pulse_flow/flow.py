@@ -1,5 +1,8 @@
 """PulseFlow: the CrewAI Flow that hands off from the Data Analyst crew to the Data Scientist crew.
 
+The dataset spec (``--spec`` / PIPELINE_DATASET_SPEC) is loaded inside check_inputs, so a missing
+spec is a graceful failure, not an import error.
+
 prepare_run -> check_inputs -> analyst stage (Crew 1) -> gate_contract -> [HANDOFF]
 -> feature phase (Crew 2, phase 1) -> gate_required_features -> modeling phase (Crew 2, phase 2)
 -> gate_artifacts -> promote_and_finish            (any gate or step failure -> fail_gracefully)
@@ -16,13 +19,13 @@ from typing import Literal
 from crewai.flow import Flow, listen, router, start
 
 from pulse_core import faults, stages
-from pulse_core.download import download_raw
 from pulse_core.io import read_json, sha256_file, write_json_lf, write_text_lf
 from pulse_core.logging_setup import Redactor, get_logger
 from pulse_core.manifest import build_manifest, write_manifest
 from pulse_core.paths import repo_root
 from pulse_core.promotion import PromotionError, promote
-from pulse_core.raw import check_raw_schema
+from pulse_core.raw import check_raw_schema, verify_manifest
+from pulse_core.spec import DatasetSpec, load_spec
 from pulse_core.status import STATUS_FILE, read_status, utcnow
 from pulse_core.validators.artifacts_gate import validate_artifacts
 from pulse_core.validators.contract_gate import validate_clean_data_against_contract
@@ -62,6 +65,13 @@ class PulseFlow(Flow[PipelineState]):
     name = "PulseFlow"
     tracing = False
     _skip_auto_memory: bool = True
+    _dataset_spec: DatasetSpec | None = None
+
+    def _spec(self) -> DatasetSpec:
+        """The dataset spec, loaded once (a method: the Flow metaclass getattr's every attribute)."""
+        if self._dataset_spec is None:
+            self._dataset_spec = load_spec(self.state.spec_ref or None)
+        return self._dataset_spec
 
     # ---------------------------------------------------------------- helpers
     def _art(self) -> Path:
@@ -137,7 +147,7 @@ class PulseFlow(Flow[PipelineState]):
         if self.state.mode != "llm":
             return
         try:
-            result = runner.narrate(phase, self._art(), self.state.model_dump())
+            result = runner.narrate(phase, self._art(), self.state.model_dump(), self._spec())
             self.state.narrative_sources = {**self.state.narrative_sources, **result["sources"]}
             for warning in result.get("warnings", []):
                 self.state.warnings.append(warning)
@@ -198,6 +208,8 @@ class PulseFlow(Flow[PipelineState]):
 
     def _check_inputs(self) -> None:
         art = self._art()
+        spec = self._spec()  # SpecNotConfigured becomes a graceful check_inputs failure
+        log.info("INPUT dataset spec %s (%s)", spec.name, self.state.spec_ref or "from env")
         if self.state.start_at in ("features", "modeling"):
             needed = ["clean_data.csv", "dataset_contract.json"]
             if self.state.start_at == "modeling":
@@ -224,18 +236,20 @@ class PulseFlow(Flow[PipelineState]):
         if self.state.inject_fault == "bad_input_hash":
             raw_dir = faults.tampered_raw_copy(raw_dir, Path(self.state.run_dir))
             log.warning("FAULT INJECTED bad_input_hash (one byte appended to a raw file copy)")
-        download_raw(raw_dir, verify_only=True, log=lambda message: log.info("INPUT %s", message))
+        verify_manifest(raw_dir, log=lambda message: log.info("INPUT %s", message))
         schema = check_raw_schema(raw_dir)
         if not schema.passed:
             raise ValueError("; ".join(schema.errors))
-        lookup = Path(self.state.lookups_dir) / "zip_prefix_centroids.csv"
-        if not lookup.exists():
-            raise FileNotFoundError(
-                f"missing lookup {lookup.as_posix()} (run scripts/download_data.py)"
-            )
+        missing = [
+            name
+            for name in spec.required_lookups
+            if not (Path(self.state.lookups_dir) / name).exists()
+        ]
+        if missing:
+            raise FileNotFoundError(f"missing lookups {missing} in {self.state.lookups_dir}")
         if self.state.mode == "llm" and not has_gemini_key():
             raise RuntimeError("llm mode requires GEMINI_API_KEY (or run with --no-llm)")
-        log.info("INPUT raw tables, schema and lookup verified")
+        log.info("INPUT raw tables, schema and lookups verified")
 
     @router(prepare_run)
     def check_inputs(self) -> Literal["inputs_ok", "contract_ok", "features_ok", "failed"]:
@@ -247,7 +261,7 @@ class PulseFlow(Flow[PipelineState]):
     def run_analyst_stage(self):
         def work() -> None:
             summary = stages.run_analyst_stage(
-                self.state.raw_dir, self.state.lookups_dir, self._art()
+                self._spec(), self.state.raw_dir, self.state.lookups_dir, self._art()
             )
             self.state.cleaning_counts = {
                 k: v for k, v in summary.items() if isinstance(v, int | float)
@@ -295,7 +309,7 @@ class PulseFlow(Flow[PipelineState]):
     @listen("contract_ok")
     def run_feature_phase(self):
         def work() -> None:
-            stages.run_feature_stage(self._art())
+            stages.run_feature_stage(self._spec(), self._art())
             self._narrate("features")
             self._fault(faults.after_features(self.state.inject_fault, self._art()))
 
@@ -314,7 +328,7 @@ class PulseFlow(Flow[PipelineState]):
     @listen("features_ok")
     def run_modeling_phase(self):
         def work() -> None:
-            summary = stages.run_modeling_stage(self._art(), seed=self.state.seed)
+            summary = stages.run_modeling_stage(self._spec(), self._art(), seed=self.state.seed)
             self.state.training_summary = {
                 "selected_model": summary["selected_model"],
                 **{

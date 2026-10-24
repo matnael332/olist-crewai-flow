@@ -7,7 +7,7 @@ from services import copilot as chat
 
 layout.page_header(
     "Ops copilot",
-    "Ask about the agents' runs, gates, model and data, or score orders. It reads what the "
+    "Ask about the agents' runs, gates, model and data, or score records. It reads what the "
     "agents produced and never runs or changes anything.",
     kicker="Operate",
 )
@@ -32,17 +32,15 @@ with st.expander("What can I ask?", icon=":material/help:"):
     st.markdown(
         "- **Runs and gates:** *How did the last run go?* · *Why did gate_contract pass?* · "
         "*Show the HANDOFF line*\n"
-        "- **Model and data:** *Why logistic regression?* · *Which states are late most often?* "
-        "· *What does the model card say about limitations?*\n"
-        "- **Orders:** *Score an order from SP to BA for 129 BRL paid by boleto* · "
-        "*Replay 2018-07-16* (any day from 2018-05-01 to 2018-07-31)\n"
-        "- **Files:** attach a CSV of orders (up to 5,000 rows) and get a ranked list and an "
-        "action list with customer-message drafts."
+        "- **Model and data:** *Which model was selected and why?* · *What does the model card "
+        "say about limitations?* · *Which features are forbidden?*\n"
+        "- **Files:** attach a CSV of records (up to 5,000 rows, one column per model feature) "
+        "and get a ranked list and an action list."
     )
     st.download_button(
         "CSV template",
         chat.template_csv(),
-        "orders_template.csv",
+        "records_template.csv",
         "text/csv",
         icon=":material/download:",
     )
@@ -51,8 +49,8 @@ history = chat.messages()
 if not history:
     with st.chat_message("assistant", avatar=":material/smart_toy:"):
         st.markdown(
-            "Hi! I keep an eye on the late-delivery agents. Pick a quick reply, ask a question, "
-            "or attach a CSV of orders to score."
+            "Hi! I keep an eye on the pipeline's agents. Pick a quick reply, ask a question, "
+            "or attach a CSV of records to score."
         )
 for index, message in enumerate(history):
     chat.render(message, index)
@@ -64,7 +62,7 @@ quick = st.pills(
     label_visibility="collapsed",
 )
 prompt = st.chat_input(
-    "Ask about runs, gates, the model or orders. Attach a CSV to score it.",
+    "Ask about runs, gates, the model or the data. Attach a CSV to score it.",
     accept_file=True,
     file_type=["csv"],
     max_chars=2000,

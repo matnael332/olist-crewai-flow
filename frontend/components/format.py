@@ -13,17 +13,6 @@ def num(value: float | None, digits: int = 0) -> str:
     return "n/a" if value is None else f"{value:,.{digits}f}"
 
 
-def brl(value: float | None, compact: bool = False) -> str:
-    """13179777.95 -> 'BRL 13.18M' (compact) or 'BRL 13,179,777.95'."""
-    if value is None:
-        return "n/a"
-    if compact and abs(value) >= 1_000_000:
-        return f"BRL {value / 1_000_000:.2f}M"
-    if compact and abs(value) >= 1_000:
-        return f"BRL {value / 1_000:.1f}k"
-    return f"BRL {value:,.2f}"
-
-
 def points(delta: float) -> str:
     """Difference of two probabilities in percentage points: -0.125 -> '-12.5 pts'."""
     return f"{delta * 100:+.1f} pts"

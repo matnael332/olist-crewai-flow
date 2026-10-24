@@ -9,8 +9,8 @@ from services import artifacts as art
 
 layout.page_header(
     "How good is the model?",
-    "Three candidates were trained on purchases from Jan 2017 to Apr 2018 and tested on May to "
-    "Jul 2018, months the model never saw.",
+    "Three candidates were trained on the train window and tested on a later window the model "
+    "never saw.",
     kicker="Model · Data Scientist crew",
 )
 metrics, meta = art.metrics(), art.model_meta()
@@ -31,7 +31,7 @@ cards.kpi(
     "Test ROC-AUC",
     f"{test['roc_auc']:.3f}",
     delta=f"{test['roc_auc'] - 0.5:+.3f} vs chance",
-    help="Probability that a random late order scores above a random on-time order.",
+    help="Probability that a random positive row scores above a random negative row.",
     height=KPI_HEIGHT,
 )
 cards.kpi(
@@ -44,20 +44,20 @@ cards.kpi(
 )
 cards.kpi(
     c3,
-    "Late rate in the riskiest 10%",
+    "Positives in the riskiest 10%",
     pct(test["precision_at_top10pct"]),
     delta=f"{times(test['lift_at_top10pct'])} the base rate",
-    help="Share of late orders among the 10% of test orders with the highest scores.",
+    help="Share of positives among the 10% of test rows with the highest scores.",
     height=KPI_HEIGHT,
 )
 cards.kpi(
     c4,
-    "Late orders caught",
+    "Positives caught",
     pct(test["recall"]),
-    delta=f"{pct(test['flagged_share'])} of orders flagged",
+    delta=f"{pct(test['flagged_share'])} of rows flagged",
     delta_color="off",
     help=f"At the decision threshold {threshold:.3f} the model flags "
-    f"{pct(test['flagged_share'])} of orders; {pct(test['precision'])} of flagged orders are late.",
+    f"{pct(test['flagged_share'])} of rows; {pct(test['precision'])} of flagged rows are positive.",
     height=KPI_HEIGHT,
 )
 
@@ -67,7 +67,7 @@ layout.section("Model comparison", f"Selection rule: {selection['rule']}.")
 left, right = st.columns(2)
 with left:
     layout.chart_card(
-        "Late orders among the riskiest 10%",
+        "Positives among the riskiest 10%",
         charts.precision_at_top(candidates, chosen, test["prevalence"]),
         f"{label} was selected with a cross-validated PR-AUC of "
         f"{selection['scores_cv_pr_auc'][chosen]:.3f} (margin {selection['selection_margin']:.3f}).",
@@ -75,15 +75,17 @@ with left:
 with right, st.container(border=True, height="stretch"):
     st.markdown("**Evaluation design: a time split**")
     split = metrics["split"]
-    order = [k for k in ("train", "test", "censored_buffer") if k in split]
+    order = [k for k in ("train", "test") if k in split] + sorted(
+        k for k in split if k not in ("train", "test")
+    )
     st.dataframe(
         pd.DataFrame(
             [
                 {
                     "Split": name.replace("_", " "),
-                    "Purchase dates": " to ".join(split[name]["dates"]),
-                    "Orders": num(split[name]["rows"]),
-                    "Late rate": pct(split[name]["prevalence"]),
+                    "Dates": " to ".join(split[name]["dates"]),
+                    "Rows": num(split[name]["rows"]),
+                    "Positive rate": pct(split[name]["prevalence"]),
                 }
                 for name in order
             ]
@@ -93,8 +95,7 @@ with right, st.container(border=True, height="stretch"):
     )
     st.caption(
         ":material/lightbulb: Cross-validation uses three time-ordered folds inside the train "
-        "window. August 2018 is held out because the snapshot ends in October 2018, so very late "
-        "August orders may not have arrived yet."
+        "window; windows other than train and test are excluded from the metrics."
     )
 
 with st.container(border=True):
@@ -107,7 +108,7 @@ with st.container(border=True):
                     "CV PR-AUC": f"{c['cv']['pr_auc_mean']:.3f} ± {c['cv']['pr_auc_std']:.3f}",
                     "ROC-AUC": f"{c['test']['roc_auc']:.3f}",
                     "PR-AUC": f"{c['test']['pr_auc']:.3f}",
-                    "Late rate, riskiest 10%": pct(c["test"]["precision_at_top10pct"]),
+                    "Positives, riskiest 10%": pct(c["test"]["precision_at_top10pct"]),
                     "Lift": f"{c['test']['lift_at_top10pct']:.2f}x",
                     "Brier (lower is better)": f"{c['test']['brier']:.4f}",
                 }
@@ -151,7 +152,7 @@ if curves is not None:
             layout.chart_card(
                 f"Calibration of the {label.lower()} model",
                 charts.calibration(calibration),
-                f"Trained when {pct(train_rate)} of orders were late and tested at "
+                f"Trained when {pct(train_rate)} of rows were positive and tested at "
                 f"{pct(test_rate)}, the model {'over' if over else 'under'}-predicts (points "
                 f"{'below' if over else 'above'} the diagonal). Rankings still hold, and the "
                 "threshold is re-tuned on recent data.",
@@ -173,7 +174,7 @@ layout.section(
 )
 c1, c2, c3, c4 = st.columns(4)
 cards.kpi(c1, "Threshold", f"{threshold:.3f}")
-cards.kpi(c2, "Orders flagged", pct(test["flagged_share"]))
+cards.kpi(c2, "Rows flagged", pct(test["flagged_share"]))
 cards.kpi(c3, "Precision when flagged", pct(test["precision"]))
 cards.kpi(c4, "Recall", pct(test["recall"]))
 

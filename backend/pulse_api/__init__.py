@@ -1,1 +1,1 @@
-"""Flask prediction API for the late-delivery model (no CrewAI dependency)."""
+"""Flask prediction API for the promoted model (no CrewAI dependency)."""

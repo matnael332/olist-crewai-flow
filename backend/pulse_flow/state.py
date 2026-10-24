@@ -18,6 +18,7 @@ class PipelineState(BaseModel):
     llm_model: str = ""
     start_at: str = ""
     from_run: str = ""
+    spec_ref: str = ""
 
     stage: str = "init"
     stages_done: list[str] = Field(default_factory=list)

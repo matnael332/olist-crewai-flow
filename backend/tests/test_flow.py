@@ -1,4 +1,4 @@
-"""End-to-end Flow tests in deterministic mode (no LLM) on the fixture."""
+"""End-to-end Flow tests in deterministic mode (no LLM) on the toy dataset spec."""
 
 import json
 from pathlib import Path
@@ -7,18 +7,19 @@ import pytest
 
 from pulse_core.faults import FAULTS
 from pulse_core.validators.artifacts_gate import SPEC_FILES
+from tests.conftest import SPEC_REF
 
-FIXTURE = Path(__file__).parent / "fixtures" / "olist_mini"
 
-
-def _run(tmp_path: Path, run_id: str, *extra: str) -> int:
+def _run(tmp_path: Path, data_dir: Path, run_id: str, *extra: str) -> int:
     from pulse_flow.run import main
 
     return main(
         [
             "--no-llm",
+            "--spec",
+            SPEC_REF,
             "--data-dir",
-            str(FIXTURE),
+            str(data_dir),
             "--runs-dir",
             str(tmp_path / "runs"),
             "--artifacts-dir",
@@ -35,9 +36,9 @@ def _status(tmp_path: Path, run_id: str) -> dict:
 
 
 @pytest.fixture(scope="module")
-def successful_run(tmp_path_factory):
+def successful_run(tmp_path_factory, toy_data_dir):
     tmp = tmp_path_factory.mktemp("flow")
-    code = _run(tmp, "ok")
+    code = _run(tmp, toy_data_dir, "ok")
     return tmp, code
 
 
@@ -76,19 +77,21 @@ def test_success_run_promotes_spec_artifacts(successful_run):
     assert validate_main([str(promoted)]) == 0
 
 
-def test_resume_from_previous_run(successful_run):
+def test_resume_from_previous_run(successful_run, toy_data_dir):
     tmp, _ = successful_run
-    code = _run(tmp, "resume", "--from-run", "ok", "--start-at", "modeling", "--no-promote")
+    code = _run(
+        tmp, toy_data_dir, "resume", "--from-run", "ok", "--start-at", "modeling", "--no-promote"
+    )
     assert code == 0
     assert _status(tmp, "resume")["stages_done"][:2] == ["gate_required_features", "check_inputs"]
 
 
 @pytest.mark.parametrize("fault", sorted(FAULTS))
-def test_every_fault_fails_gracefully(tmp_path, capfd, fault):
+def test_every_fault_fails_gracefully(tmp_path, toy_data_dir, capfd, fault):
     existing = tmp_path / "artifacts"
     existing.mkdir()
     (existing / "sentinel.txt").write_text("previous run", encoding="utf-8")
-    code = _run(tmp_path, f"fault-{fault}", "--inject-fault", fault)
+    code = _run(tmp_path, toy_data_dir, f"fault-{fault}", "--inject-fault", fault)
     out, err = capfd.readouterr()
     assert code == 1
     status = _status(tmp_path, f"fault-{fault}")
@@ -98,3 +101,25 @@ def test_every_fault_fails_gracefully(tmp_path, capfd, fault):
     assert "Traceback" not in out and "Traceback" not in err
     assert sorted(p.name for p in existing.iterdir()) == ["sentinel.txt"]
     assert (tmp_path / "runs" / f"fault-{fault}" / "artifacts" / "validation_report.json").exists()
+
+
+def test_missing_spec_fails_gracefully(tmp_path, toy_data_dir, monkeypatch):
+    from pulse_flow.run import main
+
+    monkeypatch.delenv("PIPELINE_DATASET_SPEC", raising=False)
+    code = main(
+        [
+            "--no-llm",
+            "--no-promote",
+            "--data-dir",
+            str(toy_data_dir),
+            "--runs-dir",
+            str(tmp_path / "runs"),
+            "--run-id",
+            "nospec",
+        ]
+    )
+    assert code == 1
+    status = _status(tmp_path, "nospec")
+    assert status["stage"] == "check_inputs"
+    assert "no dataset spec configured" in status["errors"][0]

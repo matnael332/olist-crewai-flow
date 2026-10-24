@@ -15,7 +15,7 @@ from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 BASELINE = "baseline_prior"
 LEAN = "logistic_regression"
 CANDIDATE_DESCRIPTIONS = {
-    BASELINE: "DummyClassifier(prior): predicts the training late rate for every order",
+    BASELINE: "DummyClassifier(prior): predicts the training positive rate for every row",
     LEAN: "LogisticRegression on scaled numerics + one-hot categories (threshold tuned for the imbalance)",
     "hist_gradient_boosting": "HistGradientBoostingClassifier with native categorical splits",
 }

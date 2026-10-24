@@ -16,7 +16,7 @@ import streamlit as st
 
 import _bootstrap  # noqa: F401  (backend/ on sys.path)
 from components.format import pct
-from pulse_api.batch import BatchError, frame_to_records, read_orders_csv
+from pulse_api.batch import BatchError, frame_to_records, read_records_csv
 from pulse_api.risk import ACTIONS
 from pulse_copilot.agent import Copilot
 from pulse_copilot.answer import Answer, Conversation
@@ -106,8 +106,11 @@ def attach(uploaded) -> dict:
     data = uploaded.getvalue()
     if len(data) > MAX_FILE_BYTES:
         return {"name": uploaded.name, "error": "the file is larger than 2 MB"}
+    bundle = bot().workspace.bundle()
+    if not bundle.ok:
+        return {"name": uploaded.name, "error": f"model unavailable: {bundle.error}"}
     try:
-        records, ignored = frame_to_records(read_orders_csv(data))
+        records, ignored = frame_to_records(bundle, read_records_csv(bundle, data))
     except BatchError as exc:
         missing = exc.details.get("missing")
         detail = f": {', '.join(missing)}" if missing else ""
@@ -139,23 +142,21 @@ def ask(text: str, quick: str | None = None, uploaded=None) -> Answer:
 # Rendering ------------------------------------------------------------------------------------
 
 
-def _table(result, with_outcome: bool) -> pd.DataFrame:
-    rows = []
-    for p in result.predictions:
-        row = {
-            "Order": p["order_id"][:12] if p["order_id"] else f"row {p['row']}",
-            "State": p.get("customer_state", ""),
-            "Late probability": pct(p["late_probability"]),
-            "Risk": LEVEL_LABELS[p["risk_level"]],
-        }
-        if with_outcome:
-            row["Actually late"] = "yes" if p.get("actual_late") else "no"
-        rows.append(row)
-    return pd.DataFrame(rows)
+def _table(result) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "Record": p["id"][:24] if p["id"] else f"row {p['row']}",
+                "Probability": pct(p["probability"]),
+                "Risk": LEVEL_LABELS[p["risk_level"]],
+            }
+            for p in result.predictions
+        ]
+    )
 
 
 def render_output(output: dict, key: str) -> None:
-    result, check = output["result"], output.get("backtest")
+    result = output["result"]
     summary = result.summary
     with st.container(border=True):
         st.markdown(f"**{output['title']}**")
@@ -163,17 +164,8 @@ def render_output(output: dict, key: str) -> None:
         c1.metric("High", summary["high"])
         c2.metric("Elevated", summary["elevated"])
         c3.metric("Normal", summary["normal"])
-        st.caption(
-            f"**High:** {ACTIONS['high']} **Elevated:** {ACTIONS['elevated']} The action list "
-            "adds a customer-message draft for every high-risk order."
-        )
-        if check:
-            st.caption(
-                f"What really happened: {check['high']['late']} of {check['high']['orders']} "
-                f"high-risk orders arrived late ({pct(check['high']['late_rate'])}), against "
-                f"{pct(check['all']['late_rate'])} for all {check['all']['orders']} orders."
-            )
-        st.dataframe(_table(result, bool(check)).head(15), hide_index=True, width="stretch")
+        st.caption(f"**High:** {ACTIONS['high']} **Elevated:** {ACTIONS['elevated']}")
+        st.dataframe(_table(result).head(15), hide_index=True, width="stretch")
         if result.errors:
             with st.expander(f"{summary['rejected']} rows failed validation"):
                 st.dataframe(pd.DataFrame(result.errors), hide_index=True, width="stretch")
@@ -181,14 +173,14 @@ def render_output(output: dict, key: str) -> None:
         d1.download_button(
             "Ranked list (CSV)",
             result.to_csv(),
-            "scored_orders.csv",
+            "scored_records.csv",
             "text/csv",
             key=f"{key}-all",
             icon=":material/download:",
             width="stretch",
         )
         d2.download_button(
-            "Action list with message drafts (CSV)",
+            "Action list (CSV)",
             result.action_list().to_csv(index=False, lineterminator="\n"),
             "action_list.csv",
             "text/csv",
@@ -224,22 +216,12 @@ def render(message: dict, index: int) -> None:
 
 
 def template_csv() -> str:
-    """A one-row CSV with the order fields, for people preparing a file."""
-    row = {
-        "order_id": "my-order-1",
-        "n_items": 1,
-        "total_price": 129.9,
-        "total_freight": 21.5,
-        "customer_state": "BA",
-        "seller_state": "SP",
-        "primary_category": "furniture_decor",
-        "payment_type": "boleto",
-        "max_installments": 1,
-        "purchase_ts": "2018-07-16 14:00:00",
-        "estimated_delivery_date": "2018-08-08",
-        "total_weight_g": 1200,
-    }
-    return pd.DataFrame([row]).to_csv(index=False, lineterminator="\n")
+    """A header-only CSV with the record fields the model expects (from feature_spec.json)."""
+    bundle = bot().workspace.bundle()
+    if not bundle.ok:
+        return "id\n"
+    fields = ([bundle.id_field] if bundle.id_field else []) + list(bundle.validator.features)
+    return pd.DataFrame(columns=fields).to_csv(index=False, lineterminator="\n")
 
 
 QUICK = QUICK_REPLIES

@@ -1,4 +1,4 @@
-"""Data contract: how raw orders became the clean table, and the contract the scientists must follow."""
+"""Data contract: how raw rows became the clean table, and the contract the scientists must follow."""
 
 import pandas as pd
 import streamlit as st
@@ -22,7 +22,7 @@ gates = art.gate_summary(art.validation())
 contract_gate = gates.get("gate_contract")
 c1, c2, c3, c4 = st.columns(4)
 cards.kpi(c1, "Contract version", str(contract["contract_version"]))
-cards.kpi(c2, "Rows", num(contract["row_count"]), help="One row per delivered order")
+cards.kpi(c2, "Rows", num(contract["row_count"]), help=contract["dataset"].get("grain", ""))
 cards.kpi(c3, "Columns", num(len(contract["columns"])))
 cards.kpi(
     c4,
@@ -33,8 +33,8 @@ cards.kpi(
 )
 
 # Cleaning funnel ------------------------------------------------------------------------------
-layout.section("From raw orders to one clean row per order")
-steps = [{"step": "Raw orders (all statuses)", "rows": cleaning["rules"][0]["rows_before"]}]
+layout.section("From raw rows to the clean table")
+steps = [{"step": "Raw rows", "rows": cleaning["rules"][0]["rows_before"]}]
 steps += [
     {"step": r["rule"].split("_", 1)[1].replace("_", " "), "rows": r["rows_after"]}
     for r in cleaning["rules"]
@@ -43,9 +43,8 @@ steps += [
 layout.chart_card(
     "Rows remaining after each cleaning rule",
     charts.funnel(steps),
-    f"{num(cleaning['rows_in'])} raw orders became {num(cleaning['rows_out'])} clean delivered "
-    f"orders. The other {len(cleaning['rules']) - len(steps) + 1} rules aggregate items, payments "
-    "and reviews and derive columns without dropping rows.",
+    f"{num(cleaning['rows_in'])} raw rows became {num(cleaning['rows_out'])} clean rows. The "
+    f"other {len(cleaning['rules']) - len(steps) + 1} rules derive columns without dropping rows.",
 )
 with st.expander(f"All {len(cleaning['rules'])} cleaning rules"):
     st.table(
@@ -63,10 +62,10 @@ with st.expander(f"All {len(cleaning['rules'])} cleaning rules"):
 
 # Schema ---------------------------------------------------------------------------------------
 layout.section("Schema", "Every column, with when its value is known")
-when = ["checkout", "post_purchase", "label", "identifier"]
+when = sorted({c["available_at"] for c in contract["columns"]})
 c1, c2 = st.columns([3, 2])
 selected = c1.pills("Known at", when, selection_mode="multi", default=when, key="known_at") or when
-query = c2.text_input("Search columns", placeholder="e.g. state, days, price", key="col_search")
+query = c2.text_input("Search columns", placeholder="column name or description", key="col_search")
 
 
 def _rule(column: dict) -> str:
@@ -114,8 +113,8 @@ st.dataframe(
     },
 )
 st.caption(
-    "Post-purchase columns (delivery dates, reviews) exist in the clean data for analysis but can "
-    "never become model features."
+    f"Only columns known at {contract['feature_rules']['feature_available_at']} may become model "
+    "features; later columns exist in the clean data for analysis only."
 )
 
 # Features -------------------------------------------------------------------------------------
@@ -127,13 +126,13 @@ with left, st.container(border=True, height="stretch"):
     st.markdown(
         f":green[:material/check_circle:] **Required features ({len(contract['required_features'])})**"
     )
-    st.caption("Known at checkout, so the model can use them when the customer pays.")
+    st.caption("Known at decision time, so the model can use them.")
     st.markdown(" ".join(f":green-badge[{f['name']}]" for f in contract["required_features"]))
 with right, st.container(border=True, height="stretch"):
     st.markdown(
         f":red[:material/block:] **Forbidden features ({len(contract['forbidden_features'])})**"
     )
-    st.caption("Known only after purchase; using them would leak the answer.")
+    st.caption("Known only afterwards; using them would leak the answer.")
     st.markdown(" ".join(f":red-badge[{name}]" for name in contract["forbidden_features"]))
 
 # Constraints ----------------------------------------------------------------------------------

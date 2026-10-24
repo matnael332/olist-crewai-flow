@@ -5,7 +5,7 @@ JSON the numbers came from (grounding)."""
 from __future__ import annotations
 
 from pulse_core.narratives import CleaningNarrative, Insights
-from pulse_core.reporting.fmt import brl, bullets, md_table, num, pct
+from pulse_core.reporting.fmt import bullets, key_number, md_table, num
 
 
 def footer(source: str, grounding: dict[str, str]) -> str:
@@ -26,8 +26,7 @@ def render_cleaning_md(
         ]
         for r in report["rules"]
     ]
-    recon = report["payment_reconciliation"]
-    defs = report["definitions"]
+    defs = report.get("definitions") or {}
     parts = [
         "# Cleaning report",
         "",
@@ -45,20 +44,6 @@ def render_cleaning_md(
         "",
         bullets(narrative.decisions),
         "",
-        "## Payment reconciliation (computed)",
-        "",
-        md_table(
-            ["check", "orders"],
-            [
-                ["payment_total within 1 cent of price + freight", num(recon["within_1_cent"])],
-                [
-                    "paid more (installment interest)",
-                    num(recon["paid_more_than_price_plus_freight"]),
-                ],
-                ["paid less (vouchers)", num(recon["paid_less_than_price_plus_freight"])],
-            ],
-        ),
-        "",
         "## Definitions",
         "",
         bullets([f"**{k}**: {v}" for k, v in sorted(defs.items())]),
@@ -71,41 +56,10 @@ def render_cleaning_md(
 
 
 def key_numbers_table(summary: dict) -> str:
-    ao, dp = summary["all_orders"], summary["delivered_population"]
-    rv, dl = dp["reviews"], dp["delivery"]
     rows = [
-        ["All orders", "orders (every status)", num(ao["n_orders"])],
-        ["All orders", "never delivered", pct(ao["non_delivered_share"])],
-        [
-            "All orders",
-            "peak month",
-            f"{ao['peak_month']['month']} ({num(ao['peak_month']['orders'])})",
-        ],
-        [
-            "All orders",
-            "busiest day",
-            f"{ao['peak_day']['date']} ({num(ao['peak_day']['orders'])})",
-        ],
-        ["Delivered", "orders", num(dp["n_orders"])],
-        [
-            "Delivered",
-            "customers (repeat share)",
-            f"{num(dp['n_customers'])} ({pct(dp['repeat_customer_share'])})",
-        ],
-        ["Delivered", "GMV / AOV", f"{brl(dp['gmv_brl'])} / {brl(dp['aov_brl'])}"],
-        ["Delivered", "late rate", f"{pct(dp['late_rate'])} ({num(dp['late_orders'])} orders)"],
-        [
-            "Delivered",
-            "median delivery / promised days",
-            f"{num(dl['median_days'])} / {num(dl['median_promised_days'])}",
-        ],
-        [
-            "Delivered",
-            "1-2 star reviews: late vs on time",
-            f"{pct(rv['bad_review_rate_late'])} vs {pct(rv['bad_review_rate_on_time'])}",
-        ],
+        [k["label"], key_number(k["label"], k["value"])] for k in summary.get("key_numbers", [])
     ]
-    return md_table(["layer", "metric", "value"], rows)
+    return md_table(["metric", "value"], rows)
 
 
 def render_insights_md(
@@ -124,8 +78,8 @@ def render_insights_md(
     parts = [
         "# Business insights: what happened",
         "",
-        "Two layers: **all orders** (every status, business volume) and **delivered orders** "
-        "(the clean population where lateness and reviews are measured).",
+        f"Grain: {summary.get('grain', 'see the dataset contract')}. Every number below is "
+        "computed from the clean data; the prose comes from the narrative.",
         "",
         "## Key numbers (computed)",
         "",
@@ -152,6 +106,6 @@ def render_insights_md(
         "",
         "## Figures",
         "",
-        "\n".join(figures),
+        "\n".join(figures) if figures else "- (none)",
     ]
     return "\n".join(parts) + "\n" + footer(source, grounding)

@@ -1,10 +1,8 @@
-"""Flask app factory: GET /health, POST /predict, POST /predict/batch and GET /risk-list.
-
-The full contract (requests, responses, error codes) is in docs/api.md.
+"""Flask app factory: GET /health, POST /predict and POST /predict/batch.
 
 The model is loaded once at startup with scikit-learn version mismatches treated as errors; if
 anything is wrong the API starts in a degraded mode (/health says why, /predict answers 503)
-instead of crashing.
+instead of crashing. Records carry the model features listed in feature_spec.json.
 """
 
 from __future__ import annotations
@@ -16,23 +14,18 @@ import sklearn
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
-from pulse_api.batch import BatchError, score_csv, score_records
+from pulse_api.batch import BatchError, score_csv
 from pulse_api.model import ModelBundle
-from pulse_api.replay import ReplayError, backtest, load_clean, orders_for_day, parse_day
-from pulse_api.risk import LEVELS
 from pulse_core.paths import repo_root
 
 ROOT = repo_root()
 
 
-def create_app(
-    artifacts_dir: str | Path | None = None, lookups_dir: str | Path | None = None
-) -> Flask:
+def create_app(artifacts_dir: str | Path | None = None) -> Flask:
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
     art = Path(artifacts_dir or os.getenv("ARTIFACTS_DIR", ROOT / "artifacts"))
-    lookups = Path(lookups_dir or ROOT / "data" / "lookups")
-    bundle = ModelBundle(art, lookups)
+    bundle = ModelBundle(art)
     app.config["MODEL_BUNDLE"] = bundle
 
     @app.errorhandler(HTTPException)
@@ -63,6 +56,8 @@ def create_app(
             estimator=meta["estimator"],
             scikit_learn=sklearn.__version__,
             n_features=len(meta["model_features"]),
+            features=meta["model_features"],
+            id_field=bundle.id_field,
             threshold=meta["threshold"],
             top10_risk_cutoff=round(bundle.top10_cutoff, 6),
             contract_version=meta["contract_version"],
@@ -109,7 +104,7 @@ def create_app(
             return Response(
                 result.to_csv(),
                 mimetype="text/csv",
-                headers={"Content-Disposition": "attachment; filename=scored_orders.csv"},
+                headers={"Content-Disposition": "attachment; filename=scored_records.csv"},
             )
         return jsonify(
             model=model_block(),
@@ -118,38 +113,5 @@ def create_app(
             errors=result.errors,
             warnings=result.warnings,
         )
-
-    @app.get("/risk-list")
-    def risk_list():
-        """Replay a test-window day: its orders scored and ranked, optionally with the outcome."""
-        if not bundle.ok:
-            return unavailable()
-        min_level = request.args.get("min_level", "elevated")
-        if min_level not in LEVELS:
-            return jsonify(error="invalid_level", detail=f"min_level must be one of {LEVELS}"), 400
-        try:
-            day = parse_day(request.args.get("date"))
-            records, outcomes = orders_for_day(load_clean(art), day)
-        except ReplayError as exc:
-            return jsonify(exc.to_dict()), exc.status
-        except OSError:
-            return jsonify(error="data_unavailable", detail="clean_data.csv not found"), 503
-        result = score_records(bundle, records)
-        keep = LEVELS[: LEVELS.index(min_level) + 1]
-        predictions = [p for p in result.predictions if p["risk_level"] in keep]
-        with_outcome = request.args.get("include_outcome", "false").lower() in {"1", "true", "yes"}
-        if with_outcome:
-            for prediction in predictions:
-                prediction["actual_late"] = bool(outcomes.get(prediction["order_id"], 0))
-        body = {
-            "model": model_block(),
-            "date": day.isoformat(),
-            "summary": result.summary,
-            "predictions": predictions,
-            "errors": result.errors,
-        }
-        if with_outcome:
-            body["backtest"] = backtest(result.predictions, outcomes)
-        return jsonify(body)
 
     return app

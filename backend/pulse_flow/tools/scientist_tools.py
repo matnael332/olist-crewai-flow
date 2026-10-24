@@ -28,7 +28,7 @@ def features_view() -> dict:
         "contract_version": spec["contract_version"],
         "contract_sha256": spec["contract_sha256"][:12],
         "rows_by_split": spec["split"]["rows"],
-        "late_rate_by_split": spec["target"]["positive_rate"],
+        "positive_rate_by_split": spec["target"]["positive_rate"],
         "model_features": [
             {"name": f["name"], "kind": f["kind"], "derived_from": f["derived_from"]}
             for f in spec["features"]
@@ -63,13 +63,13 @@ def training_view() -> dict:
                 "description": c["description"],
                 "cv_pr_auc_mean": c["cv"]["pr_auc_mean"],
                 "cv_roc_auc_mean": c["cv"]["roc_auc_mean"],
-                "cv_fold_late_rates": [f["val_prevalence"] for f in c["cv"]["folds"]],
+                "cv_fold_prevalence": [f["val_prevalence"] for f in c["cv"]["folds"]],
                 "test": {k: c["test"][k] for k in keep},
             }
             for name, c in metrics["candidates"].items()
         },
         "split": metrics["split"],
-        "censored_buffer": meta["censored_buffer"],
+        "excluded_splits": meta.get("excluded_splits"),
         "top_features": metrics["permutation_importance"]["features"][:8],
     }
 
@@ -83,8 +83,9 @@ def validate_inputs() -> str:
 
 @tool("build_features", result_as_answer=True)
 def build_features() -> str:
-    """Return the feature spec built from checkout-time columns: validation result, rows and late
-    rate per split, the model features with their source columns, and the excluded columns."""
+    """Return the feature spec built from decision-time columns: validation result, rows and
+    positive rate per split, the model features with their source columns, and the excluded
+    columns."""
     return _safe(features_view)
 
 
