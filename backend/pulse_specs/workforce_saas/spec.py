@@ -12,9 +12,11 @@ snapshot and first month: ``--spec pulse_specs.workforce_saas.spec:make_spec --s
 from __future__ import annotations
 
 from functools import partial
+from pathlib import Path
 
 import pandas as pd
 
+from pulse_core.io import read_json
 from pulse_core.spec import DatasetSpec
 from pulse_specs.workforce_saas import columns as wf
 from pulse_specs.workforce_saas.clean import HORIZON, clean_tables, score_rows
@@ -107,12 +109,37 @@ def check_groups(groups: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(g for g in wf.ALL_GROUPS if g in groups)
 
 
-def _missing_limitations(missing: list[str]) -> list[str]:
-    return [
-        f"No {GROUP_LABELS[g]} data ({g}) in this export: its columns and features are left out "
-        "of the model."
+GROUP_VALUE = Path(__file__).with_name("group_value.json")  # written by ablation.py
+
+
+def _group_value() -> dict:
+    return read_json(GROUP_VALUE) if GROUP_VALUE.exists() else {}
+
+
+def _accuracy_cost(missing: list[str]) -> dict:
+    """What each missing group cost on our reference data (ablation.py), per group."""
+    value = _group_value().get("without", {})
+    return {
+        g: {k: value[g][k] for k in ("pr_auc_drop", "roc_auc_drop") if k in value[g]}
         for g in missing
-    ]
+        if g in value
+    }
+
+
+def _missing_limitations(missing: list[str], cost: dict) -> list[str]:
+    items = []
+    for g in missing:
+        text = (
+            f"No {GROUP_LABELS[g]} data ({g}) in this export: its columns and features are left "
+            "out of the model."
+        )
+        if g in cost and "pr_auc_drop" in cost[g]:
+            text += (
+                f" On our synthetic reference data, leaving it out changes the test PR-AUC by "
+                f"{-cost[g]['pr_auc_drop']:+.3f}."
+            )
+        items.append(text)
+    return items
 
 
 def windows(
@@ -162,7 +189,8 @@ def make_spec(
     columns = wf.columns_for(groups)
     names = {c.name for c in columns}
     card = {**MODEL_CARD_ITEMS}
-    card["limitations"] = [*MODEL_CARD_ITEMS["limitations"], *_missing_limitations(missing)]
+    cost = _accuracy_cost(missing)
+    card["limitations"] = [*MODEL_CARD_ITEMS["limitations"], *_missing_limitations(missing, cost)]
     card["monitoring_recommendations"] = [
         item
         for item in MODEL_CARD_ITEMS["monitoring_recommendations"]
@@ -177,7 +205,19 @@ def make_spec(
         contract_version="1.0",
         seed=42,
         required_tables=tuple(t for g in groups for t in wf.GROUP_TABLES[g]),
-        data_groups={"present": list(groups), "missing": missing, "core": list(wf.CORE_GROUPS)},
+        data_groups={
+            "present": list(groups),
+            "missing": missing,
+            "core": list(wf.CORE_GROUPS),
+            **(
+                {
+                    "accuracy_cost": cost,
+                    "accuracy_cost_basis": _group_value().get("reference_data", ""),
+                }
+                if cost
+                else {}
+            ),
+        },
         id_column=wf.ID_COLUMN,
         time_column=wf.TIME_COLUMN,
         decision_stage=wf.DECISION_STAGE,

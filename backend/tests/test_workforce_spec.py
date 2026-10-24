@@ -478,3 +478,16 @@ def test_reasons_explain_the_scores(wf80):
         for r in entity["reasons"]:
             assert r["feature"] in reasons["features_tried"]
             assert r["code"] == REASON_CODES.get(r["feature"], r["feature"])
+
+
+def test_missing_groups_carry_their_reference_cost():
+    """group_value.json (ablation.py) is committed; every optional group has a measured cost."""
+    from pulse_specs.workforce_saas.spec import GROUP_VALUE
+
+    assert GROUP_VALUE.exists()
+    spec = make_spec(groups=wf.CORE_GROUPS)
+    missing = [g for g in wf.ALL_GROUPS if g not in wf.CORE_GROUPS]
+    assert sorted(spec.data_groups["accuracy_cost"]) == sorted(missing)
+    assert "synthetic" in spec.data_groups["accuracy_cost_basis"]
+    assert any("synthetic reference data" in item for item in spec.model_card_items["limitations"])
+    assert "accuracy_cost" not in make_spec().data_groups  # nothing missing, nothing to cost
