@@ -1,0 +1,66 @@
+{
+  "all_groups": {
+    "model": "hist_gradient_boosting",
+    "pr_auc": 0.447583,
+    "precision_at_top10pct": 0.328125,
+    "roc_auc": 0.769433
+  },
+  "metric_note": "test-window metrics of the selected model; *_drop = all groups minus without the group (positive: the group helps)",
+  "reference_data": "workforce_saas synthetic v1 (seed 42, 200 accounts, 2022-01..2025-08)",
+  "without": {
+    "absences": {
+      "model": "logistic_regression",
+      "pr_auc": 0.396227,
+      "pr_auc_drop": 0.0514,
+      "precision_at_top10pct": 0.3125,
+      "precision_at_top10pct_drop": 0.0156,
+      "roc_auc": 0.729367,
+      "roc_auc_drop": 0.0401
+    },
+    "devices": {
+      "model": "hist_gradient_boosting",
+      "pr_auc": 0.474547,
+      "pr_auc_drop": -0.027,
+      "precision_at_top10pct": 0.34375,
+      "precision_at_top10pct_drop": -0.0156,
+      "roc_auc": 0.761962,
+      "roc_auc_drop": 0.0075
+    },
+    "hours": {
+      "model": "hist_gradient_boosting",
+      "pr_auc": 0.456871,
+      "pr_auc_drop": -0.0093,
+      "precision_at_top10pct": 0.3125,
+      "precision_at_top10pct_drop": 0.0156,
+      "roc_auc": 0.751304,
+      "roc_auc_drop": 0.0181
+    },
+    "money": {
+      "model": "hist_gradient_boosting",
+      "pr_auc": 0.436919,
+      "pr_auc_drop": 0.0107,
+      "precision_at_top10pct": 0.3125,
+      "precision_at_top10pct_drop": 0.0156,
+      "roc_auc": 0.762769,
+      "roc_auc_drop": 0.0067
+    },
+    "organisation": {
+      "model": "hist_gradient_boosting",
+      "pr_auc": 0.451807,
+      "pr_auc_drop": -0.0042,
+      "precision_at_top10pct": 0.328125,
+      "precision_at_top10pct_drop": 0.0,
+      "roc_auc": 0.765687,
+      "roc_auc_drop": 0.0037
+    },
+    "shifts": {
+      "model": "logistic_regression",
+      "pr_auc": 0.392433,
+      "pr_auc_drop": 0.0552,
+      "precision_at_top10pct": 0.328125,
+      "precision_at_top10pct_drop": 0.0,
+      "roc_auc": 0.718336,
+      "roc_auc_drop": 0.0511
+    }
+  }
+}
