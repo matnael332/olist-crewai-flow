@@ -1,6 +1,6 @@
 import logging
 
-from olist_core.logging_setup import Redactor, RunLog, get_logger
+from pulse_core.logging_setup import Redactor, RunLog, get_logger
 
 FAKE_KEY = "AIza" + "B" * 35  # built at runtime so the repo never contains a key-shaped literal
 
@@ -26,4 +26,4 @@ def test_runlog_writes_redacted_file_and_detaches(tmp_path, monkeypatch):
     content = log_file.read_text(encoding="utf-8")
     assert FAKE_KEY not in content
     assert "using key ***" in content and "boom ***" in content
-    assert logging.getLogger("olist").handlers == []
+    assert logging.getLogger("pulse").handlers == []

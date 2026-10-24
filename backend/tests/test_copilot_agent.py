@@ -5,10 +5,10 @@ from types import SimpleNamespace
 import pytest
 from google.genai import errors
 
-from olist_copilot.agent import MAX_INPUT_CHARS, Copilot
-from olist_copilot.answer import Conversation
-from olist_copilot.quick import ACTIONS, quick_answer
-from olist_copilot.workspace import Workspace
+from pulse_copilot.agent import MAX_INPUT_CHARS, Copilot
+from pulse_copilot.answer import Conversation
+from pulse_copilot.quick import ACTIONS, quick_answer
+from pulse_copilot.workspace import Workspace
 
 
 class FakeModels:

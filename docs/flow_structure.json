@@ -213,7 +213,7 @@
       "type": "listen"
     }
   ],
-  "name": "OlistFlow",
+  "name": "PulseFlow",
   "state_schema": {
     "fields": [
       {

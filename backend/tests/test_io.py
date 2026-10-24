@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from olist_core import io
-from olist_core.sorting import counts_sorted, stable_sort
+from pulse_core import io
+from pulse_core.sorting import counts_sorted, stable_sort
 
 
 def test_write_text_lf_uses_utf8_and_lf(tmp_path):

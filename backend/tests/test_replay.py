@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from olist_api.replay import ReplayError, backtest, orders_for_day, parse_day
-from olist_api.validation import ALLOWED_FIELDS
-from olist_core.columns import read_clean_data
+from pulse_api.replay import ReplayError, backtest, orders_for_day, parse_day
+from pulse_api.validation import ALLOWED_FIELDS
+from pulse_core.columns import read_clean_data
 
 
 def test_replayed_orders_score_exactly_like_the_stored_test_predictions(

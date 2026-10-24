@@ -2,11 +2,11 @@
 
 import pytest
 
-from olist_api.replay import orders_for_day, parse_day
-from olist_api.risk import LEVELS
-from olist_copilot.answer import Conversation
-from olist_copilot.tools import build_tools
-from olist_copilot.workspace import Workspace, gate_summary
+from pulse_api.replay import orders_for_day, parse_day
+from pulse_api.risk import LEVELS
+from pulse_copilot.answer import Conversation
+from pulse_copilot.tools import build_tools
+from pulse_copilot.workspace import Workspace, gate_summary
 
 
 @pytest.fixture(scope="module")

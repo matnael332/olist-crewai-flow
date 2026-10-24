@@ -4,10 +4,10 @@ import shutil
 import pandas as pd
 import pytest
 
-from olist_core.columns import read_csv_strings
-from olist_core.io import read_json
-from olist_core.policy import FORBIDDEN_FEATURES, REQUIRED_FEATURES
-from olist_core.validators.contract_gate import validate_clean_data_against_contract
+from pulse_core.columns import read_csv_strings
+from pulse_core.io import read_json
+from pulse_core.policy import FORBIDDEN_FEATURES, REQUIRED_FEATURES
+from pulse_core.validators.contract_gate import validate_clean_data_against_contract
 
 
 def test_contract_round_trip_passes(analyst_out):

@@ -1,9 +1,9 @@
 import pandas as pd
 
-from olist_core.cleaning.build import run_cleaning
-from olist_core.columns import COLUMN_NAMES, read_clean_data
-from olist_core.io import read_json
-from olist_core.raw import load_raw_tables
+from pulse_core.cleaning.build import run_cleaning
+from pulse_core.columns import COLUMN_NAMES, read_clean_data
+from pulse_core.io import read_json
+from pulse_core.raw import load_raw_tables
 
 
 def _clean(analyst_out) -> pd.DataFrame:

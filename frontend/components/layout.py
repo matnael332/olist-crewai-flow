@@ -5,7 +5,7 @@ from __future__ import annotations
 import altair as alt
 import streamlit as st
 
-REPO_URL = "https://github.com/matnael332/olist-crewai-flow"
+REPO_URL = "https://github.com/matnael332/pulse"
 
 # Only what the theme cannot express: a readable content width and a tighter top margin.
 _CSS = """

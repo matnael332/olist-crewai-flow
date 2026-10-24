@@ -21,8 +21,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from olist_core.cleaning.geo import build_centroid_lookup  # noqa: E402
-from olist_core.download import RAW_FILES, download_raw  # noqa: E402
+from pulse_core.cleaning.geo import build_centroid_lookup  # noqa: E402
+from pulse_core.download import RAW_FILES, download_raw  # noqa: E402
 
 PER_MONTH = 120
 SRC = ROOT / "data" / "raw"
