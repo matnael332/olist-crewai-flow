@@ -20,9 +20,9 @@ from pulse_specs.workforce_saas import columns as wf
 from pulse_specs.workforce_saas.clean import HORIZON, clean_tables
 from pulse_specs.workforce_saas.eda import eda_figures, eda_summary
 from pulse_specs.workforce_saas.features import (
-    FEATURE_DEFINITIONS,
     REQUIRED_FEATURES,
     derive_features,
+    feature_definitions,
 )
 
 DEFAULT_SNAPSHOT = "2025-09-01"
@@ -81,6 +81,39 @@ MODEL_CARD_ITEMS = {
 }
 
 
+GROUP_LABELS = {
+    "commercial": "accounts and billing",
+    "organisation": "employees and sites",
+    "punches": "punches",
+    "shifts": "planned shifts",
+    "absences": "absence requests",
+    "hours": "hours accounting",
+    "payroll": "payroll exports",
+    "usage": "system usage",
+    "devices": "device health",
+    "money": "wages",
+}
+
+
+def check_groups(groups: tuple[str, ...]) -> tuple[str, ...]:
+    """Known groups, in catalogue order, with every core group present."""
+    unknown = sorted(set(groups) - set(wf.ALL_GROUPS))
+    if unknown:
+        raise ValueError(f"unknown data groups {unknown}; known: {list(wf.ALL_GROUPS)}")
+    missing = [g for g in wf.CORE_GROUPS if g not in groups]
+    if missing:
+        raise ValueError(f"core data groups missing: {missing}")
+    return tuple(g for g in wf.ALL_GROUPS if g in groups)
+
+
+def _missing_limitations(missing: list[str]) -> list[str]:
+    return [
+        f"No {GROUP_LABELS[g]} data ({g}) in this export: its columns and features are left out "
+        "of the model."
+        for g in missing
+    ]
+
+
 def windows(
     snapshot_date: str,
     train_start: str = DEFAULT_TRAIN_START,
@@ -114,9 +147,26 @@ def make_spec(
     train_start: str = DEFAULT_TRAIN_START,
     test_months: int = 6,
     gap_months: int = 2,
+    groups: tuple[str, ...] | list[str] = wf.ALL_GROUPS,
     source: str = "workforce_saas raw export (synthetic, pulse_specs.workforce_saas.synth)",
 ) -> DatasetSpec:
+    """The spec for one export: its snapshot, its history and the data groups it holds.
+
+    A group outside ``groups`` is never read; its clean columns, features, bounds and
+    constraints are left out, and the contract and the model card say so.
+    """
     split = windows(snapshot_date, train_start, test_months, gap_months)
+    groups = check_groups(tuple(groups))
+    missing = [g for g in wf.ALL_GROUPS if g not in groups]
+    columns = wf.columns_for(groups)
+    names = {c.name for c in columns}
+    card = {**MODEL_CARD_ITEMS}
+    card["limitations"] = [*MODEL_CARD_ITEMS["limitations"], *_missing_limitations(missing)]
+    card["monitoring_recommendations"] = [
+        item
+        for item in MODEL_CARD_ITEMS["monitoring_recommendations"]
+        if "devices" in groups or "data_gap" not in item
+    ]
     return DatasetSpec(
         name="workforce_saas",
         source=source,
@@ -125,6 +175,8 @@ def make_spec(
         snapshot_date=snapshot_date,
         contract_version="1.0",
         seed=42,
+        required_tables=tuple(t for g in groups for t in wf.GROUP_TABLES[g]),
+        data_groups={"present": list(groups), "missing": missing, "core": list(wf.CORE_GROUPS)},
         id_column=wf.ID_COLUMN,
         time_column=wf.TIME_COLUMN,
         decision_stage=wf.DECISION_STAGE,
@@ -144,21 +196,21 @@ def make_spec(
             "after the test window have no known outcome and are not in the data"
         ),
         cv_note="TimeSeriesSplit(3) over train rows ordered by month_end then account_id",
-        columns=wf.COLUMNS,
-        clean=partial(clean_tables, snapshot=pd.Timestamp(snapshot_date)),
+        columns=columns,
+        clean=partial(clean_tables, snapshot=pd.Timestamp(snapshot_date), groups=groups),
         patterns=wf.PATTERNS,
-        bounds=wf.BOUNDS,
-        constraints=wf.CONSTRAINTS,
+        bounds={k: v for k, v in wf.BOUNDS.items() if k in names},
+        constraints=wf.CONSTRAINTS,  # core columns only
         allowed_values=wf.ALLOWED_VALUES,
         population=POPULATION,
         privacy=PRIVACY,
-        feature_definitions=FEATURE_DEFINITIONS,
+        feature_definitions=feature_definitions(columns),
         required_features=REQUIRED_FEATURES,
         forbidden_features=wf.FORBIDDEN,
-        derive_features=derive_features,
+        derive_features=partial(derive_features, columns=columns),
         eda_summary=eda_summary,
         eda_figures=eda_figures,
-        model_card_items=MODEL_CARD_ITEMS,
+        model_card_items=card,
     )
 
 

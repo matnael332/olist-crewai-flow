@@ -88,6 +88,55 @@ COLUMNS: tuple[Column, ...] = (
 
 FORBIDDEN = ("cancelled_at", "days_to_cancel", TARGET)
 
+# The data groups (SCHEMA.md) by key: the raw tables each one needs. A customer's export always
+# holds the core groups; any other group may be missing, and its columns are then left out of the
+# clean table and the model.
+GROUP_TABLES = {
+    "commercial": ("accounts", "billing_monthly"),
+    "organisation": ("employees", "sites"),
+    "punches": ("punches",),
+    "shifts": ("shifts",),
+    "absences": ("absence_requests",),
+    "hours": ("hours_daily",),
+    "payroll": ("payroll_exports",),
+    "usage": ("usage_daily",),
+    "devices": ("devices", "device_health_daily"),
+    "money": ("wages",),
+}
+ALL_GROUPS = tuple(GROUP_TABLES)
+CORE_GROUPS = ("commercial", "punches", "payroll", "usage")
+
+# Clean columns that need an optional group (all of the listed groups); every other column comes
+# from the core groups.
+OPTIONAL_COLUMN_GROUPS = {
+    "employees_joined": ("organisation",),
+    "employees_left": ("organisation",),
+    "sites_closed": ("organisation",),
+    "shifts_planned": ("shifts",),
+    "no_show_rate": ("shifts",),
+    "open_shift_share": ("shifts",),
+    "schedule_lead_days": ("shifts",),
+    "absence_requests": ("absences",),
+    "pending_request_days": ("absences",),
+    "sick_days_per_employee": ("absences",),
+    "overtime_share": ("hours",),
+    "rest_violations": ("hours",),
+    "devices_total": ("devices",),
+    "device_offline_hours": ("devices",),
+    "device_failure_rate": ("devices",),
+    "data_gap": ("devices",),
+    "labor_cost": ("hours", "money"),
+}
+
+
+def columns_for(groups: tuple[str, ...]) -> tuple[Column, ...]:
+    """The column catalogue restricted to the columns the given data groups can fill."""
+    present = set(groups)
+    return tuple(
+        c for c in COLUMNS if set(OPTIONAL_COLUMN_GROUPS.get(c.name, ())).issubset(present)
+    )
+
+
 PATTERNS = {
     ID_COLUMN: r"^acc_[0-9]{6}:20[0-9]{2}-(0[1-9]|1[0-2])$",
     "account_id": r"^acc_[0-9]{6}$",

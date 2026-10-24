@@ -39,7 +39,11 @@ def eda_summary(tables: dict[str, pd.DataFrame], clean: pd.DataFrame, report: di
     exported = float(clean["payroll_exported"].astype(bool).mean())
     cancelled = int(tables["accounts"]["cancelled_at"].notna().sum())
     raw_fixes = report.get("raw_fixes", {})
-    nullable = [c.name for c in wf.COLUMNS if c.nullable and c.available_at == wf.DECISION_STAGE]
+    nullable = [
+        c.name
+        for c in wf.COLUMNS
+        if c.nullable and c.available_at == wf.DECISION_STAGE and c.name in clean
+    ]
     return {
         "positive_rate": rate,
         "key_numbers": [

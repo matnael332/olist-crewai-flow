@@ -81,7 +81,7 @@ and `--dirt` change the dataset, `--force` overwrites it.
 | Flag | Meaning |
 |---|---|
 | `--spec pkg.module:ATTR` | the dataset spec (default: the `PIPELINE_DATASET_SPEC` variable): a `DatasetSpec` or a factory |
-| `--spec-params FILE` | JSON keyword arguments for a spec factory, one file per customer (e.g. `make_spec`'s `snapshot_date`) |
+| `--spec-params FILE` | JSON keyword arguments for a spec factory, one file per customer (e.g. `make_spec`'s `snapshot_date` and `groups`: the data groups the export holds; the core groups commercial, punches, payroll and usage are required, the others optional) |
 | `--no-llm` / `--mode` | deterministic or LLM mode (default: LLM when `GEMINI_API_KEY` is set) |
 | `--data-dir` | folder with `raw/` (tables, `raw_schema.json`, `manifest.json`) and `lookups/` |
 | `--inject-fault NAME` | `bad_input_hash`, `crew_error`, `drop_column`, `contract_mismatch`, `missing_feature`, `leaky_feature`, `missing_artifact` |

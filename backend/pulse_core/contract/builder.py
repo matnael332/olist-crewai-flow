@@ -145,6 +145,7 @@ def build_contract(
         "columns": columns,
         "constraints": [dict(c) for c in spec.constraints],
         "population": dict(spec.population),
+        **({"data_groups": dict(spec.data_groups)} if spec.data_groups else {}),
         "target": {
             "name": spec.target,
             "label": spec.target_label,
