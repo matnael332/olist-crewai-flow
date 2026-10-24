@@ -22,7 +22,8 @@ import numpy as np
 import pandas as pd
 
 from pulse_core.columns import DATETIME_FORMAT
-from pulse_core.io import read_json, sha256_file, write_csv_stable, write_json_lf
+from pulse_core.io import read_json, write_csv_stable, write_json_lf
+from pulse_core.raw import write_raw_dir
 from pulse_specs.workforce_saas.synth_engine import (
     AccountPlan,
     SynthConfig,
@@ -30,7 +31,7 @@ from pulse_specs.workforce_saas.synth_engine import (
     plan_account,
 )
 
-__all__ = ["SynthConfig", "apply_dirt", "format_for_csv", "generate", "main", "write_dataset"]
+__all__ = ["SynthConfig", "apply_dirt", "generate", "main", "write_dataset"]
 
 GENERATOR_VERSION = 1
 SCHEMA_PATH = Path(__file__).with_name("raw_schema.json")
@@ -265,24 +266,6 @@ def generate(
     return tables, _truth(plans), dirt_counts
 
 
-def format_for_csv(df: pd.DataFrame, columns: dict[str, str]) -> pd.DataFrame:
-    """Logical dtypes to the CSV conventions the raw loader reads back (empty cell = null)."""
-    out = pd.DataFrame(index=df.index)
-    for name, kind in columns.items():
-        column = df[name]
-        if kind == "datetime":
-            out[name] = pd.to_datetime(column).dt.strftime(DATETIME_FORMAT).fillna("")
-        elif kind == "bool":
-            out[name] = column.astype(bool)
-        elif kind == "int":
-            out[name] = column.astype("Int64")
-        elif kind == "float":
-            out[name] = column.astype("float64")
-        else:
-            out[name] = column.fillna("").astype(str)
-    return out
-
-
 def write_dataset(data_dir: str | Path, config: SynthConfig, force: bool = False) -> Path:
     """Write raw/, truth/ and lookups/ under data_dir; return the raw folder."""
     data_dir = Path(data_dir)
@@ -290,18 +273,6 @@ def write_dataset(data_dir: str | Path, config: SynthConfig, force: bool = False
     if raw.exists() and any(raw.iterdir()) and not force:
         raise FileExistsError(f"{raw} is not empty; pass --force to overwrite it")
     tables, truth, dirt_counts = generate(config)
-    raw.mkdir(parents=True, exist_ok=True)
-    files = {}
-    for name in TABLE_ORDER:
-        spec = RAW_SCHEMA["tables"][name]
-        frame = format_for_csv(tables[name], spec["columns"])
-        path = write_csv_stable(frame, raw / spec["file"], float_format=CSV_FLOATS)
-        files[spec["file"]] = {
-            "bytes": path.stat().st_size,
-            "sha256": sha256_file(path),
-            "rows": int(len(frame)),
-        }
-    shutil.copyfile(SCHEMA_PATH, raw / "raw_schema.json")
     months = config.months
     manifest = {
         "source": (
@@ -317,9 +288,9 @@ def write_dataset(data_dir: str | Path, config: SynthConfig, force: bool = False
             "months": int(len(months)),
             "snapshot_date": config.snapshot_date,
         },
-        "files": files,
     }
-    write_json_lf(raw / "manifest.json", manifest, ndigits=None)
+    write_raw_dir(tables, RAW_SCHEMA, raw, manifest, float_format=CSV_FLOATS)
+    shutil.copyfile(SCHEMA_PATH, raw / "raw_schema.json")  # the committed file, byte for byte
     truth_dir = data_dir / "truth"
     truth_dir.mkdir(parents=True, exist_ok=True)
     for name, frame in truth.items():

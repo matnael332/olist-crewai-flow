@@ -491,3 +491,21 @@ def test_missing_groups_carry_their_reference_cost():
     assert "synthetic" in spec.data_groups["accuracy_cost_basis"]
     assert any("synthetic reference data" in item for item in spec.model_card_items["limitations"])
     assert "accuracy_cost" not in make_spec().data_groups  # nothing missing, nothing to cost
+
+
+def test_a_customer_spec_brings_its_own_values_and_confidence():
+    spec = make_spec(
+        "2024-07-01",
+        test_months=3,
+        allowed_values={"region": ["haifa", "eilat"]},
+        low_confidence=True,
+        synthetic=False,
+        source="customer export",
+    )
+    assert spec.allowed_values["region"] == ["haifa", "eilat"]
+    assert spec.allowed_values["plan"] == list(wf.PLANS)  # not given: the default list
+    assert "low confidence" in spec.split_note
+    limitations = spec.model_card_items["limitations"]
+    assert any(item.startswith("Low confidence") for item in limitations)
+    assert not any("synthetic export" in item for item in limitations)
+    assert "synthetic" not in spec.license

@@ -176,12 +176,17 @@ def make_spec(
     test_months: int = 6,
     gap_months: int = 2,
     groups: tuple[str, ...] | list[str] = wf.ALL_GROUPS,
+    allowed_values: dict[str, list[str]] | None = None,
+    low_confidence: bool = False,
+    synthetic: bool = True,
     source: str = "workforce_saas raw export (synthetic, pulse_specs.workforce_saas.synth)",
 ) -> DatasetSpec:
     """The spec for one export: its snapshot, its history and the data groups it holds.
 
     A group outside ``groups`` is never read; its clean columns, features, bounds and
-    constraints are left out, and the contract and the model card say so.
+    constraints are left out, and the contract and the model card say so. A customer's export
+    (``synthetic=False``) brings its own ``allowed_values`` for industry, region and plan, and
+    ``low_confidence`` when its history only allowed a shortened test window.
     """
     split = windows(snapshot_date, train_start, test_months, gap_months)
     groups = check_groups(tuple(groups))
@@ -190,7 +195,15 @@ def make_spec(
     names = {c.name for c in columns}
     card = {**MODEL_CARD_ITEMS}
     cost = _accuracy_cost(missing)
-    card["limitations"] = [*MODEL_CARD_ITEMS["limitations"], *_missing_limitations(missing, cost)]
+    general = [
+        item for item in MODEL_CARD_ITEMS["limitations"] if synthetic or "synthetic" not in item
+    ]
+    if low_confidence:
+        general.append(
+            f"Low confidence: the export's history only allowed a {test_months}-month test window "
+            "(6 is the default), so the test metrics rest on few cancellations."
+        )
+    card["limitations"] = [*general, *_missing_limitations(missing, cost)]
     card["monitoring_recommendations"] = [
         item
         for item in MODEL_CARD_ITEMS["monitoring_recommendations"]
@@ -199,7 +212,7 @@ def make_spec(
     return DatasetSpec(
         name="workforce_saas",
         source=source,
-        license="none (synthetic)",
+        license="none (synthetic)" if synthetic else "the customer's own data, processed for it",
         grain=wf.GRAIN,
         snapshot_date=snapshot_date,
         contract_version="1.0",
@@ -235,6 +248,11 @@ def make_spec(
             f"{gap_months}-month gap between train and test: every train label is resolved "
             f"({wf.HORIZON_DAYS} days after its month end) before the first test month end; months "
             "after the test window have no known outcome and are not in the data"
+            + (
+                f"; low confidence: the test window is shortened to {test_months} months"
+                if low_confidence
+                else ""
+            )
         ),
         cv_note="TimeSeriesSplit(3) over train rows ordered by month_end then account_id",
         columns=columns,
@@ -242,7 +260,7 @@ def make_spec(
         patterns=wf.PATTERNS,
         bounds={k: v for k, v in wf.BOUNDS.items() if k in names},
         constraints=wf.CONSTRAINTS,  # core columns only
-        allowed_values=wf.ALLOWED_VALUES,
+        allowed_values={**wf.ALLOWED_VALUES, **(allowed_values or {})},
         population=POPULATION,
         privacy=PRIVACY,
         feature_definitions=feature_definitions(columns),
