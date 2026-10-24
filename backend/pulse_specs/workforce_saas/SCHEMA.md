@@ -12,6 +12,9 @@ Two layers:
 - **Clean layer** (`columns.py`): one row per account and calendar month, every column aggregated
   from one group, with the decision time at the month end.
 
+No real export exists yet; `synth.py` generates the raw layer from a causal story per account
+(`SYNTH.md`).
+
 Conventions: ids are synthetic (`acc_000123`, `emp_000045`, `site_000007`, `dev_000012`,
 `shift_...`, `req_...`, `exp_...`, `pun_...`); money is ILS; every timestamp is
 `YYYY-MM-DD HH:MM:SS`; a date without a time is a `datetime` at midnight. No names, addresses or
