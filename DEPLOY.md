@@ -46,7 +46,7 @@ docker compose version              # v2.24 or newer
 ## 3. The code
 
 ```bash
-git clone <repository url> pulse && cd pulse
+git clone https://github.com/matnael332/pulse.git && cd pulse
 cp .env.example .env                # optional: GEMINI_API_KEY for LLM mode, PULSE_CUSTOMER
 docker compose build                # first build takes a few minutes
 ```
@@ -88,8 +88,8 @@ Then browse to http://localhost:8501 (dashboard) and http://localhost:8000/healt
 | Back up all customer data | `docker run --rm -v pulse_pulse-data:/srv/pulse -v "$PWD":/backup busybox tar czf /backup/pulse-data-$(date +%F).tgz -C /srv pulse` |
 | Stop | `docker compose down` (the volume stays; `down -v` deletes it with all customer data) |
 
-The volume name is `<folder>_pulse-data`, so `pulse_pulse-data` when the repository folder is
-called `pulse` (`docker volume ls` shows it).
+The compose project is named `pulse`, so the volume is always `pulse_pulse-data` and the
+containers are `pulse-dashboard-1` and `pulse-api-1`, whatever the folder is called.
 
 ## Not yet (step 6)
 

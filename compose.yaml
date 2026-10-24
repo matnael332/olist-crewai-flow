@@ -9,6 +9,8 @@
 # is reached through an SSH tunnel (DEPLOY.md). PULSE_CUSTOMER picks the customer folder the
 # dashboard and the API show (default: demo).
 
+name: pulse
+
 x-pulse: &pulse
   build: .
   image: pulse:local

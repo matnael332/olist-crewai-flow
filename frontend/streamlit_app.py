@@ -1,4 +1,4 @@
-"""pulse: dashboard entrypoint (Streamlit Community Cloud main file).
+"""pulse: dashboard entrypoint (the `dashboard` service in compose.yaml).
 
 uv run streamlit run frontend/streamlit_app.py
 """

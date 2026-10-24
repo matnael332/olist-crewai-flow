@@ -29,7 +29,7 @@ dev = [
     "python-pptx>=1.0",
     "ruff>=0.12,<0.13",
 ]
-# Slim set exported to frontend/requirements.txt for Streamlit Community Cloud (no crewai).
+# The dashboard (installed in the Docker image next to the runtime dependencies).
 frontend = [
     "streamlit>=1.51,<1.52",
     "pandas>=2.3,<2.4",

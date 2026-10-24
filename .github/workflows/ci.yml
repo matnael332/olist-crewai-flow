@@ -43,14 +43,6 @@ jobs:
         run: uv run ruff format --check .
       - name: Tests (no LLM calls)
         run: uv run pytest -q
-      - name: frontend/requirements.txt matches uv.lock and never installs crewai
-        run: |
-          uv export --locked --only-group frontend --no-emit-project --no-hashes --no-header \
-            --format requirements.txt -o "$RUNNER_TEMP/app-requirements.txt"
-          diff "$RUNNER_TEMP/app-requirements.txt" frontend/requirements.txt
-          if grep -nE '^-e |crewai' frontend/requirements.txt; then
-            echo "frontend/requirements.txt must not install the project or crewai"; exit 1
-          fi
       - name: Repository hygiene (secrets, file sizes)
         run: uv run python scripts/check_repo_hygiene.py
 

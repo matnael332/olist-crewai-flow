@@ -7,8 +7,9 @@ supplies the raw schema, the cleaning rules, the column catalogue, the features,
 the split windows, and the pipeline turns it into a validated clean table, a dataset contract, a
 model, metrics, a model card and an evaluation report.
 
-**Status.** The Olist coursework content has been removed and the core is dataset-agnostic.
-`backend/tests/toy_spec.py` is a small seeded spec that exercises every gate, fault, renderer, the
+Repository: https://github.com/matnael332/pulse
+
+**Status.** The core is dataset-agnostic. `backend/tests/toy_spec.py` is a small seeded spec that exercises every gate, fault, renderer, the
 API and the ops copilot end to end. The first real dataset spec is `workforce_saas` (a
 time-attendance SaaS; ten data groups, one row per customer account and month, target: cancelled
 within 60 days): `backend/pulse_specs/workforce_saas/` holds the schema (`SCHEMA.md`), a seeded
