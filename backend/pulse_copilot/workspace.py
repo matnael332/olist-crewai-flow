@@ -86,7 +86,7 @@ class Workspace:
     def from_env(cls, artifacts_dir: str | Path | None = None) -> Workspace:
         root = repo_root()
         artifacts = Path(artifacts_dir or os.getenv("ARTIFACTS_DIR", root / "artifacts"))
-        return cls(root, artifacts, root / "runs")
+        return cls(root, artifacts, Path(os.getenv("RUNS_DIR", root / "runs")))
 
     def text(self, name: str, base: Path | None = None) -> str | None:
         path = (base or self.artifacts) / name
