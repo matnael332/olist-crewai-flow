@@ -93,6 +93,8 @@ def build_manifest(
                 "stage",
                 "start_at",
                 "from_run",
+                "spec_ref",
+                "spec_params",
             )
         },
         "started_at": state.get("started_at"),

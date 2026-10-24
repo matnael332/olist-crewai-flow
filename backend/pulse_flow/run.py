@@ -6,12 +6,15 @@
         --inject-fault missing_feature               # graceful-failure demo
     uv run python -m pulse_flow.run --from-run <id> --start-at modeling --no-promote
     uv run python -m pulse_flow.run --no-llm --no-promote --compare-to artifacts
+    uv run python -m pulse_flow.run --no-llm --spec pulse_specs.workforce_saas.spec:make_spec \
+        --spec-params customer/spec_params.json --data-dir customer/data   # one spec per customer
     uv run python -m pulse_flow.run verify-repro --spec pkg.module:SPEC --data-dir data
 
 Exit codes: 0 success, 1 graceful failure (see runs/<id>/run_status.json), 2 unexpected error.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -50,6 +53,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="dataset spec as pkg.module:ATTR (default: the PIPELINE_DATASET_SPEC variable)",
     )
+    parser.add_argument(
+        "--spec-params",
+        default="",
+        help="JSON file of keyword arguments for a spec factory (one spec per customer)",
+    )
     parser.add_argument("--data-dir", default="data", help="folder with raw/ and lookups/")
     parser.add_argument("--runs-dir", default="runs")
     parser.add_argument("--artifacts-dir", default="artifacts")
@@ -83,11 +91,26 @@ def _configure_console() -> None:
             pass
 
 
+def read_spec_params(path: str) -> dict:
+    """The --spec-params file: a JSON object of keyword arguments (empty when no file is given)."""
+    if not path:
+        return {}
+    params = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(params, dict):
+        raise ValueError("must hold a JSON object")
+    return params
+
+
 def run(args: argparse.Namespace) -> int:
     from dotenv import find_dotenv, load_dotenv
 
     load_dotenv(find_dotenv(usecwd=True))
     _configure_console()
+    try:
+        spec_params = read_spec_params(args.spec_params)
+    except (OSError, ValueError) as exc:
+        print(f"--spec-params {args.spec_params}: {exc}", file=sys.stderr)
+        return 2
     data_dir = Path(args.data_dir).resolve()
     runs_dir = Path(args.runs_dir).resolve()
     run_id = args.run_id or new_run_id()
@@ -117,6 +140,7 @@ def run(args: argparse.Namespace) -> int:
         "start_at": args.start_at if args.from_run else "",
         "from_run": args.from_run or "",
         "spec_ref": args.spec or "",
+        "spec_params": spec_params,
     }
     status = "error"
     with RunLog(run_dir / "pipeline.log"):
@@ -168,6 +192,7 @@ def verify_repro(args: argparse.Namespace) -> int:
             "--data-dir",
             args.data_dir,
             *(["--spec", args.spec] if args.spec else []),
+            *(["--spec-params", args.spec_params] if args.spec_params else []),
             "--runs-dir",
             str(base),
             "--run-id",

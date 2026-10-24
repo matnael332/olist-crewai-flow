@@ -115,8 +115,13 @@ class DatasetSpec:
         return [f["name"] for f in self.feature_definitions]
 
 
-def load_spec(ref: str | None = None) -> DatasetSpec:
-    """Import ``pkg.module:ATTR`` (or the PIPELINE_DATASET_SPEC variable) and return the spec."""
+def load_spec(ref: str | None = None, params: Mapping[str, object] | None = None) -> DatasetSpec:
+    """Import ``pkg.module:ATTR`` (or the PIPELINE_DATASET_SPEC variable) and return the spec.
+
+    ``ATTR`` is either a ready ``DatasetSpec`` or a factory; a factory is called with ``params``
+    (the hosted service builds one spec per customer this way). Params for a ready spec are an
+    error, so they can never be silently ignored.
+    """
     ref = (ref or os.getenv(SPEC_ENV, "")).strip()
     if not ref:
         raise SpecNotConfigured(
@@ -130,6 +135,15 @@ def load_spec(ref: str | None = None) -> DatasetSpec:
         spec = getattr(module, attr)
     except (ImportError, AttributeError) as exc:
         raise SpecNotConfigured(f"cannot load dataset spec {ref!r}: {exc}") from exc
+    if isinstance(spec, DatasetSpec):
+        if params:
+            raise SpecNotConfigured(f"{ref} is a ready DatasetSpec; it takes no spec params")
+        return spec
+    if callable(spec):
+        try:
+            spec = spec(**(params or {}))
+        except (TypeError, ValueError) as exc:
+            raise SpecNotConfigured(f"cannot build dataset spec {ref!r}: {exc}") from exc
     if not isinstance(spec, DatasetSpec):
         raise SpecNotConfigured(f"{ref} is not a DatasetSpec")
     return spec

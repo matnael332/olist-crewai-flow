@@ -15,6 +15,7 @@ from sklearn.metrics import roc_auc_score
 from pulse_core.columns import read_clean_data
 from pulse_core.io import read_json
 from pulse_core.raw import load_raw_tables
+from pulse_core.spec import SpecNotConfigured, load_spec
 from pulse_core.stages import run_analyst_stage, run_feature_stage, run_modeling_stage
 from pulse_core.validators.artifacts_gate import validate_artifacts
 from pulse_core.validators.contract_gate import validate_clean_data_against_contract
@@ -26,7 +27,7 @@ from pulse_specs.workforce_saas.synth import SynthConfig, generate, write_datase
 
 CONFIG = SynthConfig(accounts=80, dirt=0.02)  # default dates, so SPEC applies unchanged
 SNAPSHOT = pd.Timestamp(SPEC.snapshot_date)
-SPEC_REF = "pulse_specs.workforce_saas.spec:SPEC"
+FACTORY_REF = "pulse_specs.workforce_saas.spec:make_spec"
 STAGES = [
     "check_inputs",
     "run_analyst_stage",
@@ -268,14 +269,32 @@ def test_windows_follow_the_snapshot():
         make_spec("2024-07-01", train_start="2024-01-01")
 
 
+def test_load_spec_builds_one_spec_per_customer():
+    built = load_spec(FACTORY_REF, {"snapshot_date": "2024-07-01", "test_months": 3})
+    assert built.snapshot_date == "2024-07-01"
+    assert built.splits["test"] == ("2024-02-01", "2024-04-30")
+    assert load_spec(FACTORY_REF).splits == SPEC.splits  # no params: the factory defaults
+    with pytest.raises(SpecNotConfigured, match="takes no spec params"):
+        load_spec("pulse_specs.workforce_saas.spec:SPEC", {"snapshot_date": "2024-07-01"})
+    with pytest.raises(SpecNotConfigured, match="cannot build"):
+        load_spec(FACTORY_REF, {"no_such_param": 1})
+    with pytest.raises(SpecNotConfigured, match="cannot build"):
+        load_spec(FACTORY_REF, {"snapshot_date": "2024-07-01", "train_start": "2024-01-01"})
+
+
 def test_flow_runs_end_to_end(tmp_path, wf80):
+    """The hosted path: the factory plus a --spec-params file (the same snapshot as SPEC)."""
     from pulse_flow.run import main
 
+    params = tmp_path / "spec_params.json"
+    params.write_text(json.dumps({"snapshot_date": SPEC.snapshot_date}), encoding="utf-8")
     code = main(
         [
             "--no-llm",
             "--spec",
-            SPEC_REF,
+            FACTORY_REF,
+            "--spec-params",
+            str(params),
             "--data-dir",
             str(wf80.data),
             "--runs-dir",
@@ -295,6 +314,8 @@ def test_flow_runs_end_to_end(tmp_path, wf80):
     )
     manifest = read_json(tmp_path / "artifacts" / "run_manifest.json")
     assert manifest["run"]["run_id"] == "wf" and "punches.csv" in manifest["inputs"]
+    assert manifest["run"]["spec_ref"] == FACTORY_REF
+    assert manifest["run"]["spec_params"] == {"snapshot_date": SPEC.snapshot_date}
     contract = read_json(tmp_path / "artifacts" / "dataset_contract.json")
     assert contract["dataset"]["name"] == "workforce_saas"
     assert "pseudonymous" in contract["privacy"]["note"].lower()
