@@ -8,9 +8,3 @@
 *.pdf binary
 *.pptx binary
 *.parquet binary
-
-# Artifacts are written byte-exact by the pipeline (UTF-8, LF); never rewrite them.
-artifacts/** -text
-
-# Fixture raw CSVs are hashed in their manifest; review texts contain embedded CRLF.
-backend/tests/fixtures/olist_mini/raw/*.csv -text
