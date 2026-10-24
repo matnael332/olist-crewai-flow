@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.13.*"
 
 [[package]]
@@ -1815,14 +1815,16 @@ wheels = [
 name = "pulse"
 version = "0.1.0"
 source = { editable = "." }
-default-groups = ["dev", "frontend"]
 dependencies = [
+    { name = "charset-normalizer" },
     { name = "crewai", extra = ["google-genai"] },
     { name = "flask" },
     { name = "joblib" },
     { name = "matplotlib" },
     { name = "numpy" },
+    { name = "openpyxl" },
     { name = "pandas" },
+    { name = "pyarrow" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
@@ -1851,12 +1853,15 @@ frontend = [
 
 [package.metadata]
 requires-dist = [
+    { name = "charset-normalizer", specifier = ">=3.4,<4" },
     { name = "crewai", extras = ["google-genai"], specifier = "==1.14.5" },
     { name = "flask", specifier = ">=3.1,<3.2" },
     { name = "joblib", specifier = ">=1.5,<2" },
     { name = "matplotlib", specifier = ">=3.10,<3.11" },
     { name = "numpy", specifier = ">=2.3,<2.4" },
+    { name = "openpyxl", specifier = ">=3.1,<4" },
     { name = "pandas", specifier = ">=2.3,<2.4" },
+    { name = "pyarrow", specifier = ">=21" },
     { name = "python-dotenv", specifier = ">=1.1" },
     { name = "pyyaml", specifier = ">=6" },
     { name = "requests", specifier = ">=2.32" },
