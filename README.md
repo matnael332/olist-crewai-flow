@@ -15,8 +15,9 @@ within 60 days): `backend/pulse_specs/workforce_saas/` holds the schema (`SCHEMA
 synthetic generator (`uv run synth`, `SYNTH.md`) and the spec (`spec.py`), and the pipeline runs
 on it end to end in deterministic mode. The product is a hosted service: customers upload an
 export and run the pipeline on our server, one folder per customer (`--data-dir`, `--runs-dir`,
-`--artifacts-dir`, `--run-id`). Next steps: Docker for our server, then the site layer (login,
-upload, run, dashboard).
+`--artifacts-dir`, `--run-id`). One Docker image runs the pipeline, the dashboard and the API on
+that server (`Dockerfile`, `compose.yaml`, `DEPLOY.md`). Next step: the site layer (login, upload,
+run, dashboard).
 
 ## How it runs
 
@@ -59,6 +60,17 @@ uv run streamlit run frontend/streamlit_app.py                     # dashboard (
 uv run pulse-api                                                   # prediction API on http://127.0.0.1:8000
 ```
 
+The same inside Docker, on the server volume (`DEPLOY.md` has the full guide; CI runs these):
+
+```bash
+docker compose build
+docker compose run --rm job synth --data-dir /srv/pulse/customers/demo/data
+docker compose run --rm job python -m pulse_flow.run --no-llm --spec pulse_specs.workforce_saas.spec:SPEC \
+  --data-dir /srv/pulse/customers/demo/data --runs-dir /srv/pulse/customers/demo/runs \
+  --artifacts-dir /srv/pulse/customers/demo/artifacts
+docker compose up -d                                               # dashboard :8501, API :8000 (localhost only)
+```
+
 The toy data folder is written by `tests.toy_spec.write_raw(<dir>/raw)`; the test suite does this
 in a temporary directory. `synth` writes `data/raw/` (13 tables, `raw_schema.json`,
 `manifest.json`), `data/truth/` (the planted story, never read by the pipeline) and an empty
@@ -91,6 +103,7 @@ backend/
   tests/             tests + toy_spec.py (the synthetic DatasetSpec they run on)
 frontend/            Streamlit dashboard (reads artifacts/ only): copilot, model, contract, runs
 scripts/             repository hygiene check
+Dockerfile           the server image; compose.yaml runs it, DEPLOY.md explains the server
 ```
 
 `artifacts/` is the contract between the backend and the frontend: it holds the last promoted
