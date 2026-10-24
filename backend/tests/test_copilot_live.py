@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from olist_copilot.agent import Copilot
+from pulse_copilot.agent import Copilot
 
 pytestmark = [
     pytest.mark.llm,

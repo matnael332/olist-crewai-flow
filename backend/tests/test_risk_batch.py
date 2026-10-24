@@ -3,8 +3,8 @@
 import pandas as pd
 import pytest
 
-from olist_api.batch import MAX_BATCH_ROWS, BatchError, read_orders_csv, score_csv
-from olist_api.risk import ACTIONS, LEVELS, RiskPolicy
+from pulse_api.batch import MAX_BATCH_ROWS, BatchError, read_orders_csv, score_csv
+from pulse_api.risk import ACTIONS, LEVELS, RiskPolicy
 
 
 def _csv(rows: list[dict]) -> bytes:

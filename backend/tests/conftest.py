@@ -34,7 +34,7 @@ def injections() -> dict:
 @pytest.fixture(scope="session")
 def analyst_out(tmp_path_factory, fixture_raw_dir, fixture_lookups_dir) -> Path:
     """One deterministic analyst-stage run on the fixture, shared by read-only tests."""
-    from olist_core.stages import run_analyst_stage
+    from pulse_core.stages import run_analyst_stage
 
     out = tmp_path_factory.mktemp("analyst")
     run_analyst_stage(fixture_raw_dir, fixture_lookups_dir, out)
@@ -46,7 +46,7 @@ def pipeline_out(tmp_path_factory, analyst_out) -> Path:
     """Analyst output plus the feature and modeling stages (deterministic), shared read-only."""
     import shutil
 
-    from olist_core.stages import run_feature_stage, run_modeling_stage
+    from pulse_core.stages import run_feature_stage, run_modeling_stage
 
     out = tmp_path_factory.mktemp("pipeline") / "artifacts"
     shutil.copytree(analyst_out, out)
@@ -68,7 +68,7 @@ def pipeline_copy(tmp_path, pipeline_out) -> Path:
 @pytest.fixture(scope="session")
 def bundle(pipeline_out, fixture_lookups_dir):
     """The fixture model loaded the way the API loads it."""
-    from olist_api.model import ModelBundle
+    from pulse_api.model import ModelBundle
 
     loaded = ModelBundle(pipeline_out, fixture_lookups_dir)
     assert loaded.ok, loaded.error
@@ -78,7 +78,7 @@ def bundle(pipeline_out, fixture_lookups_dir):
 @pytest.fixture(scope="session")
 def api_record(pipeline_out) -> dict:
     """A valid /predict record for the fixture model (its category comes from the fixture)."""
-    from olist_core.columns import read_clean_data
+    from pulse_core.columns import read_clean_data
 
     clean = read_clean_data(pipeline_out / "clean_data.csv")
     return {
@@ -98,7 +98,7 @@ def api_record(pipeline_out) -> dict:
 @pytest.fixture(scope="session")
 def busiest_test_day(pipeline_out):
     """The test-window purchase date with the most fixture orders (a realistic replay day)."""
-    from olist_core.columns import read_clean_data
+    from pulse_core.columns import read_clean_data
 
     clean = read_clean_data(pipeline_out / "clean_data.csv")
     days = clean["purchase_ts"].dt.date

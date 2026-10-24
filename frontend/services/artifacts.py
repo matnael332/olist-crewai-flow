@@ -17,8 +17,8 @@ import pandas as pd
 import streamlit as st
 
 import _bootstrap
-from olist_copilot.workspace import gate_summary, stage_durations  # noqa: F401  (shared)
-from olist_copilot.workspace import insights_headline as _headline
+from pulse_copilot.workspace import gate_summary, stage_durations  # noqa: F401  (shared)
+from pulse_copilot.workspace import insights_headline as _headline
 
 ROOT = _bootstrap.ROOT
 ARTIFACTS = Path(os.getenv("ARTIFACTS_DIR", ROOT / "artifacts"))

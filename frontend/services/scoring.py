@@ -1,6 +1,6 @@
 """Order scoring for the Risk scoring page.
 
-Scores in-process with the backend's ``olist_api.model.ModelBundle`` (the same code the Flask API
+Scores in-process with the backend's ``pulse_api.model.ModelBundle`` (the same code the Flask API
 serves, so there is nothing else to host), or over HTTP when ``API_URL`` is set.
 """
 
@@ -13,9 +13,9 @@ from datetime import date, datetime, time, timedelta
 import requests
 import streamlit as st
 
-import _bootstrap  # noqa: F401  (puts backend/ on sys.path before the olist_api import)
+import _bootstrap  # noqa: F401  (puts backend/ on sys.path before the pulse_api import)
 from components.format import pct
-from olist_api.model import ModelBundle
+from pulse_api.model import ModelBundle
 from services.artifacts import ARTIFACTS, ROOT
 
 API_URL = os.getenv("API_URL", "").rstrip("/")
@@ -92,7 +92,7 @@ class RiskLevel:
     kind: str  # "warning" | "info" | "success": the Streamlit alert used for the message
 
 
-# How each backend level looks; the level itself and its action come from olist_api.risk.
+# How each backend level looks; the level itself and its action come from pulse_api.risk.
 _LOOK = {
     "high": ("High risk", "red", "#DC2626", "warning"),
     "elevated": ("Elevated risk", "orange", "#F59E0B", "info"),

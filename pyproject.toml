@@ -1,5 +1,5 @@
 [project]
-name = "olist-crewai-flow"
+name = "pulse"
 version = "0.1.0"
 description = "CrewAI Flow that hands off from a Data Analyst crew to a Data Scientist crew to predict late deliveries on the Olist e-commerce dataset"
 readme = "README.md"
@@ -41,16 +41,16 @@ frontend = [
 ]
 
 [project.scripts]
-kickoff = "olist_flow.run:kickoff"
-plot = "olist_flow.run:plot"
-olist-api = "olist_api.serve:main"
+kickoff = "pulse_flow.run:kickoff"
+plot = "pulse_flow.run:plot"
+pulse-api = "pulse_api.serve:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["backend/olist_core", "backend/olist_flow", "backend/olist_api", "backend/olist_copilot"]
+packages = ["backend/pulse_core", "backend/pulse_flow", "backend/pulse_api", "backend/pulse_copilot"]
 
 [tool.crewai]
 type = "flow"

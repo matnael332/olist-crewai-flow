@@ -1,9 +1,9 @@
 # Prediction API
 
-Flask app in `backend/olist_api/`. Run it with `uv run olist-api` (http://127.0.0.1:8000). Every
+Flask app in `backend/pulse_api/`. Run it with `uv run pulse-api` (http://127.0.0.1:8000). Every
 response is JSON unless stated otherwise; errors are `{"error": code, "detail": text, ...}`.
 
-All endpoints share one risk policy (`backend/olist_api/risk.py`):
+All endpoints share one risk policy (`backend/pulse_api/risk.py`):
 
 | Level | Rule | Recommended action |
 |---|---|---|

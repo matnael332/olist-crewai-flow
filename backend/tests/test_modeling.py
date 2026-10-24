@@ -7,10 +7,10 @@ import pandas as pd
 import pytest
 from sklearn.exceptions import InconsistentVersionWarning
 
-from olist_core.features.build import LeakageError
-from olist_core.io import read_json, write_json_lf
-from olist_core.modeling.metrics import best_f1_threshold, precision_at_top
-from olist_core.modeling.train import read_features, select_model, train_and_evaluate
+from pulse_core.features.build import LeakageError
+from pulse_core.io import read_json, write_json_lf
+from pulse_core.modeling.metrics import best_f1_threshold, precision_at_top
+from pulse_core.modeling.train import read_features, select_model, train_and_evaluate
 
 
 def test_selection_prefers_lean_model_within_tolerance():

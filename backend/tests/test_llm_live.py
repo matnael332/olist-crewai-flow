@@ -2,7 +2,7 @@
 
 import pytest
 
-from olist_flow.llm import has_gemini_key, make_llm
+from pulse_flow.llm import has_gemini_key, make_llm
 
 pytestmark = [
     pytest.mark.llm,

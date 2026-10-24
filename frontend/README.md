@@ -2,7 +2,7 @@
 
 Streamlit dashboard for the Olist late-delivery workflow, live at
 https://olist-late-delivery-1.streamlit.app. It reads the committed `artifacts/` only and never
-imports CrewAI; order scoring reuses the backend's `olist_api.model` in-process (set `API_URL` to
+imports CrewAI; order scoring reuses the backend's `pulse_api.model` in-process (set `API_URL` to
 call a deployed API instead).
 
 | Section | Page | What it answers |

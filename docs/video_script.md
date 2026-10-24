@@ -17,7 +17,7 @@ version.
    secrets are set ([deploy.md](deploy.md), step 5). Open **Ops copilot** and enter the passcode
    before the take, so the chat is already unlocked. Each session allows 25 messages and the take
    uses three; reload the page between rehearsals to start a new session.
-6. Start the API (`uv run olist-api`) for segment 7.
+6. Start the API (`uv run pulse-api`) for segment 7.
 7. Never show `.env`, environment variables, the Streamlit secrets page, the passcode or the
    Google AI Studio page. The logs redact keys, but the screen does not.
 8. Terminal: dark theme, font size 18 or larger, window maximised. Turn off notifications.
@@ -48,7 +48,7 @@ dashboard and an API."
 ### 3. The repository (0:55-1:15)
 
 **Show:** the GitHub repository page, then the README spec compliance map, then the closed pull
-requests list with green checks, then `backend/olist_flow/crews/data_analyst/config/agents.yaml`.
+requests list with green checks, then `backend/pulse_flow/crews/data_analyst/config/agents.yaml`.
 
 **Say:** "Everything lives in one GitHub repository. Each milestone was a pull request, and CI runs
 the tests, validates the artifacts and checks reproducibility on each one. Agents and tasks are
@@ -59,7 +59,7 @@ defined in YAML, and the README maps every requirement to its file."
 **Show:** the pre-recorded terminal take of
 
 ```bash
-uv run python -m olist_flow.run --run-id demo-video --no-promote
+uv run python -m pulse_flow.run --run-id demo-video --no-promote
 ```
 
 sped up about 4x. Pause or zoom on these lines as they appear:
@@ -120,8 +120,8 @@ number shows its source."
 **Show:** two API calls in a terminal (use `curl` instead of `curl.exe` outside Windows):
 
 ```powershell
-curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/olist_api/examples/order.json"
-curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/olist_api/examples/invalid_order.json"
+curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/pulse_api/examples/order.json"
+curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "@backend/pulse_api/examples/invalid_order.json"
 ```
 
 The first call returns late probabilities 0.1635 (`"risk_level": "elevated"`, with its recommended
@@ -136,7 +136,7 @@ and every request is checked against the dataset contract, so an unknown state g
 **Show:** the pre-recorded take of
 
 ```bash
-uv run python -m olist_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote --inject-fault missing_feature
+uv run python -m pulse_flow.run --no-llm --data-dir backend/tests/fixtures/olist_mini --no-promote --inject-fault missing_feature
 git status --short artifacts/
 ```
 
@@ -153,7 +153,7 @@ artifacts are untouched."
 **Show:** the pre-recorded take of
 
 ```bash
-uv run python -m olist_flow.run verify-repro --data-dir backend/tests/fixtures/olist_mini
+uv run python -m pulse_flow.run verify-repro --data-dir backend/tests/fixtures/olist_mini
 ```
 
 ending on the table and `ALL DETERMINISTIC ARTIFACTS IDENTICAL`.

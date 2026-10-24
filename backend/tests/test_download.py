@@ -2,8 +2,8 @@ import shutil
 
 import pytest
 
-from olist_core.download import ManifestMismatch, download_raw
-from olist_core.raw import check_raw_schema
+from pulse_core.download import ManifestMismatch, download_raw
+from pulse_core.raw import check_raw_schema
 
 
 def _copy(src, dst):

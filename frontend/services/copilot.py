@@ -1,6 +1,6 @@
 """Session state, access control and rendering for the Ops copilot chat page.
 
-The brain lives in the backend (olist_copilot). This module only keeps the chat in
+The brain lives in the backend (pulse_copilot). This module only keeps the chat in
 st.session_state, checks the passcode, enforces the message cap, reads attachments and draws
 messages. Keys and the passcode come from environment variables (Streamlit Cloud exposes
 root-level secrets as environment variables).
@@ -16,13 +16,13 @@ import streamlit as st
 
 import _bootstrap  # noqa: F401  (backend/ on sys.path)
 from components.format import pct
-from olist_api.batch import BatchError, frame_to_records, read_orders_csv
-from olist_api.risk import ACTIONS
-from olist_copilot.agent import Copilot
-from olist_copilot.answer import Answer, Conversation
-from olist_copilot.prompts import QUICK_REPLIES
-from olist_copilot.quick import quick_answer
-from olist_copilot.workspace import Workspace
+from pulse_api.batch import BatchError, frame_to_records, read_orders_csv
+from pulse_api.risk import ACTIONS
+from pulse_copilot.agent import Copilot
+from pulse_copilot.answer import Answer, Conversation
+from pulse_copilot.prompts import QUICK_REPLIES
+from pulse_copilot.quick import quick_answer
+from pulse_copilot.workspace import Workspace
 from services.artifacts import ARTIFACTS
 
 MAX_ATTEMPTS = 5

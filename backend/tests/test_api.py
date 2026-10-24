@@ -6,8 +6,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from olist_api.app import create_app
-from olist_core.columns import read_clean_data
+from pulse_api.app import create_app
+from pulse_core.columns import read_clean_data
 
 FIXTURE_LOOKUPS = Path(__file__).parent / "fixtures" / "olist_mini" / "lookups"
 

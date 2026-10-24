@@ -1,5 +1,5 @@
-from olist_core.io import read_json
-from olist_core.raw import load_raw_tables
+from pulse_core.io import read_json
+from pulse_core.raw import load_raw_tables
 
 
 def test_two_layer_summary(analyst_out, fixture_raw_dir):

@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from olist_core.faults import FAULTS
-from olist_core.validators.artifacts_gate import SPEC_FILES
+from pulse_core.faults import FAULTS
+from pulse_core.validators.artifacts_gate import SPEC_FILES
 
 FIXTURE = Path(__file__).parent / "fixtures" / "olist_mini"
 
 
 def _run(tmp_path: Path, run_id: str, *extra: str) -> int:
-    from olist_flow.run import main
+    from pulse_flow.run import main
 
     return main(
         [
@@ -71,7 +71,7 @@ def test_success_run_promotes_spec_artifacts(successful_run):
     log = (promoted / "logs" / "pipeline.log").read_text(encoding="utf-8")
     assert "HANDOFF analyst->scientist" in log and "GATE gate_contract RESULT PASS" in log
     assert b"\r" not in (promoted / "logs" / "pipeline.log").read_bytes()
-    from olist_core.validate import main as validate_main
+    from pulse_core.validate import main as validate_main
 
     assert validate_main([str(promoted)]) == 0
 

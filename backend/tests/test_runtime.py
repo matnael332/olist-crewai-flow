@@ -4,10 +4,10 @@ import shutil
 
 import pytest
 
-from olist_core import promotion
-from olist_core.compare import compare_dirs
-from olist_core.promotion import PromotionError, promote
-from olist_core.status import RunStatus, read_status
+from pulse_core import promotion
+from pulse_core.compare import compare_dirs
+from pulse_core.promotion import PromotionError, promote
+from pulse_core.status import RunStatus, read_status
 
 
 def _make(folder, text):

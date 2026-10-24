@@ -1,6 +1,6 @@
 import pytest
 
-from olist_core.validators.artifacts_gate import MODEL_CARD_HEADERS, validate_artifacts
+from pulse_core.validators.artifacts_gate import MODEL_CARD_HEADERS, validate_artifacts
 
 
 def test_artifacts_gate_passes(pipeline_out):

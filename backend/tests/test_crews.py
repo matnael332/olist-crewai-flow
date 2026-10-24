@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from olist_core.narratives import (
+from pulse_core.narratives import (
     CleaningNarrative,
     ColumnNote,
     ContractNarrative,
@@ -18,7 +18,7 @@ from olist_core.narratives import (
     ModelCardNarrative,
 )
 
-CREWS = Path(__file__).resolve().parents[1] / "olist_flow" / "crews"
+CREWS = Path(__file__).resolve().parents[1] / "pulse_flow" / "crews"
 FIXTURE = Path(__file__).parent / "fixtures" / "olist_mini"
 DIGEST_KEYS = {
     "contract_version",
@@ -101,7 +101,7 @@ def fake_kickoff(crew, inputs):
 
 @pytest.fixture()
 def context(tmp_path, pipeline_out):
-    from olist_flow.runctx import RunContext, set_context
+    from pulse_flow.runctx import RunContext, set_context
 
     art = tmp_path / "run" / "artifacts"
     shutil.copytree(pipeline_out, art)
@@ -110,8 +110,8 @@ def context(tmp_path, pipeline_out):
 
 
 def test_both_crews_have_at_least_three_agents_and_tool_less_narrators(context):
-    from olist_flow.crews.data_analyst.crew import DataAnalystCrew
-    from olist_flow.crews.data_scientist.crew import DataScientistCrew
+    from pulse_flow.crews.data_analyst.crew import DataAnalystCrew
+    from pulse_flow.crews.data_scientist.crew import DataScientistCrew
 
     analyst = DataAnalystCrew()
     crew1 = analyst.crew()
@@ -142,8 +142,8 @@ def test_yaml_placeholders_are_all_kickoff_inputs():
 
 
 def test_tools_are_read_through_and_never_raise(context):
-    from olist_flow.tools.analyst_tools import draft_contract_schema, ingest_and_clean, run_eda
-    from olist_flow.tools.scientist_tools import build_features, train_models, validate_inputs
+    from pulse_flow.tools.analyst_tools import draft_contract_schema, ingest_and_clean, run_eda
+    from pulse_flow.tools.scientist_tools import build_features, train_models, validate_inputs
 
     for tool in (
         ingest_and_clean,
@@ -162,7 +162,7 @@ def test_tools_are_read_through_and_never_raise(context):
 
 
 def test_tool_outputs_give_narrators_formatted_percentages():
-    from olist_flow.tools.analyst_tools import as_percentages
+    from pulse_flow.tools.analyst_tools import as_percentages
 
     out = as_percentages(
         {
@@ -182,7 +182,7 @@ def test_tool_outputs_give_narrators_formatted_percentages():
 
 
 def test_merge_items_keeps_statements_and_drops_labels_and_repeats():
-    from olist_core.reporting.markdown_ds import merge_items
+    from pulse_core.reporting.markdown_ds import merge_items
 
     base = ["Regional bias: customers in the North wait longer."]
     extra = [
@@ -194,7 +194,7 @@ def test_merge_items_keeps_statements_and_drops_labels_and_repeats():
 
 
 def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypatch):
-    from olist_flow.crews import runner
+    from pulse_flow.crews import runner
 
     monkeypatch.setattr(runner, "kickoff", fake_kickoff)
     ctx = {
@@ -221,8 +221,8 @@ def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypat
 
 
 def _run_llm(tmp_path, monkeypatch, kickoff, run_id):
-    from olist_flow.crews import runner
-    from olist_flow.run import main
+    from pulse_flow.crews import runner
+    from pulse_flow.run import main
 
     monkeypatch.setenv("GEMINI_API_KEY", "test-key-not-real")
     monkeypatch.setattr(runner, "kickoff", kickoff)

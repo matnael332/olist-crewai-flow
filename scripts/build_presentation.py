@@ -26,7 +26,7 @@ IMAGES = ROOT / "docs" / "images"
 OUT = ROOT / "docs" / "presentation.pptx"
 
 PRESENTER = "Matanel"
-REPO_URL = "github.com/matnael332/olist-crewai-flow"
+REPO_URL = "github.com/matnael332/pulse"
 APP_URL = "olist-late-delivery-1.streamlit.app"  # Streamlit Community Cloud deployment
 
 NAVY = RGBColor(0x0F, 0x17, 0x2A)
@@ -740,14 +740,14 @@ def build() -> None:
     deck.code(
         s,
         [
-            "$ olist_flow.run --no-llm --inject-fault missing_feature",
+            "$ pulse_flow.run --no-llm --inject-fault missing_feature",
             "FAULT INJECTED missing_feature",
             "GATE gate_required_features required_features_present FAIL",
             "GATE gate_required_features RESULT FAIL (11/13 checks)",
             "RUN demo-fault FAILED at gate_required_features",
             "run demo-fault: failed (exit 1), nothing promoted",
             "",
-            "$ olist_flow.run verify-repro",
+            "$ pulse_flow.run verify-repro",
             "clean_data.csv        byte-identical  identical",
             "features.csv          byte-identical  identical",
             "metrics.json          byte-identical  identical",

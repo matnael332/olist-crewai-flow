@@ -3,13 +3,13 @@ import copy
 import pandas as pd
 import pytest
 
-from olist_core.columns import read_clean_data
-from olist_core.features.build import LeakageError, check_no_leakage
-from olist_core.features.derive import derive_checkout_features
-from olist_core.features.spec import MODEL_FEATURES
-from olist_core.io import read_json
-from olist_core.policy import REQUIRED_FEATURES, assign_split
-from olist_core.validators.features_gate import validate_features
+from pulse_core.columns import read_clean_data
+from pulse_core.features.build import LeakageError, check_no_leakage
+from pulse_core.features.derive import derive_checkout_features
+from pulse_core.features.spec import MODEL_FEATURES
+from pulse_core.io import read_json
+from pulse_core.policy import REQUIRED_FEATURES, assign_split
+from pulse_core.validators.features_gate import validate_features
 
 
 def test_catalogue_covers_required_features():
@@ -92,7 +92,7 @@ def test_features_gate_passes(pipeline_out):
     ],
 )
 def test_features_gate_failure_modes(pipeline_copy, case, failed_check):
-    from olist_core.io import write_json_lf
+    from pulse_core.io import write_json_lf
 
     features = pd.read_csv(pipeline_copy / "features.csv", dtype=str, keep_default_na=False)
     spec = read_json(pipeline_copy / "feature_spec.json")
