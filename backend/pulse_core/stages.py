@@ -28,6 +28,7 @@ from pulse_core.reporting import templates, templates_ds
 from pulse_core.reporting.html import render_eda_report_html
 from pulse_core.reporting.markdown import render_cleaning_md, render_insights_md
 from pulse_core.reporting.markdown_ds import render_evaluation_md, render_model_card_md
+from pulse_core.scoring import SCORE_ROWS, score_current
 from pulse_core.spec import DatasetSpec
 
 ANALYST_ARTIFACTS = (
@@ -67,6 +68,8 @@ def run_analyst_stage(
     clean_df, cleaning_report = spec.clean(tables, lookups_dir)
     write_csv_stable(clean_df, out_dir / "clean_data.csv")
     write_json_lf(out_dir / "cleaning_report.json", cleaning_report)
+    if spec.score_rows is not None:
+        write_csv_stable(spec.score_rows(tables, lookups_dir), out_dir / SCORE_ROWS)
 
     clean = read_clean_data(out_dir / "clean_data.csv", spec.dtypes)  # what downstream reads
     summary = spec.eda_summary(tables, clean, cleaning_report)
@@ -152,7 +155,8 @@ def assemble_feature_narrative(
 
 
 def run_modeling_stage(spec: DatasetSpec, out_dir: str | Path, seed: int | None = None) -> dict:
-    """Train and compare models, write model.joblib, metrics and the two reports (templates)."""
+    """Train and compare models, write model.joblib, metrics and the two reports (templates),
+    then score the snapshot rows when the spec has them (scores_current.csv, reasons.json)."""
     out_dir = Path(out_dir)
     summary = train_and_evaluate(
         out_dir / "features.csv",
@@ -161,6 +165,7 @@ def run_modeling_stage(spec: DatasetSpec, out_dir: str | Path, seed: int | None 
         out_dir,
         seed=spec.seed if seed is None else seed,
     )
+    summary["scoring"] = score_current(spec, out_dir)
     assemble_modeling_narratives(spec, out_dir)
     return summary
 

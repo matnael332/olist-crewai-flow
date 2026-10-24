@@ -421,6 +421,52 @@ def _rule(name: str, description: str, before: int, after: int, detail: str) -> 
     }
 
 
+def _group_tables(tables: dict[str, pd.DataFrame], groups: tuple[str, ...]) -> dict:
+    needed = {t for g in groups for t in wf.GROUP_TABLES[g]}
+    return {name: df for name, df in tables.items() if name in needed}
+
+
+def last_complete_month(snapshot: pd.Timestamp) -> pd.Period:
+    """The newest calendar month whose last second is before the snapshot."""
+    month = (snapshot - pd.Timedelta(seconds=1)).to_period("M")
+    return month if month.end_time.floor("s") < snapshot else month - 1
+
+
+def score_rows(
+    tables: dict[str, pd.DataFrame],
+    lookups_dir: str | Path,
+    *,
+    snapshot: pd.Timestamp,
+    groups: tuple[str, ...] = wf.ALL_GROUPS,
+) -> pd.DataFrame:
+    """The DatasetSpec ``score_rows`` callable: the months ``clean_tables`` drops only by R1.
+
+    For every account still a customer at the end of the last complete month (and billed for
+    it), its months up to that month whose outcome is not known yet, built exactly like the clean
+    rows; the post-decision and label columns are left out. The account's earlier months are in
+    the clean table, which the scoring stage puts in front for trends and streaks.
+    """
+    del lookups_dir
+    tables, _ = normalise_raw(_group_tables(tables, groups))
+    spine = build_spine(tables["accounts"], snapshot)
+    last = last_complete_month(snapshot)
+    alive_at_end = spine["cancelled_at"].isna() | (spine["cancelled_at"] > last.end_time)
+    rows = spine[
+        (spine["month_end"] + HORIZON > snapshot)
+        & (spine["period"] <= last)
+        & alive_at_end
+        & (spine["cancelled_at"].isna() | (spine["cancelled_at"] > spine["month_end"]))
+    ]
+    df = _merge_all(rows.reset_index(drop=True), tables, groups)
+    df = df[df["has_billing"]]
+    billed_last = set(df.loc[df["period"] == last, "account_id"])
+    df = df[df["account_id"].isin(billed_last)]
+    df = df.sort_values([wf.TIME_COLUMN, "account_id"], kind="mergesort").reset_index(drop=True)
+    typed = _typed(df, groups)
+    later = [c.name for c in wf.COLUMNS if c.available_at in ("post_decision", "label")]
+    return typed.drop(columns=[c for c in later if c in typed])
+
+
 def clean_tables(
     tables: dict[str, pd.DataFrame],
     lookups_dir: str | Path,
@@ -433,9 +479,7 @@ def clean_tables(
     Tables of groups outside ``groups`` are never read, even when they are in ``tables``.
     """
     del lookups_dir  # the spec needs no lookups
-    needed = {t for g in groups for t in wf.GROUP_TABLES[g]}
-    tables = {name: df for name, df in tables.items() if name in needed}
-    tables, raw_fixes = normalise_raw(tables)
+    tables, raw_fixes = normalise_raw(_group_tables(tables, groups))
     spine = build_spine(tables["accounts"], snapshot)
     rows_in = len(spine)
     rules = []

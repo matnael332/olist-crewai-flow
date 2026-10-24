@@ -11,6 +11,7 @@ import pandas as pd
 from sklearn.exceptions import InconsistentVersionWarning
 
 from pulse_core.io import read_json, sha256_file
+from pulse_core.risk import LEVELS
 from pulse_core.validators.report import GateReport
 
 GATE = "gate_artifacts"
@@ -49,6 +50,33 @@ BAD_TEXT = re.compile(
 
 def _present(art: Path, names) -> list[str]:
     return [n for n in names if not (art / n).exists() or (art / n).stat().st_size == 0]
+
+
+def _check_scores(art: Path) -> tuple[str, bool, str]:
+    """A run with score rows has one ranked, policy-levelled score per entity, and reasons."""
+    name = "current_scores_usable"
+    try:
+        scores = pd.read_csv(art / "scores_current.csv")
+        reasons = read_json(art / "reasons.json")
+        entity = reasons["entity_column"]
+        problems = []
+        if scores[entity].duplicated().any():
+            problems.append("an entity is scored twice")
+        if not scores["probability"].between(0, 1).all():
+            problems.append("a probability is outside [0, 1]")
+        if not set(scores["risk_level"]) <= set(LEVELS):
+            problems.append(
+                f"unknown risk levels {sorted(set(scores['risk_level']) - set(LEVELS))}"
+            )
+        if scores["rank"].tolist() != list(range(1, len(scores) + 1)):
+            problems.append("ranks are not 1..n in file order")
+        if [e[entity] for e in reasons["entities"]] != scores[entity].tolist():
+            problems.append("reasons.json does not follow scores_current.csv")
+        if problems:
+            return name, False, "; ".join(problems)
+        return name, True, f"{len(scores)} entities scored at the snapshot, with reasons"
+    except Exception as exc:  # noqa: BLE001 - any failure here is a failed check
+        return name, False, f"scores_current.csv or reasons.json unusable: {exc}"
 
 
 def validate_artifacts(artifacts_dir: str | Path) -> GateReport:
@@ -103,6 +131,9 @@ def validate_artifacts(artifacts_dir: str | Path) -> GateReport:
         )
     except Exception as exc:  # noqa: BLE001
         report.record("models_compared", False, f"metrics.json unusable: {exc}")
+
+    if (art / "score_rows.csv").exists():
+        report.record(*_check_scores(art))
 
     card = (
         (art / "model_card.md").read_text(encoding="utf-8")

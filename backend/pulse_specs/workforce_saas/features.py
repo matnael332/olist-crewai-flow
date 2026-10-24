@@ -107,6 +107,40 @@ def _streak_definitions() -> list[dict]:
     ]
 
 
+# Reason codes for the scoring stage: a feature family per code, so a level, its trends and its
+# streak explain an account in one translatable phrase on the website.
+REASON_FAMILIES = {
+    "punch_activity": ("punches", "punch_days", "punches_delta_1m", "punches_delta_3m"),
+    "active_employees": (
+        "active_employees",
+        "active_employees_delta_1m",
+        "active_employees_delta_3m",
+    ),
+    "admin_logins": (
+        "admin_login_days",
+        "admin_login_days_delta_1m",
+        "admin_login_days_delta_3m",
+        "months_without_admin_login",
+    ),
+    "payroll_exports": (
+        "payroll_exported",
+        "payroll_exported_delta_1m",
+        "payroll_exported_delta_3m",
+        "months_without_payroll_export",
+        "payroll_export_delay_days",
+    ),
+    "modules": ("modules_active", "modules_active_delta_1m", "modules_active_delta_3m"),
+    "seats": ("seats", "seats_delta_1m", "seats_delta_3m"),
+    "billing": ("payment_missing", "invoice_days_late"),
+    "overtime": ("overtime_share", "overtime_share_delta_1m", "overtime_share_delta_3m"),
+    "support": ("support_tickets",),
+    "punch_edits": ("edited_punch_share",),
+    "engagement": ("messages_sent", "reports_viewed"),
+    "tenure": ("tenure_months", "in_trial"),
+}
+REASON_CODES = {feature: code for code, names in REASON_FAMILIES.items() for feature in names}
+
+
 def feature_definitions(columns: Sequence[Column] = wf.COLUMNS) -> tuple[dict, ...]:
     """Level, trend and streak features of the columns at hand (streaks use core columns only)."""
     return tuple(_level_definitions(columns) + _trend_definitions(columns) + _streak_definitions())

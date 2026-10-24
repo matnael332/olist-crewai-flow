@@ -103,6 +103,15 @@ class DatasetSpec:
     contract_template: Callable[[DatasetSpec, dict, dict], ContractNarrative] | None = None
     model_card_items: Mapping[str, Sequence[str]] = field(default_factory=dict)
 
+    # scoring at the snapshot (optional; see pulse_core.scoring): ``score_rows(tables,
+    # lookups_dir)`` returns the newest rows of every entity still live at the snapshot (the
+    # rows ``clean`` drops only because their outcome is not known yet), with the clean columns
+    # minus the post-decision and label ones; ``entity_column`` names the entity key and
+    # ``reason_codes`` maps a feature to the code the reasons carry (default: the feature name)
+    entity_column: str | None = None
+    score_rows: Callable[[dict[str, pd.DataFrame], Path], pd.DataFrame] | None = None
+    reason_codes: Mapping[str, str] = field(default_factory=dict)
+
     def __post_init__(self) -> None:
         missing = {"train", "test"} - set(self.splits)
         if missing:

@@ -433,3 +433,48 @@ def test_a_group_the_spec_reads_must_be_in_the_raw_schema(tmp_path, wf80):
         (tmp_path / "runs" / "noshifts" / "run_status.json").read_text(encoding="utf-8")
     )
     assert "the spec reads shifts" in status["errors"][0]
+
+
+# ----------------------------------------------------------------------------- 8. scoring at the snapshot
+
+
+def test_live_accounts_are_scored_at_the_last_complete_month(wf80):
+    scores = pd.read_csv(wf80.out / "scores_current.csv")
+    cancelled = pd.to_datetime(
+        wf80.accounts_truth.set_index("account_id")["cancelled_at"].replace("", pd.NaT)
+    )
+    live = set(
+        cancelled[cancelled.isna() | (cancelled > pd.Timestamp("2025-08-31 23:59:59"))].index
+    )
+    billed = wf80.tables["billing_monthly"]
+    billed = set(billed.loc[billed["period"].dt.to_period("M") == "2025-08", "account_id"])
+    assert set(scores["account_id"]) == live & billed
+    assert (scores["month_end"] == "2025-08-31 23:59:59").all()
+    assert scores["rank"].tolist() == list(range(1, len(scores) + 1))
+    assert scores["probability"].is_monotonic_decreasing
+
+
+def test_scores_follow_the_planted_hazard(wf80):
+    scores = pd.read_csv(wf80.out / "scores_current.csv")
+    truth = wf80.monthly_truth[wf80.monthly_truth["month"] == "2025-08"]
+    merged = scores.merge(truth[["account_id", "hazard"]], on="account_id")
+    assert len(merged) == len(scores)
+    assert merged["probability"].corr(merged["hazard"], method="spearman") > 0.3
+
+
+def test_reasons_explain_the_scores(wf80):
+    from pulse_specs.workforce_saas.features import REASON_CODES
+
+    scores = pd.read_csv(wf80.out / "scores_current.csv")
+    reasons = read_json(wf80.out / "reasons.json")
+    assert [e["account_id"] for e in reasons["entities"]] == scores["account_id"].tolist()
+    top = reasons["entities"][0]["reasons"]
+    assert top, "the riskiest account has at least one reason"
+    for entity in reasons["entities"]:
+        contributions = [r["contribution"] for r in entity["reasons"]]
+        assert all(c > 0 for c in contributions) and contributions == sorted(
+            contributions, reverse=True
+        )
+        for r in entity["reasons"]:
+            assert r["feature"] in reasons["features_tried"]
+            assert r["code"] == REASON_CODES.get(r["feature"], r["feature"])
