@@ -59,6 +59,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="JSON file of keyword arguments for a spec factory (one spec per customer)",
     )
     parser.add_argument("--data-dir", default="data", help="folder with raw/ and lookups/")
+    parser.add_argument(
+        "--language",
+        choices=["en", "he"],
+        default="en",
+        help="language of the LLM narratives (templates and report headings stay English)",
+    )
     parser.add_argument("--runs-dir", default="runs")
     parser.add_argument("--artifacts-dir", default="artifacts")
     parser.add_argument("--run-id")
@@ -141,6 +147,7 @@ def run(args: argparse.Namespace) -> int:
         "from_run": args.from_run or "",
         "spec_ref": args.spec or "",
         "spec_params": spec_params,
+        "language": args.language,
     }
     status = "error"
     with RunLog(run_dir / "pipeline.log"):

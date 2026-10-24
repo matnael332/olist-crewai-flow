@@ -14,6 +14,8 @@ cleaning_narrative_task:
     caveats that remain. Quote only numbers that appear in the report.
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them. Write counts with thousands separators.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     A CleaningNarrative with summary, issues_found, decisions and caveats.
   agent: cleaning_documenter
@@ -37,6 +39,8 @@ insights_task:
     recommendations must not introduce new numbers or thresholds.
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them. Write counts with thousands separators.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     An Insights object with headline, key_findings, recommendations, data_caveats and
     modeling_implications.
@@ -62,6 +66,8 @@ contract_narrative_task:
     features because they only exist afterwards.
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     A ContractNarrative with assumptions, business_rules, column_notes and known_limitations.
   agent: contract_author
