@@ -20,7 +20,7 @@ from pulse_core.narratives import (
 from tests.conftest import SPEC_REF
 
 CREWS = Path(__file__).resolve().parents[1] / "pulse_flow" / "crews"
-COMMON = {"run_id", "dataset_name", "entity", "target_label"}
+COMMON = {"run_id", "dataset_name", "entity", "target_label", "language"}
 DIGEST_KEYS = {
     "contract_version",
     "contract_sha256",
@@ -216,6 +216,37 @@ def test_narrate_uses_llm_outputs_and_falls_back_to_templates(context, monkeypat
     assert any("evaluation_task" in w for w in result["warnings"])
     card = (context / "model_card.md").read_text(encoding="utf-8")
     assert "## Ethical considerations" in card and "narrative_source: template" in card
+
+
+def test_narratives_json_follows_the_language_and_the_source(context, monkeypatch, spec):
+    from pulse_flow.crews import runner
+
+    template = json.loads((context / "narratives.json").read_text(encoding="utf-8"))
+    assert {n["source"] for n in template.values()} == {"template"}
+    assert {n["language"] for n in template.values()} == {"en"}
+    assert "model_card" not in template and "model_card_general" in template
+
+    seen = []
+
+    def recording_kickoff(crew, inputs):
+        seen.append(inputs["language"])
+        return fake_kickoff(crew, inputs)
+
+    monkeypatch.setattr(runner, "kickoff", recording_kickoff)
+    ctx = {
+        "run_id": "t",
+        "language": "he",
+        "llm_model": "gemini-3.5-flash-lite",
+        "contract_digest": dict.fromkeys(DIGEST_KEYS, "x"),
+    }
+    for phase in ("analyst", "features", "modeling"):
+        runner.narrate(phase, context, ctx, spec)
+    assert seen == ["Hebrew"] * 3
+    doc = json.loads((context / "narratives.json").read_text(encoding="utf-8"))
+    assert doc["insights"]["source"] == "llm" and doc["insights"]["language"] == "he"
+    assert doc["model_card"]["language"] == "he"
+    assert doc["model_card_general"] == template["model_card_general"]  # the template items
+    assert doc["contract"]["source"] == "template+llm" and doc["contract"]["language"] == "he"
 
 
 def _run_llm(tmp_path, data_dir, monkeypatch, kickoff, run_id):

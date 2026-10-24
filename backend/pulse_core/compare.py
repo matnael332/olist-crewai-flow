@@ -34,6 +34,7 @@ NARRATIVE = (
     "evaluation_report.md",
     "model_card.md",
     "eda_report.html",
+    "narratives.json",
 )
 
 

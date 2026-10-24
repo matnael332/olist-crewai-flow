@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from pulse_core.columns import read_clean_data
 from pulse_core.contract.builder import build_contract, merge_narrative
 from pulse_core.features.build import build_features
@@ -31,6 +33,7 @@ from pulse_core.reporting.markdown_ds import render_evaluation_md, render_model_
 from pulse_core.scoring import SCORE_ROWS, score_current
 from pulse_core.spec import DatasetSpec
 
+NARRATIVES = "narratives.json"
 ANALYST_ARTIFACTS = (
     "raw_profile.json",
     "clean_data.csv",
@@ -52,6 +55,28 @@ def _provenance(spec: DatasetSpec, raw_dir: Path, lookups_dir: Path) -> dict:
         },
         "lookups": {name: sha256_file(lookups_dir / name) for name in spec.required_lookups},
     }
+
+
+def record_narratives(out_dir: Path, language: str, **entries) -> None:
+    """Merge narratives into narratives.json, the structured copy the website renders.
+
+    Each entry is ``(narrative, source)``, the narrative a pydantic model or a dict; None removes
+    the entry. A template narrative is in
+    English; anything an agent wrote is in ``language``.
+    """
+    path = Path(out_dir) / NARRATIVES
+    doc = read_json(path) if path.exists() else {}
+    for name, entry in entries.items():
+        if entry is None:
+            doc.pop(name, None)
+            continue
+        narrative, source = entry
+        doc[name] = {
+            "source": source,
+            "language": "en" if source == "template" else language,
+            **(narrative.model_dump() if isinstance(narrative, BaseModel) else dict(narrative)),
+        }
+    write_json_lf(path, dict(sorted(doc.items())))
 
 
 def run_analyst_stage(
@@ -96,8 +121,11 @@ def assemble_analyst_narratives(
     cleaning: CleaningNarrative | None = None,
     insights: Insights | None = None,
     contract: ContractNarrative | None = None,
+    language: str = "en",
 ) -> dict[str, str]:
-    """(Re)write the narrative artifacts. None means: use the deterministic template."""
+    """(Re)write the narrative artifacts. None means: use the deterministic template.
+
+    ``language`` is the language the agents wrote in (templates are English)."""
     out_dir = Path(out_dir)
     report = read_json(out_dir / "cleaning_report.json")
     summary = read_json(out_dir / "eda_summary.json")
@@ -128,6 +156,13 @@ def assemble_analyst_narratives(
     narrative = merge_narrative(base, contract, {c.name for c in spec.columns})
     contract_doc = build_contract(spec, out_dir / "clean_data.csv", report, provenance, narrative)
     write_json_lf(out_dir / "dataset_contract.json", contract_doc)
+    record_narratives(
+        out_dir,
+        language,
+        cleaning=(cleaning, sources["cleaning_report.md"]),
+        insights=(insights, sources["insights.md"]),
+        contract=(narrative, sources["dataset_contract.json"]),
+    )
     return sources
 
 
@@ -142,7 +177,7 @@ def run_feature_stage(spec: DatasetSpec, out_dir: str | Path) -> dict:
 
 
 def assemble_feature_narrative(
-    out_dir: str | Path, narrative: FeatureNarrative | None = None
+    out_dir: str | Path, narrative: FeatureNarrative | None = None, language: str = "en"
 ) -> str:
     out_dir = Path(out_dir)
     spec = read_json(out_dir / "feature_spec.json")
@@ -151,6 +186,7 @@ def assemble_feature_narrative(
     narrative = narrative or templates_ds.feature_template(spec, contract)
     spec["narrative"] = {"narrative_source": source, **narrative.model_dump()}
     write_json_lf(out_dir / "feature_spec.json", spec)
+    record_narratives(out_dir, language, features=(narrative, source))
     return source
 
 
@@ -175,6 +211,7 @@ def assemble_modeling_narratives(
     out_dir: str | Path,
     evaluation: EvaluationNarrative | None = None,
     model_card: ModelCardNarrative | None = None,
+    language: str = "en",
 ) -> dict[str, str]:
     out_dir = Path(out_dir)
     metrics = read_json(out_dir / "metrics.json")
@@ -207,5 +244,12 @@ def assemble_modeling_narratives(
             sources["model_card.md"],
             grounding,
         ),
+    )
+    record_narratives(
+        out_dir,
+        language,
+        evaluation=(evaluation, sources["evaluation_report.md"]),
+        model_card_general=(card_template, "template"),
+        model_card=(model_card, "llm") if model_card else None,
     )
     return sources

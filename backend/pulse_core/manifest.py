@@ -95,6 +95,7 @@ def build_manifest(
                 "from_run",
                 "spec_ref",
                 "spec_params",
+                "language",
             )
         },
         "started_at": state.get("started_at"),

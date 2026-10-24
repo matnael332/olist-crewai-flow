@@ -21,6 +21,8 @@ feature_narrative_task:
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them. The feature spec contains no money amounts, so never
     invent costs.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     A FeatureNarrative with contract_compliance, leakage_statement, feature_groups and concerns.
   agent: feature_reviewer
@@ -44,6 +46,8 @@ evaluation_task:
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them. The comparison contains no money amounts, so never
     invent costs.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     An EvaluationNarrative with executive_summary, comparison_summary, strengths, weaknesses,
     threshold_recommendation and next_steps.
@@ -65,6 +69,8 @@ model_card_task:
     Rates in the JSON are already formatted as percentages (for example 6.8%): copy them
     exactly and never recompute them. The comparison contains no money amounts, so never
     invent costs.
+    Write every text field in {language}; keep column names, feature names and numbers exactly
+    as they appear in the JSON.
   expected_output: >-
     A ModelCardNarrative with purpose, intended_users, out_of_scope, training_data_summary,
     limitations, ethical_considerations and monitoring_recommendations.

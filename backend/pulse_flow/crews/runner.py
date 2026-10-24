@@ -25,6 +25,7 @@ from pulse_flow.llm import resolve_model
 from pulse_flow.runctx import RunContext, set_context
 
 log = get_logger("crew")
+LANGUAGES = {"en": "English", "he": "Hebrew"}  # --language code -> the name the tasks use
 _JSON_BLOCK = re.compile(r"\{.*\}", re.DOTALL)
 
 
@@ -68,11 +69,13 @@ def narrate(phase: str, artifacts_dir: Path, context: dict, spec) -> dict:
     set_context(RunContext(artifacts_dir=art, run_dir=art.parent, model=model))
     warnings: list[str] = []
     digest = {k: str(v) for k, v in (context.get("contract_digest") or {}).items()}
+    language = context.get("language") or "en"
     common = {
         "run_id": context["run_id"],
         "dataset_name": spec.name,
         "entity": spec.entity,
         "target_label": spec.target_label,
+        "language": LANGUAGES[language],
     }
 
     if phase == "analyst":
@@ -88,6 +91,7 @@ def narrate(phase: str, artifacts_dir: Path, context: dict, spec) -> dict:
             extract(output, "cleaning_narrative_task", CleaningNarrative, warnings),
             extract(output, "insights_task", Insights, warnings),
             extract(output, "contract_narrative_task", ContractNarrative, warnings),
+            language=language,
         )
     elif phase == "features":
         from pulse_flow.crews.data_scientist.crew import DataScientistCrew
@@ -97,7 +101,7 @@ def narrate(phase: str, artifacts_dir: Path, context: dict, spec) -> dict:
         log.info("CREW data_scientist phase=1/2 agents=%s", [a.role for a in crew.agents])
         output = kickoff(crew, {**common, **digest})
         narrative = extract(output, "feature_narrative_task", FeatureNarrative, warnings)
-        sources = {"feature_spec.json": stages.assemble_feature_narrative(art, narrative)}
+        sources = {"feature_spec.json": stages.assemble_feature_narrative(art, narrative, language)}
     elif phase == "modeling":
         from pulse_flow.crews.data_scientist.crew import DataScientistCrew
 
@@ -110,6 +114,7 @@ def narrate(phase: str, artifacts_dir: Path, context: dict, spec) -> dict:
             art,
             extract(output, "evaluation_task", EvaluationNarrative, warnings),
             extract(output, "model_card_task", ModelCardNarrative, warnings),
+            language=language,
         )
     else:
         raise ValueError(f"unknown phase {phase!r}")
