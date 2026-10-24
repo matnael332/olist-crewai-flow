@@ -1,7 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="196" height="36" viewBox="0 0 196 36">
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="36" viewBox="0 0 140 36">
   <rect x="0" y="0" width="36" height="36" rx="9" fill="#2563EB"/>
-  <path d="M8 11h13v10H8z M21 14h4.5l3.5 4v3h-8z" fill="#FFFFFF"/>
-  <circle cx="12.5" cy="23.5" r="2.6" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.4"/>
-  <circle cx="24.5" cy="23.5" r="2.6" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.4"/>
-  <text x="46" y="24.5" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="17.5" font-weight="700" fill="#F8FAFC">Olist delivery risk</text>
+  <polyline points="6,19 11,19 14,11 18,27 22,15 25,19 30,19" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="46" y="24.5" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="17.5" font-weight="700" fill="#F8FAFC">pulse</text>
 </svg>

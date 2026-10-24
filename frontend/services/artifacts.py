@@ -1,6 +1,6 @@
 """Cached, tolerant loaders for the dashboard.
 
-Reads the committed artifacts and run status files only; never imports CrewAI. Caches are keyed by
+Reads the promoted artifacts and run status files only; never imports CrewAI. Caches are keyed by
 file modification time, so a newly promoted run shows up without restarting the app. Missing or
 unreadable files return None and the pages show an empty state instead of an error.
 """

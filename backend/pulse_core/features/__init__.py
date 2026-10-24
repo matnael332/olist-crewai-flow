@@ -1,1 +1,1 @@
-"""Feature engineering: checkout-time features for late-delivery prediction."""
+"""Feature engineering: decision-time features derived as the dataset spec declares."""

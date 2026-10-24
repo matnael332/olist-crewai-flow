@@ -1,4 +1,4 @@
-"""Read-only access to the committed artifacts and local runs (no Streamlit, no LLM).
+"""Read-only access to the promoted artifacts and local runs (no Streamlit, no LLM).
 
 Also holds the small pure helpers the dashboard and the copilot share: gate summaries, stage
 timings from pipeline.log and the insights headline.

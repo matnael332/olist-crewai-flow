@@ -1,4 +1,4 @@
-"""Run the three gates against an artifacts folder (used by CI on the committed artifacts/).
+"""Run the three gates against an artifacts folder (for example the promoted artifacts/).
 
 Usage: uv run python -m pulse_core.validate artifacts
 """
