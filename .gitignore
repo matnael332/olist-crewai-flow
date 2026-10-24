@@ -18,6 +18,9 @@ artifacts.prev-*/
 artifacts.staging-*/
 *.tmp
 
+# Generated datasets (regenerate with `uv run synth`)
+/data/
+
 # Course material (not ours to redistribute)
 /Final Project.pdf
 

@@ -11,9 +11,10 @@ model, metrics, a model card and an evaluation report.
 real dataset spec exists yet; `backend/tests/toy_spec.py` is a small seeded spec that exercises
 every gate, fault, renderer, the API and the ops copilot end to end. The schema of the first
 real dataset, `workforce_saas` (ten data groups, one row per account-month, target: cancelled
-within 60 days), is in `backend/pulse_specs/workforce_saas/SCHEMA.md`. Next steps, in order: a
-synthetic data generator for it, the spec itself (clean, features, model), a Docker package for
-an on-premises pilot.
+within 60 days), is in `backend/pulse_specs/workforce_saas/SCHEMA.md`, and `uv run synth`
+generates a seeded, byte-reproducible raw dataset for it from a causal story per account
+(`backend/pulse_specs/workforce_saas/SYNTH.md`). Next steps, in order: the spec itself (clean,
+features, model), a Docker package for an on-premises pilot.
 
 ## How it runs
 
@@ -47,7 +48,8 @@ honour.
 ```bash
 uv sync                                                            # Python 3.13 + locked deps
 uv run ruff check . && uv run ruff format --check .
-uv run pytest                                                      # 73 tests on the toy spec
+uv run pytest                                                      # 85 tests on the toy spec and the generator
+uv run synth --data-dir data                                       # workforce_saas raw data: 200 accounts, ~145 MB, < 1 min
 uv run python -m pulse_flow.run --no-llm --spec tests.toy_spec:SPEC --data-dir <toy data> --no-promote
 uv run python -m pulse_flow.run --no-llm --no-promote               # no spec: graceful failure, exit 1
 uv run streamlit run frontend/streamlit_app.py                     # dashboard (empty until a run is promoted)
@@ -55,7 +57,10 @@ uv run pulse-api                                                   # prediction 
 ```
 
 The toy data folder is written by `tests.toy_spec.write_raw(<dir>/raw)`; the test suite does this
-in a temporary directory.
+in a temporary directory. `synth` writes `data/raw/` (13 tables, `raw_schema.json`,
+`manifest.json`), `data/truth/` (the planted story, never read by the pipeline) and an empty
+`data/lookups/`; `data/` is git-ignored. `--accounts`, `--seed`, `--start-month`, `--snapshot`
+and `--dirt` change the dataset, `--force` overwrites it.
 
 | Flag | Meaning |
 |---|---|

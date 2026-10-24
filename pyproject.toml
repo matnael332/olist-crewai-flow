@@ -44,6 +44,7 @@ frontend = [
 kickoff = "pulse_flow.run:kickoff"
 plot = "pulse_flow.run:plot"
 pulse-api = "pulse_api.serve:main"
+synth = "pulse_specs.workforce_saas.synth:main"
 
 [build-system]
 requires = ["hatchling"]
