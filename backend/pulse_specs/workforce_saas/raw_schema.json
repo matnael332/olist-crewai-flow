@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "datetime_format": "%Y-%m-%d %H:%M:%S",
+  "renames": {},
+  "tables": {
+    "accounts": {
+      "group": "8 commercial",
+      "file": "accounts.csv",
+      "primary_key": ["account_id"],
+      "columns": {
+        "account_id": "string",
+        "industry": "string",
+        "region": "string",
+        "signed_up_at": "datetime",
+        "trial_ends_at": "datetime",
+        "status": "string",
+        "cancelled_at": "datetime"
+      }
+    },
+    "billing_monthly": {
+      "group": "8 commercial",
+      "file": "billing_monthly.csv",
+      "primary_key": ["account_id", "period"],
+      "columns": {
+        "account_id": "string",
+        "period": "datetime",
+        "plan": "string",
+        "seats": "int",
+        "mrr": "float",
+        "invoice_amount": "float",
+        "paid_at": "datetime",
+        "days_late": "int"
+      }
+    },
+    "employees": {
+      "group": "2 organisation",
+      "file": "employees.csv",
+      "primary_key": ["employee_id"],
+      "columns": {
+        "employee_id": "string",
+        "account_id": "string",
+        "site_id": "string",
+        "role": "string",
+        "employment_type": "string",
+        "hired_at": "datetime",
+        "left_at": "datetime"
+      }
+    },
+    "sites": {
+      "group": "2 organisation",
+      "file": "sites.csv",
+      "primary_key": ["site_id"],
+      "columns": {
+        "site_id": "string",
+        "account_id": "string",
+        "opened_at": "datetime",
+        "closed_at": "datetime"
+      }
+    },
+    "punches": {
+      "group": "1 punches",
+      "file": "punches.csv",
+      "primary_key": ["punch_id"],
+      "columns": {
+        "punch_id": "string",
+        "account_id": "string",
+        "employee_id": "string",
+        "site_id": "string",
+        "device_id": "string",
+        "punched_at": "datetime",
+        "direction": "string",
+        "method": "string",
+        "edited": "bool",
+        "edited_by": "string"
+      }
+    },
+    "shifts": {
+      "group": "3 planned vs actual",
+      "file": "shifts.csv",
+      "primary_key": ["shift_id"],
+      "columns": {
+        "shift_id": "string",
+        "account_id": "string",
+        "site_id": "string",
+        "employee_id": "string",
+        "planned_start": "datetime",
+        "planned_end": "datetime",
+        "published_at": "datetime",
+        "outcome": "string"
+      }
+    },
+    "absence_requests": {
+      "group": "4 absences",
+      "file": "absence_requests.csv",
+      "primary_key": ["request_id"],
+      "columns": {
+        "request_id": "string",
+        "account_id": "string",
+        "employee_id": "string",
+        "kind": "string",
+        "start_date": "datetime",
+        "end_date": "datetime",
+        "requested_at": "datetime",
+        "decided_at": "datetime",
+        "decision": "string"
+      }
+    },
+    "hours_daily": {
+      "group": "5 hours accounting",
+      "file": "hours_daily.csv",
+      "primary_key": ["account_id", "employee_id", "work_date"],
+      "columns": {
+        "account_id": "string",
+        "employee_id": "string",
+        "work_date": "datetime",
+        "regular_hours": "float",
+        "overtime_125_hours": "float",
+        "overtime_150_hours": "float",
+        "night_hours": "float",
+        "rest_violation": "bool"
+      }
+    },
+    "payroll_exports": {
+      "group": "6 payroll export",
+      "file": "payroll_exports.csv",
+      "primary_key": ["export_id"],
+      "columns": {
+        "export_id": "string",
+        "account_id": "string",
+        "period": "datetime",
+        "exported_at": "datetime",
+        "payroll_software": "string",
+        "corrections_after_export": "int"
+      }
+    },
+    "usage_daily": {
+      "group": "7 system usage",
+      "file": "usage_daily.csv",
+      "primary_key": ["account_id", "usage_date"],
+      "columns": {
+        "account_id": "string",
+        "usage_date": "datetime",
+        "admin_logins": "int",
+        "reports_viewed": "int",
+        "scheduling_active": "bool",
+        "absences_active": "bool",
+        "documents_active": "bool",
+        "messages_sent": "int",
+        "app_installs_total": "int",
+        "support_tickets": "int"
+      }
+    },
+    "devices": {
+      "group": "9 device health",
+      "file": "devices.csv",
+      "primary_key": ["device_id"],
+      "columns": {
+        "device_id": "string",
+        "account_id": "string",
+        "site_id": "string",
+        "device_type": "string",
+        "installed_at": "datetime",
+        "retired_at": "datetime"
+      }
+    },
+    "device_health_daily": {
+      "group": "9 device health",
+      "file": "device_health_daily.csv",
+      "primary_key": ["device_id", "health_date"],
+      "columns": {
+        "device_id": "string",
+        "account_id": "string",
+        "health_date": "datetime",
+        "offline_hours": "float",
+        "failed_recognitions": "int"
+      }
+    },
+    "wages": {
+      "group": "10 money",
+      "file": "wages.csv",
+      "primary_key": ["account_id", "employee_id", "effective_from"],
+      "columns": {
+        "account_id": "string",
+        "employee_id": "string",
+        "effective_from": "datetime",
+        "hourly_rate": "float"
+      }
+    }
+  }
+}

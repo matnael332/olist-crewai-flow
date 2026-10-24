@@ -9,9 +9,11 @@ model, metrics, a model card and an evaluation report.
 
 **Status.** The Olist coursework content has been removed and the core is dataset-agnostic. No
 real dataset spec exists yet; `backend/tests/toy_spec.py` is a small seeded spec that exercises
-every gate, fault, renderer, the API and the ops copilot end to end. Next steps, in order: the
-schema of the ten data groups, a synthetic data generator, the first real spec (account-month
-churn), a Docker package for an on-premises pilot.
+every gate, fault, renderer, the API and the ops copilot end to end. The schema of the first
+real dataset, `workforce_saas` (ten data groups, one row per account-month, target: cancelled
+within 60 days), is in `backend/pulse_specs/workforce_saas/SCHEMA.md`. Next steps, in order: a
+synthetic data generator for it, the spec itself (clean, features, model), a Docker package for
+an on-premises pilot.
 
 ## How it runs
 
