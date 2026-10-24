@@ -5,7 +5,8 @@ last ``test_months`` months whose 60-day outcome is known at the snapshot, a gap
 ``gap_months`` keeps every training label resolved before the first test month end, and the
 train window runs from ``train_start`` to the gap. ``SPEC`` is the spec of the synthetic dataset
 written by ``synth.py``; the hosted service builds one spec per customer with that customer's
-snapshot and first month.
+snapshot and first month: ``--spec pulse_specs.workforce_saas.spec:make_spec --spec-params
+<file>``, the file holding ``make_spec``'s keyword arguments as JSON.
 """
 
 from __future__ import annotations

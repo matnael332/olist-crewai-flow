@@ -19,6 +19,7 @@ class PipelineState(BaseModel):
     start_at: str = ""
     from_run: str = ""
     spec_ref: str = ""
+    spec_params: dict = Field(default_factory=dict)
 
     stage: str = "init"
     stages_done: list[str] = Field(default_factory=list)

@@ -70,7 +70,7 @@ class PulseFlow(Flow[PipelineState]):
     def _spec(self) -> DatasetSpec:
         """The dataset spec, loaded once (a method: the Flow metaclass getattr's every attribute)."""
         if self._dataset_spec is None:
-            self._dataset_spec = load_spec(self.state.spec_ref or None)
+            self._dataset_spec = load_spec(self.state.spec_ref or None, self.state.spec_params)
         return self._dataset_spec
 
     # ---------------------------------------------------------------- helpers
@@ -209,7 +209,12 @@ class PulseFlow(Flow[PipelineState]):
     def _check_inputs(self) -> None:
         art = self._art()
         spec = self._spec()  # SpecNotConfigured becomes a graceful check_inputs failure
-        log.info("INPUT dataset spec %s (%s)", spec.name, self.state.spec_ref or "from env")
+        log.info(
+            "INPUT dataset spec %s (%s) params=%s",
+            spec.name,
+            self.state.spec_ref or "from env",
+            self.state.spec_params or "none",
+        )
         if self.state.start_at in ("features", "modeling"):
             needed = ["clean_data.csv", "dataset_contract.json"]
             if self.state.start_at == "modeling":
