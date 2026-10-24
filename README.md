@@ -7,14 +7,16 @@ supplies the raw schema, the cleaning rules, the column catalogue, the features,
 the split windows, and the pipeline turns it into a validated clean table, a dataset contract, a
 model, metrics, a model card and an evaluation report.
 
-**Status.** The Olist coursework content has been removed and the core is dataset-agnostic. No
-real dataset spec exists yet; `backend/tests/toy_spec.py` is a small seeded spec that exercises
-every gate, fault, renderer, the API and the ops copilot end to end. The schema of the first
-real dataset, `workforce_saas` (ten data groups, one row per account-month, target: cancelled
-within 60 days), is in `backend/pulse_specs/workforce_saas/SCHEMA.md`, and `uv run synth`
-generates a seeded, byte-reproducible raw dataset for it from a causal story per account
-(`backend/pulse_specs/workforce_saas/SYNTH.md`). Next steps, in order: the spec itself (clean,
-features, model), a Docker package for an on-premises pilot.
+**Status.** The Olist coursework content has been removed and the core is dataset-agnostic.
+`backend/tests/toy_spec.py` is a small seeded spec that exercises every gate, fault, renderer, the
+API and the ops copilot end to end. The first real dataset spec is `workforce_saas` (a
+time-attendance SaaS; ten data groups, one row per customer account and month, target: cancelled
+within 60 days): `backend/pulse_specs/workforce_saas/` holds the schema (`SCHEMA.md`), a seeded
+synthetic generator (`uv run synth`, `SYNTH.md`) and the spec (`spec.py`), and the pipeline runs
+on it end to end in deterministic mode. The product is a hosted service: customers upload an
+export and run the pipeline on our server, one folder per customer (`--data-dir`, `--runs-dir`,
+`--artifacts-dir`, `--run-id`). Next steps: Docker for our server, then the site layer (login,
+upload, run, dashboard).
 
 ## How it runs
 
@@ -48,8 +50,9 @@ honour.
 ```bash
 uv sync                                                            # Python 3.13 + locked deps
 uv run ruff check . && uv run ruff format --check .
-uv run pytest                                                      # 85 tests on the toy spec and the generator
+uv run pytest                                                      # 96 tests: toy spec, generator, workforce_saas spec
 uv run synth --data-dir data                                       # workforce_saas raw data: 200 accounts, ~145 MB, < 1 min
+uv run python -m pulse_flow.run --no-llm --spec pulse_specs.workforce_saas.spec:SPEC --data-dir data   # full run, promotes to artifacts/
 uv run python -m pulse_flow.run --no-llm --spec tests.toy_spec:SPEC --data-dir <toy data> --no-promote
 uv run python -m pulse_flow.run --no-llm --no-promote               # no spec: graceful failure, exit 1
 uv run streamlit run frontend/streamlit_app.py                     # dashboard (empty until a run is promoted)
