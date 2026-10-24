@@ -1,0 +1,68 @@
+# pulse on our server: the dashboard and the API stay up, `job` runs the pipeline on demand.
+#
+#   docker compose build
+#   docker compose run --rm job synth --data-dir /srv/pulse/customers/demo/data
+#   docker compose run --rm job python -m pulse_flow.run --no-llm ...   (see DEPLOY.md)
+#   docker compose up -d
+#
+# Ports listen on the server's localhost only: there is no login until step 6, so the dashboard
+# is reached through an SSH tunnel (DEPLOY.md). PULSE_CUSTOMER picks the customer folder the
+# dashboard and the API show (default: demo).
+
+x-pulse: &pulse
+  build: .
+  image: pulse:local
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    ARTIFACTS_DIR: /srv/pulse/customers/${PULSE_CUSTOMER:-demo}/artifacts
+    RUNS_DIR: /srv/pulse/customers/${PULSE_CUSTOMER:-demo}/runs
+  volumes:
+    - pulse-data:/srv/pulse
+
+services:
+  dashboard:
+    <<: *pulse
+    command:
+      - streamlit
+      - run
+      - frontend/streamlit_app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.fileWatcherType=none
+    ports:
+      - "127.0.0.1:8501:8501"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  api:
+    <<: *pulse
+    command: ["pulse-api"]
+    environment:
+      ARTIFACTS_DIR: /srv/pulse/customers/${PULSE_CUSTOMER:-demo}/artifacts
+      RUNS_DIR: /srv/pulse/customers/${PULSE_CUSTOMER:-demo}/runs
+      PORT: "8000"
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # Not started by `up`: `docker compose run --rm job <command>`.
+  job:
+    <<: *pulse
+    profiles: [job]
+    command: ["python", "-m", "pulse_flow.run", "--help"]
+
+volumes:
+  pulse-data:

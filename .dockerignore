@@ -1,0 +1,28 @@
+# Only the code goes into the image: no data, no runs, no secrets, no local environments.
+.git
+.github
+.devcontainer
+.claude
+.vscode
+.idea
+.venv*
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.ruff_cache
+
+# Data and outputs live in the server volume, never in the image
+data
+artifacts
+artifacts.*
+runs
+customers
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# Tests and course material
+backend/tests
+frontend/tests
+*.pdf
