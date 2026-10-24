@@ -40,3 +40,11 @@ def test_quick_replies_work_without_an_llm(workspace, bundle):
     assert "2 of 2 rows scored" in scored.text
     assert scored.outputs and scored.outputs[0]["result"].summary["scored"] == 2
     assert "model.joblib" in scored.sources
+
+
+def test_workspace_reads_the_customer_folders_from_the_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("ARTIFACTS_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
+    workspace = Workspace.from_env()
+    assert workspace.artifacts == tmp_path / "artifacts"
+    assert workspace.runs == tmp_path / "runs"

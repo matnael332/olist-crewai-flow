@@ -19,6 +19,7 @@ def _forget_frontend_modules() -> None:
 def frontend_env(monkeypatch):
     monkeypatch.syspath_prepend(str(FRONTEND))
     monkeypatch.delenv("ARTIFACTS_DIR", raising=False)
+    monkeypatch.delenv("RUNS_DIR", raising=False)
     # The copilot must be deterministic in tests: no Gemini key, no passcode, default cap.
     for name in ("GEMINI_API_KEY", "COPILOT_PASSCODE", "COPILOT_MAX_MESSAGES", "COPILOT_MODEL"):
         monkeypatch.delenv(name, raising=False)

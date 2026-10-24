@@ -22,7 +22,7 @@ from pulse_copilot.workspace import insights_headline as _headline
 
 ROOT = _bootstrap.ROOT
 ARTIFACTS = Path(os.getenv("ARTIFACTS_DIR", ROOT / "artifacts"))
-RUNS = ROOT / "runs"
+RUNS = Path(os.getenv("RUNS_DIR", ROOT / "runs"))
 
 LOG_LINE = re.compile(r"^\d\d:\d\d:\d\d\s+(DEBUG|INFO|WARNING|ERROR|CRITICAL)\b")
 
