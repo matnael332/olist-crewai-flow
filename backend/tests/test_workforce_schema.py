@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from pulse_core.columns import Column
-from pulse_core.spec import DatasetSpec
 from pulse_specs.workforce_saas import columns as wf
 
 SCHEMA = Path(__file__).resolve().parents[1] / "pulse_specs" / "workforce_saas" / "raw_schema.json"
@@ -54,35 +53,22 @@ def test_clean_catalogue_is_consistent():
     assert all(isinstance(c, Column) for c in wf.COLUMNS)
 
 
-def test_catalogue_fits_the_dataset_spec_interface():
-    def not_yet(*args, **kwargs):
-        raise NotImplementedError("step 4")
+def test_real_spec_fits_the_catalogue():
+    from pulse_specs.workforce_saas.spec import SPEC
 
-    spec = DatasetSpec(
-        name="workforce_saas",
-        source="synthetic",
-        license="none",
-        grain=wf.GRAIN,
-        snapshot_date="2025-09-01",
-        id_column=wf.ID_COLUMN,
-        time_column=wf.TIME_COLUMN,
-        decision_stage=wf.DECISION_STAGE,
-        entity=wf.ENTITY,
-        decision_time="the last second of the month",
-        target=wf.TARGET,
-        target_definition=f"cancelled within {wf.HORIZON_DAYS} days of the month end",
-        target_label="churned",
-        splits={"train": ("2023-01-01", "2024-12-31"), "test": ("2025-01-01", "2025-06-30")},
-        columns=wf.COLUMNS,
-        clean=not_yet,
-        patterns=wf.PATTERNS,
-        bounds=wf.BOUNDS,
-        constraints=wf.CONSTRAINTS,
-        allowed_values=wf.ALLOWED_VALUES,
-        feature_definitions=(),
-        required_features=(),
-        forbidden_features=wf.FORBIDDEN,
-        derive_features=not_yet,
-        eda_summary=not_yet,
-    )
-    assert spec.dtypes[wf.TARGET] == "bool" and spec.model_features == []
+    assert SPEC.dtypes[wf.TARGET] == "bool"
+    assert SPEC.id_column == wf.ID_COLUMN and SPEC.time_column == wf.TIME_COLUMN
+    ids = [c["id"] for c in wf.CONSTRAINTS]
+    assert len(set(ids)) == len(ids)
+    by_id = {c["id"]: c for c in wf.CONSTRAINTS}
+    assert by_id["C02"]["where_not_null"] == ["days_to_cancel"]
+    assert "C05" in by_id
+    decision = {c.name for c in wf.COLUMNS if c.available_at == wf.DECISION_STAGE}
+    names = [f["name"] for f in SPEC.feature_definitions]
+    assert len(set(names)) == len(names) == len(SPEC.model_features)
+    for feature in SPEC.feature_definitions:
+        assert set(feature["derived_from"]) <= decision, feature["name"]
+        assert feature["kind"] in ("numeric", "categorical")
+        assert feature["name"] not in wf.FORBIDDEN
+    assert {f["name"] for f in SPEC.required_features} <= set(names)
+    assert set(SPEC.splits) == {"train", "horizon_gap", "test"}

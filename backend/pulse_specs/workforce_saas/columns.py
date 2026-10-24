@@ -151,7 +151,14 @@ CONSTRAINTS = (
         "id": "C02",
         "type": "query",
         "query": f"{TARGET} == ((days_to_cancel >= 1) & (days_to_cancel <= {HORIZON_DAYS}))",
+        "where_not_null": ["days_to_cancel"],
         "description": "target definition",
+    },
+    {
+        "id": "C05",
+        "type": "query",
+        "query": f"~{TARGET} | (days_to_cancel >= 1)",
+        "description": "a churned month has a positive days_to_cancel",
     },
     {
         "id": "C03",
