@@ -18,8 +18,9 @@ artifacts.prev-*/
 artifacts.staging-*/
 *.tmp
 
-# Generated datasets (regenerate with `uv run synth`)
+# Generated datasets and promoted runs; on the server both live in the customer's own folder
 /data/
+/artifacts/
 
 # Course material (not ours to redistribute)
 /Final Project.pdf
