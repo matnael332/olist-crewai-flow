@@ -125,3 +125,5 @@ timestamp format are never touched, so `load_raw_tables` always succeeds.
   (rule C03) holds by construction.
 - The truth files are for checking the model, never for training: the pipeline must not read
   `truth/`.
+- `clean.py` implements these notes; `tests/test_workforce_spec.py` checks the clean table and the
+  model against the truth files.

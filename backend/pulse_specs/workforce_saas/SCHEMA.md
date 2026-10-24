@@ -167,19 +167,40 @@ is computable from events up to that moment. Splits are day-granular windows on 
 **Post-decision columns** (never features): `cancelled_at`, `days_to_cancel`.
 
 **Binding rules** (checked by the contract gate): C01 one row per account and month; C02 the
-target equals `1 <= days_to_cancel <= 60`; C03 an active site needs an active employee; C04 day
-counts fit in a month; every share and rate in [0, 1]; counts non-negative; `modules_active` in
-0..3; industry, region and plan from fixed lists.
+target equals `1 <= days_to_cancel <= 60` wherever `days_to_cancel` is known; C03 an active site
+needs an active employee; C04 day counts fit in a month; C05 a churned month has a positive
+`days_to_cancel`; every share and rate in [0, 1]; counts non-negative; `modules_active` in 0..3;
+industry, region and plan from fixed lists.
 
-## Candidate features (decided in step 4)
+**The clean step** (`clean.py`, step 4). The spine is every calendar month from the sign-up month
+to the last month alive; the funnel drops R1 months whose outcome is unknown at the snapshot
+(`month_end + 60 days` after it), R2 the cancellation month itself, R3 months without a billing
+row. Before that, the raw export is normalised and every fix counted (`raw_fixes`): exact
+duplicate rows, enum spelling (`App`, `WORKED`, `Sick`, `mobile` -> `app`), swapped start/end
+dates. `in_trial` means the trial was still running at the month start; `payroll_exported` means
+the previous month was exported by this month end; `days_to_cancel` is the ceiling of the seconds
+between the month end and the cancellation, in days; shares are 0 when there is nothing to count
+and the nullable rates are null.
 
-Level features: every `month_end` column except the identifiers and `month_end` itself.
+**Time windows** are derived from the snapshot by `spec.make_spec(snapshot_date)`: the test window
+is the last six months with a known outcome, a two-month gap keeps every training label resolved
+before the first test month end, and the train window runs from the first month to the gap. For
+the synthetic data (snapshot 2025-09-01): train 2022-01 .. 2024-10, gap 2024-11 .. 2024-12, test
+2025-01 .. 2025-06.
 
-Trend features, computed inside the panel and therefore allowed: the change versus the previous
-month and versus the mean of the previous three months for `punches`, `active_employees`,
-`seats`, `admin_login_days`, `modules_active`, `overtime_share`, `payroll_exported`; the number of
-consecutive months without a payroll export; the number of consecutive months with
-`admin_login_days == 0`.
+## Features (step 4)
 
-Required features (first guess): `tenure_months`, `seats`, `punches`, `active_employees`,
-`admin_login_days`, `modules_active`, `payroll_exported`, `plan`, `industry`.
+57 features, declared in `features.py`:
+
+- **Level** (41): every `month_end` column except the identifiers and `month_end` itself. Booleans
+  as 0/1; `industry`, `region` and `plan` are categorical; the nullable rates stay nullable.
+- **Trend** (14): for `punches`, `active_employees`, `seats`, `admin_login_days`, `modules_active`,
+  `overtime_share` and `payroll_exported`, the change versus the previous month (`_delta_1m`) and
+  versus the mean of the previous three months (`_delta_3m`), inside the account's own history;
+  null in the account's first month.
+- **Streaks** (2): `months_without_payroll_export` and `months_without_admin_login`, consecutive
+  months of silence up to and including this one.
+
+Required features: `tenure_months`, `seats`, `punches`, `active_employees`, `admin_login_days`,
+`modules_active`, `payroll_exported`, `plan`, `industry`. Forbidden: `cancelled_at`,
+`days_to_cancel`, `churned_60d`.
