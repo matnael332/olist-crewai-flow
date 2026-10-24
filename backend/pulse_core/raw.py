@@ -100,7 +100,7 @@ def format_for_csv(df: pd.DataFrame, columns: dict[str, str]) -> pd.DataFrame:
         if kind == "datetime":
             out[name] = pd.to_datetime(column).dt.strftime(DATETIME_FORMAT).fillna("")
         elif kind == "bool":
-            out[name] = column.astype(bool)
+            out[name] = column.map({True: "True", False: "False"}).fillna("")
         elif kind == "int":
             out[name] = column.astype("Int64")
         elif kind == "float":

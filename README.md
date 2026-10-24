@@ -52,13 +52,25 @@ honour.
 ```bash
 uv sync                                                            # Python 3.13 + locked deps
 uv run ruff check . && uv run ruff format --check .
-uv run pytest                                                      # 96 tests: toy spec, generator, workforce_saas spec
+uv run pytest                                                      # 127 tests: toy spec, generator, workforce_saas spec, ingestion
 uv run synth --data-dir data                                       # workforce_saas raw data: 200 accounts, ~145 MB, < 1 min
 uv run python -m pulse_flow.run --no-llm --spec pulse_specs.workforce_saas.spec:SPEC --data-dir data   # full run, promotes to artifacts/
 uv run python -m pulse_flow.run --no-llm --spec tests.toy_spec:SPEC --data-dir <toy data> --no-promote
 uv run python -m pulse_flow.run --no-llm --no-promote               # no spec: graceful failure, exit 1
 uv run streamlit run frontend/streamlit_app.py                     # dashboard (empty until a run is promoted)
 uv run pulse-api                                                   # prediction API on http://127.0.0.1:8000
+```
+
+A customer's own export (any structure) goes through the ingestion first: it proposes a mapping, a person
+approves it, and `apply` writes the data folder, the spec params and the entity map, then deletes the
+export. `scramble` turns the synthetic data into an export that looks like a real one (Hebrew, Excel,
+a file per month, Israeli dates, personal columns we must not keep):
+
+```bash
+uv run python -m pulse_specs.workforce_saas.scramble data/raw --out customer.zip
+uv run pulse-ingest propose customer.zip --customer-dir customer [--no-llm]   # prints the mapping to review
+uv run pulse-ingest approve --customer-dir customer --ingestion <id>
+uv run pulse-ingest apply   --customer-dir customer --ingestion <id>          # prints the pipeline command
 ```
 
 The same inside Docker, on the server volume (`DEPLOY.md` has the full guide; CI runs these):
@@ -103,6 +115,8 @@ backend/
   pulse_api/         Flask prediction API: record validation from feature_spec.json, risk policy,
                      batch scoring
   pulse_copilot/     Ops copilot: read-only tools, the Gemini loop, instant answers
+  pulse_ingest/      ingestion: safe unzip, readers (Excel, cp1255), profile, mapping (rules + LLM on
+                     names only), normalisation, pseudonyms, the pulse-ingest CLI
   tests/             tests + toy_spec.py (the synthetic DatasetSpec they run on)
 frontend/            Streamlit dashboard (reads artifacts/ only): copilot, model, contract, runs
 scripts/             repository hygiene check
