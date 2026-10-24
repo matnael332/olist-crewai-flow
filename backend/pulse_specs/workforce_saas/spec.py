@@ -17,9 +17,10 @@ import pandas as pd
 
 from pulse_core.spec import DatasetSpec
 from pulse_specs.workforce_saas import columns as wf
-from pulse_specs.workforce_saas.clean import HORIZON, clean_tables
+from pulse_specs.workforce_saas.clean import HORIZON, clean_tables, score_rows
 from pulse_specs.workforce_saas.eda import eda_figures, eda_summary
 from pulse_specs.workforce_saas.features import (
+    REASON_CODES,
     REQUIRED_FEATURES,
     derive_features,
     feature_definitions,
@@ -211,6 +212,9 @@ def make_spec(
         eda_summary=eda_summary,
         eda_figures=eda_figures,
         model_card_items=card,
+        entity_column="account_id",
+        score_rows=partial(score_rows, snapshot=pd.Timestamp(snapshot_date), groups=groups),
+        reason_codes=REASON_CODES,
     )
 
 

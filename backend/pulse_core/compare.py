@@ -21,6 +21,8 @@ BYTE_IDENTICAL = (
     "metrics.json",
     "predictions_test.csv",
 )
+# byte-identical when the spec scores the snapshot; absent from both folders otherwise
+BYTE_IDENTICAL_IF_SCORED = ("score_rows.csv", "scores_current.csv", "reasons.json")
 JSON_WITHOUT = {
     "dataset_contract.json": ("assumptions", "business_rules", "column_notes", "known_limitations"),
     "feature_spec.json": ("narrative", "contract_sha256", "input_validation"),
@@ -55,7 +57,8 @@ def compare_dirs(a: str | Path, b: str | Path) -> dict:
     def add(name: str, policy: str, result: str) -> None:
         rows.append({"artifact": name, "policy": policy, "result": result})
 
-    for name in BYTE_IDENTICAL:
+    scored = [n for n in BYTE_IDENTICAL_IF_SCORED if (a / n).exists() or (b / n).exists()]
+    for name in (*BYTE_IDENTICAL, *scored):
         if not (a / name).exists() or not (b / name).exists():
             add(name, "byte-identical", "missing")
             continue
